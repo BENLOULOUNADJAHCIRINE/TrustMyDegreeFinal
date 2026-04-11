@@ -1,18 +1,18 @@
 import styles from "./admin.module.css";
 import Navbar from "../admin/Navbar";
-import { Outlet,useNavigate } from "react-router-dom"; //my mistake here
+import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+
 function Admin() {
   const navigate = useNavigate();
 
-  //the authentication check
-  // useEffect(() => {
-  //   const token = localStorage.getItem("token");
-
-  //   if (!token) {
-  //     navigate("/", { replace: true });
-  //   }
-  // }, []);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    if (!token || (role !== "ADMIN" && role !== "SUPER_ADMIN")) {
+      navigate("/", { replace: true });
+    }
+  }, []);
 
   return (
     <div className={styles.admin}>
@@ -21,10 +21,6 @@ function Admin() {
       </div>
       <div className={styles.content}>
         <Outlet />
-
-        {/* <AddCertificate /> */}
-        {/* <CertificateList /> */}
-        {/* <Statistics /> */}
       </div>
     </div>
   );

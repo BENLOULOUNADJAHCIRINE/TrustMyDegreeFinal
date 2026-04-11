@@ -1,50 +1,48 @@
 import styles from "./RequestStudent.module.css";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import api from "../../api";
 
 function RequestStudent() {
   const editorRef = useRef(null);
-
   const [user, setUser] = useState(null);
   const [doc, setDoc] = useState("");
   const [reason, setReason] = useState("");
   const [delivery, setDelivery] = useState("");
   const [priority, setPriority] = useState("");
   const [openMenu, setOpenMenu] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/student/user", {
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  },
-})
-      .then((response) => response.json())
-      .then((data) => setUser(data))
+    api.get("/student/dashboard")
+      .then((res) => {
+        setUser({ name: res.data.fullName, isGraduated: res.data.isGraduated });
+      })
       .catch((err) => console.log(err));
   }, []);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-
-    fetch("https://localhost:500/request", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ doc, reason, delivery, priority }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-
-        setDoc("");
-        setReason("");
-        setDelivery("");
-        setPriority("");
-
-        if (editorRef.current) {
-          editorRef.current.textContent = "";
-        }
-      })
-      .catch((err) => window.alert(err));
+    setSuccess("");
+    setError("");
+    try {
+      await api.post("/student/requests", {
+        documentType: doc,
+        reason,
+        delivery: delivery.toUpperCase(),
+        priority: priority.toUpperCase(),
+      });
+      setSuccess("Request submitted successfully! ✅");
+      setDoc("");
+      setReason("");
+      setDelivery("");
+      setPriority("");
+      if (editorRef.current) editorRef.current.textContent = "";
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong");
+    }
   }
 
   function clear() {
@@ -52,22 +50,19 @@ function RequestStudent() {
     setReason("");
     setDelivery("");
     setPriority("");
-    if (editorRef.current) {
-      editorRef.current.textContent = "";
-    }
+    if (editorRef.current) editorRef.current.textContent = "";
   }
 
   useEffect(() => {
-    window.scrollTo(0, 0); // scroll to top
+    window.scrollTo(0, 0);
   }, []);
 
-  const navigate = useNavigate();
-
-  // log out function
   const handleLogout = () => {
-    localStorage.removeItem("token"); // remove auth
-    navigate("/", { replace: true });//remove the browser back button open paltform.
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    navigate("/", { replace: true });
   };
+
   return (
     <div className={styles["main-content"]}>
       <div className={styles.login}>
@@ -81,30 +76,19 @@ function RequestStudent() {
           {openMenu && (
             <div className={styles.menu}>
               <ul className={styles.list}>
-                <li>
-                  <Link to="/student/Settings">Parameters</Link>
-                </li>
+                <li><Link to="/student/Settings">Parameters</Link></li>
               </ul>
             </div>
           )}
         </div>
 
         <div className={styles.info}>
-          <img
-            src={user?.avatar || "/totalcertaficates.png"}
-            alt="ava"
-            className={styles.student}
-          />
+          <img src="/totalcertaficates.png" alt="ava" className={styles.student} />
           <div className={styles.subinfo}>
-            <h4>{user ? user.name : "guest"}</h4>{" "}
-            <p>{user ? user.id : "fake id"}</p>
+            <h4>{user ? user.name : "guest"}</h4>
+            <p>{user?.isGraduated ? "Graduated ✅" : "Not graduated yet"}</p>
           </div>
-          <img
-            src="/exit.png"
-            alt="exit"
-            onClick={handleLogout}
-            className={styles.exit}
-          />
+          <img src="/exit.png" alt="exit" onClick={handleLogout} className={styles.exit} />
         </div>
       </div>
 
@@ -121,6 +105,9 @@ function RequestStudent() {
           </p>
         </div>
 
+        {success && <p style={{ color: "green", marginBottom: "10px" }}>{success}</p>}
+        {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
+
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.document}>
             <label>1. Document Type</label>
@@ -128,6 +115,7 @@ function RequestStudent() {
               type="text"
               value={doc}
               onChange={(e) => setDoc(e.target.value)}
+              required
             />
           </div>
 
@@ -135,7 +123,7 @@ function RequestStudent() {
             <label>2. Reason for Request</label>
             <div
               ref={editorRef}
-              contenteditable="true"
+              contentEditable="true"
               className={styles.editor}
               onInput={(e) => setReason(e.currentTarget.textContent)}
             ></div>
@@ -176,13 +164,8 @@ function RequestStudent() {
 
           <div className={styles.priority}>
             <label>4. Priority Level</label>
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-            >
-              <option value="" disabled>
-                Choose
-              </option>
+            <select value={priority} onChange={(e) => setPriority(e.target.value)} required>
+              <option value="" disabled>Choose</option>
               <option value="urgent">Urgent</option>
               <option value="normal">Normal</option>
             </select>
@@ -190,15 +173,13 @@ function RequestStudent() {
 
           <div className={styles.buttons}>
             <input type="submit" value="Submit Request" />
-            <button type="button" onClick={clear}>
-              Cancel
-            </button>
+            <button type="button" onClick={clear}>Cancel</button>
           </div>
         </form>
       </div>
 
       <div className={styles.bottom}>
-        <h4>Secured by TrustMyDegree Protocol • </h4>
+        <h4>Secured by TrustMyDegree Protocol •</h4>
       </div>
     </div>
   );

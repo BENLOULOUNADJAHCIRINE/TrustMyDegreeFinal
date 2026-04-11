@@ -3,14 +3,14 @@ import { useEffect } from "react";
 
 function Student() {
   const navigate = useNavigate();
-  //the authentication check
-  // useEffect(() => {
-  //   const token = localStorage.getItem("token");
 
-  //   if (!token) {
-  //     navigate("/", { replace: true });
-  //   }
-  // }, []);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    if (!token || role !== "STUDENT") {
+      navigate("/", { replace: true });
+    }
+  }, []);
 
   return (
     <div>
