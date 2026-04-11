@@ -11,11 +11,11 @@ function Settings() {
   const [openMenu, setOpenMenu] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/student/user",{
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  },
-})
+    fetch("http://localhost:5000/api/student/dashboard", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
       .then((response) => response.json())
       .then((data) => setUser(data))
       .catch((err) => console.log(err));
@@ -35,10 +35,13 @@ function Settings() {
       return;
     }
 
-    fetch("http://localhost:5000/password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, currentPassword, newPassword }),
+    fetch("http://localhost:5000/api/student/settings", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
     })
       .then((reponse) => reponse.json())
       .then((data) => {
@@ -66,7 +69,7 @@ function Settings() {
   // log out function
   const handleLogout = () => {
     localStorage.removeItem("token"); // remove auth
-    navigate("/", { replace: true });//remove the browser back button open paltform.
+    navigate("/", { replace: true }); //remove the browser back button open paltform.
   };
 
   return (
