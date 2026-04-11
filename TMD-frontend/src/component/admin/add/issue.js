@@ -1,27 +1,26 @@
 import styles from "./issue.module.css";
 import { useState } from "react";
 import { useEffect } from "react";
+import api from "../../../api";
 
 function Issue() {
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({ date: "", file: null });
   const [fileKey, setFileKey] = useState(0);
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/auth/user", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    }) // fetch the user who logged in
-      .then((res) => res.json())
-      .then((data) => setUser(data))
+    // ✅ get user info from dashboard instead
+    api.get("/admin/dashboard")
+      .then((res) => {
+        setUser({ name: "Admin", email: localStorage.getItem("email") || "" });
+      })
       .catch((err) => console.log(err));
   }, []);
 
-  // handle all rhe changes
   function handleChange(e) {
     const { name, value, files } = e.target;
-
     if (name === "file") {
       setFormData({ ...formData, file: files[0] });
     } else {
@@ -31,33 +30,38 @@ function Issue() {
 
   function handleReset() {
     setFormData({ date: "", file: null });
-    setFileKey((k) => k + 1); // remounts the file input, clearing it
+    setFileKey((k) => k + 1);
+    setSuccess("");
+    setError("");
   }
 
-  //submite function
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    console.log("form submited");
+    setSuccess("");
+    setError("");
+
+    if (!formData.file) {
+      setError("Please upload an Excel file");
+      return;
+    }
+    if (!formData.date) {
+      setError("Please select a graduation date");
+      return;
+    }
 
     const form = new FormData();
-    form.append("date", formData.date);
-    form.append("file", formData.file);
+    form.append("graduationDate", formData.date);
+    form.append("excel", formData.file); // ✅ backend expects "excel"
 
-    fetch("http://localhost:5000/api/admin/certificates", {
-      //change the api to the backend
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-      body: form,
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("SUCCESS:", data);
-        alert("Certificates issued successfully");
-        handleReset();
-      })
-      .catch((err) => console.log(err));
+    try {
+      const res = await api.post("/admin/import", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setSuccess(`✅ ${res.data.created} certificates issued successfully!`);
+      handleReset();
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong");
+    }
   }
 
   return (
@@ -71,7 +75,7 @@ function Issue() {
             <h4>{user ? user.name : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
-          <img src={user?.avatar || "/totalcertaficates.png"} alt="avatar" />
+          <img src="/totalcertaficates.png" alt="avatar" />
         </div>
       </div>
 
@@ -109,10 +113,13 @@ function Issue() {
               </div>
             </div>
 
+            {success && <p style={{ color: "green", textAlign: "center" }}>{success}</p>}
+            {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
+
             <div className={styles.sndrow}>
               <div className={styles.upload}>
                 <img src="/hand.png" alt="file" className={styles.hand} />
-                <label className={styles.lab}> Drag & drop xlxs.file</label>
+                <label className={styles.lab}>Drag & drop xlxs.file</label>
                 <input
                   className={styles.file}
                   type="file"
@@ -124,19 +131,10 @@ function Issue() {
             </div>
 
             <div className={styles.buts}>
-              <button
-                className={styles.cancle}
-                type="button"
-                onClick={handleReset}
-              >
+              <button className={styles.cancle} type="button" onClick={handleReset}>
                 Cancel
               </button>
-
-              <input
-                className={styles.issue}
-                type="submit"
-                value="ISSUE CERTIFICATE"
-              />
+              <input className={styles.issue} type="submit" value="ISSUE CERTIFICATE" />
             </div>
           </form>
         </div>
