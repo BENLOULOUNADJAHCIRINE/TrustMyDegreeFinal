@@ -1,5 +1,4 @@
 import styles from "./dashboard.module.css";
-import activitiesData from "./datalist.json"; //json data
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
@@ -20,29 +19,16 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/auth/stateRow", {
+    fetch("http://localhost:5000/api/admin/dashboard", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-    }) // Fetch dashboard row from the backend API
+    })
       .then((res) => res.json())
-      .then((data) => setStats(data))
-      .catch((err) => console.log(err));
-  }, []);
-
-  // useEffect(() => {
-  //   fetch("http://localhost:5000/api/auth/activities", {
-  //     headers: {
-  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //     },
-  //   }) // Fetch recent activities from the backend API
-  //     .then((res) => res.json())
-  //     .then((data) => setActivities(data))
-  //     .catch((err) => console.log(err));
-  // }, []);
-
-  useEffect(() => {
-    setActivities(activitiesData); //json data
+      .then((data) => {
+        setStats(data); // → totalCertificates, activeCertificates, revokedCertificates, verifications
+        setActivities(data.recentActivity); // → recent activity list
+      });
   }, []);
 
   function handleSync() {
@@ -101,7 +87,7 @@ function Dashboard() {
         <div className={styles["verifications"]}>
           <img src="/verifycert.png" alt="ver" />
           <h5>Verifications</h5>
-          <h2>{stats ? stats.verifications : "..."}</h2>{" "}
+          <h2>{stats ? stats.totalVerifications : "..."}</h2>{" "}
           {/*Display verifications from stats or show "..." if stats is not loaded yet*/}
         </div>
       </div>
@@ -122,16 +108,20 @@ function Dashboard() {
                   <div className={styles.leftside}>
                     <img src="/stdicon.jpg" alt="atdicon" />
                     <div className={styles.codename}>
-                      <h5>{act.name}</h5>
-                      <p>{act.code}</p>
+                      <h5>{act.student?.fullName}</h5>
+                      <p>{act.uniqueCode}</p>
                     </div>
                   </div>
                   <div className={styles.rightside}>
-                    <p>{act.time}</p>
+                    <p>
+                      {new Date(act.issueDate)
+                        .toLocaleDateString("fr-FR")
+                        .replaceAll("/", "-")}
+                    </p>
 
                     <span
                       className={`${styles.status} ${
-                        act.status.toLowerCase() === "issued"
+                        act.status.toLowerCase() === "active"
                           ? styles.issued
                           : act.status.toLowerCase() === "revoked"
                             ? styles.revoked

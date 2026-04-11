@@ -8,20 +8,20 @@ const universityDB = require("../config/universityDB");
 // main admin dashboard
 const dashboard = async (req, res) => {
   try {
-    const totalCertficates = await prisma.certificate.count();
+    const totalCertificates = await prisma.certificate.count();
 
-    const activeCertificate = await prisma.certificate.count({
+    const activeCertificates = await prisma.certificate.count({
       where: { status: "ACTIVE" },
     });
 
-    const revokedCertificate = await prisma.certificate.count({
+    const revokedCertificates = await prisma.certificate.count({
       where: { status: "REVOKED" },
     });
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const totalVerification = await prisma.verification.count({
+    const totalVerifications = await prisma.verification.count({
       where: {
         verifiedAt: { gte: thirtyDaysAgo },
       },
@@ -37,10 +37,10 @@ const dashboard = async (req, res) => {
       },
     });
     res.status(200).json({
-      totalCertficates,
-      activeCertificate,
-      revokedCertificate,
-      totalVerification,
+      totalCertificates,
+      activeCertificates,
+      revokedCertificates,
+      totalVerifications,
       recentActivity,
     });
   } catch (err) {
@@ -155,7 +155,7 @@ const handleRequestDocument = async (req, res) => {
         </a>
         <p style="color: #888; font-size: 12px; margin-top: 16px;">
           If the button doesn't work, copy this link: http://localhost:3000/login
-        </p>`
+        </p>`,
       );
     } else {
       await sendEmail(
@@ -179,7 +179,7 @@ const handleRequestDocument = async (req, res) => {
         </a>
         <p style="color: #888; font-size: 12px; margin-top: 16px;">
           If the button doesn't work, copy this link: http://localhost:3000/login
-        </p>`
+        </p>`,
       );
     }
     res.status(200).json({ message: "File uploaded succesfully" });
@@ -260,7 +260,7 @@ const syncStudents = async (req, res) => {
         continue;
       }
 
-     const dateOfBirth = student.date_of_birth.toLocaleDateString("en-CA");
+      const dateOfBirth = student.date_of_birth.toLocaleDateString("en-CA");
       const hashed = await bcrypt.hash(dateOfBirth, 10);
       await prisma.user.create({
         data: {
@@ -382,7 +382,7 @@ const importDiplomas = async (req, res) => {
         </a>
         <p style="color: #888; font-size: 12px; margin-top: 16px;">
           If the button doesn't work, copy this link: http://localhost:3000/login
-        </p>`
+        </p>`,
       );
 
       created++;
@@ -455,14 +455,12 @@ const getStatistics = async (req, res) => {
         verificationsPerDay[day] = 1;
       }
     });
-    res
-      .status(200)
-      .json({
-        DistributionByType,
-        topSpecialties,
-        monthlyIssuance,
-        verificationsPerDay,
-      });
+    res.status(200).json({
+      DistributionByType,
+      topSpecialties,
+      monthlyIssuance,
+      verificationsPerDay,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "an error occurred in the server" });
