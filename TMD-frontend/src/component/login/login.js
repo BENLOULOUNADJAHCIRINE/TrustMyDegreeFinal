@@ -9,13 +9,7 @@ function Login() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-    if (token && role === "ADMIN") navigate("/admin", { replace: true });
-    if (token && role === "SUPER_ADMIN") navigate("/admin", { replace: true });
-    if (token && role === "STUDENT") navigate("/student", { replace: true });
-  }, []);
+ 
 
   async function handleSubmit(e) {
     e.preventDefault();
