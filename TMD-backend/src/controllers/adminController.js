@@ -400,6 +400,75 @@ const importDiplomas = async (req, res) => {
   }
 };
 
+// get statistics
+const getStatistics = async (req, res) => {
+  try {
+    const totalMaster = await prisma.certificate.count({
+      where: { type: "MASTER" },
+    });
+    const totalEngineer = await prisma.certificate.count({
+      where: { type: "ENGINEER" },
+    });
+    const totalstages = await prisma.certificate.count({
+      where: { type: "STAGE" },
+    });
+    const DistributionByType = {
+      MASTER: totalMaster,
+      ENGINEER: totalEngineer,
+      STAGE: totalstages,
+    };
+    const topSpecialties = await prisma.certificate.groupBy({
+      by: ["specialty"],
+      _count: {
+        specialty: true,
+      },
+      orderBy: {
+        _count: {
+          specialty: "desc",
+        },
+      },
+      take: 5,
+    });
+    const certificates = await prisma.certificate.findMany();
+    const monthlyIssuance = {};
+    certificates.forEach((cert) => {
+      const month = new Date(cert.issueDate).toLocaleString("fr-FR", {
+        month: "short",
+      });
+      if (monthlyIssuance[month]) {
+        monthlyIssuance[month]++;
+      } else {
+        monthlyIssuance[month] = 1;
+      }
+    });
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const verifications = await prisma.verification.findMany({
+      where: { verifiedAt: { gte: thirtyDaysAgo } },
+    });
+    const verificationsPerDay = {};
+    verifications.forEach((v) => {
+      const day = new Date(v.verifiedAt).toISOString().split("T")[0];
+      if (verificationsPerDay[day]) {
+        verificationsPerDay[day]++;
+      } else {
+        verificationsPerDay[day] = 1;
+      }
+    });
+    res
+      .status(200)
+      .json({
+        DistributionByType,
+        topSpecialties,
+        monthlyIssuance,
+        verificationsPerDay,
+      });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "an error occurred in the server" });
+  }
+};
+
 module.exports = {
   changePassword,
   revokeCertificate,
@@ -409,4 +478,5 @@ module.exports = {
   handleRequestStatus,
   handleRequestDocument,
   importDiplomas,
+  getStatistics,
 };
