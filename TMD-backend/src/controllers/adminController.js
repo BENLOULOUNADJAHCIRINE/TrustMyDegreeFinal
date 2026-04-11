@@ -139,15 +139,47 @@ const handleRequestDocument = async (req, res) => {
         "Request Approved",
         `<h2>Hello ${findRequest.student.fullName}</h2>
         <p>Your request for <strong>${findRequest.documentType}</strong> has been approved.</p>
-        <p>You can download your document from your dashboard.</p>`,
+        <p>You can download your document from your dashboard.</p>
+        <a href="http://localhost:3000/login" 
+          style="
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4F46E5;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 16px;
+          ">
+          Login to Dashboard
+        </a>
+        <p style="color: #888; font-size: 12px; margin-top: 16px;">
+          If the button doesn't work, copy this link: http://localhost:3000/login
+        </p>`
       );
     } else {
       await sendEmail(
         findRequest.student.email,
         "Request Rejected",
         `<h2>Hello ${findRequest.student.fullName}</h2>
-       <p>Your request for <strong>${findRequest.documentType}</strong> has been rejected.</p>
-      <p>Please contact your university for more information.</p>`,
+        <p>Your request for <strong>${findRequest.documentType}</strong> has been rejected.</p>
+        <p>Please contact your university for more information.</p>
+        <a href="http://localhost:3000/login" 
+          style="
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4F46E5;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 16px;
+          ">
+          Login to Dashboard
+        </a>
+        <p style="color: #888; font-size: 12px; margin-top: 16px;">
+          If the button doesn't work, copy this link: http://localhost:3000/login
+        </p>`
       );
     }
     res.status(200).json({ message: "File uploaded succesfully" });
@@ -189,12 +221,10 @@ const changePassword = async (req, res) => {
       where: { id: userId },
     });
     const { currentPassword, newPassword } = req.body;
-    // check if the current password is correct
     const identical = await bcrypt.compare(currentPassword, student.password);
     if (!identical) {
       return res.status(400).json({ message: "Current password is false" });
     }
-    // hash the new password and update it in the database
     const newHashedPassword = await bcrypt.hash(newPassword, 10);
     await prisma.user.update({
       where: { id: userId },
@@ -230,7 +260,7 @@ const syncStudents = async (req, res) => {
         continue;
       }
 
-      const dateOfBirth = student.date_of_birth.toISOString().split("T")[0];
+     const dateOfBirth = student.date_of_birth.toLocaleDateString("en-CA");
       const hashed = await bcrypt.hash(dateOfBirth, 10);
       await prisma.user.create({
         data: {
@@ -241,6 +271,7 @@ const syncStudents = async (req, res) => {
           dateOfBirth: dateOfBirth,
           placeOfBirth: student.place_of_birth,
           isGraduated: student.is_graduated,
+          email: student.email,
         },
       });
       created++;
@@ -270,7 +301,6 @@ const importDiplomas = async (req, res) => {
       return res.status(400).json({ message: "graduationDate is required" });
     }
 
-    // Read the excel file
     const workbook = XLSX.read(file.data);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
@@ -283,21 +313,17 @@ const importDiplomas = async (req, res) => {
     const errors = [];
 
     for (const row of rows) {
-      // Find student by matricule
       const student = await prisma.user.findUnique({
         where: { matricule: String(row.matricule) },
       });
 
-      // If student not found skip
       if (!student) {
         errors.push({ matricule: row.matricule, error: "student not found" });
         continue;
       }
 
-      // Generate unique code
       const uniqueCode = `CERT-${student.matricule}-${Date.now()}`;
 
-      // Create certificate in DB
       const certificate = await prisma.certificate.create({
         data: {
           studentId: student.id,
@@ -313,7 +339,6 @@ const importDiplomas = async (req, res) => {
         },
       });
 
-      // Generate PDF
       const pdfPath = await generateDiplomaPDF({
         fullName: student.fullName,
         specialty: row.specialty,
@@ -326,17 +351,39 @@ const importDiplomas = async (req, res) => {
         uniqueCode: uniqueCode,
       });
 
-      // Save PDF path to certificate
       await prisma.certificate.update({
         where: { id: certificate.id },
         data: { fileUrl: pdfPath },
       });
 
-      // Update student isGraduated
       await prisma.user.update({
         where: { id: student.id },
         data: { isGraduated: true },
       });
+
+      // ✅ Send email notification with login button
+      await sendEmail(
+        student.email,
+        "Your Diploma is Ready 🎓",
+        `<h2>Congratulations ${student.fullName}!</h2>
+        <p>Your diploma is now available on your dashboard.</p>
+        <a href="http://localhost:3000/login" 
+          style="
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4F46E5;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 16px;
+          ">
+          Login to Dashboard
+        </a>
+        <p style="color: #888; font-size: 12px; margin-top: 16px;">
+          If the button doesn't work, copy this link: http://localhost:3000/login
+        </p>`
+      );
 
       created++;
     }
