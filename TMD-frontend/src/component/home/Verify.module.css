@@ -88,14 +88,40 @@
   box-shadow: 1px 1px 9px blue;
 }
 
-.main-content > div {
+.successBox,
+.errorBox {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 320px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.successBox {
+  background: #d1fae5;
+  border: 1px solid #10b981;
+  color: #065f46;
+}
+
+.errorBox {
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #991b1b;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottomStatus {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin-top: 30px;
+  margin-top: 20px;
 }
-
 .online {
   display: flex;
   flex-direction: row;
