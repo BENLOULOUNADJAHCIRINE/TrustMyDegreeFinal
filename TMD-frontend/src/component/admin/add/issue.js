@@ -11,7 +11,7 @@ function Issue() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // ✅ get user info from dashboard instead
+    // get user info from dashboard instead
     api.get("/admin/dashboard")
       .then((res) => {
         setUser({ name: "Admin", email: localStorage.getItem("email") || "" });
@@ -51,7 +51,7 @@ function Issue() {
 
     const form = new FormData();
     form.append("graduationDate", formData.date);
-    form.append("excel", formData.file); // ✅ backend expects "excel"
+    form.append("excel", formData.file); //  backend expects "excel"
 
     try {
       const res = await api.post("/admin/import", form, {
@@ -72,7 +72,7 @@ function Issue() {
         </div>
         <div className={styles.info}>
           <div className={styles.subinfo}>
-            <h4>{user ? user.name : "guest"}</h4>
+            <h4>{user ? user.FullName : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
           <img src="/totalcertaficates.png" alt="avatar" />
