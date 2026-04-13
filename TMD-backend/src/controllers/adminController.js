@@ -4,6 +4,8 @@ const sendEmail = require("../utils/sendEmail");
 const XLSX = require("xlsx");
 const generateDiplomaPDF = require("../utils/generatePDF");
 const universityDB = require("../config/universityDB");
+const path = require("path");
+const fs = require("fs");
 
 // main admin dashboard
 const dashboard = async (req, res) => {
@@ -46,6 +48,19 @@ const dashboard = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "an error occured in the server" });
+  }
+};
+
+// get all certificates for the list page
+const getAllCertificates = async (req, res) => {
+  try {
+    const certificates = await prisma.certificate.findMany({
+      include: { student: true },
+      orderBy: { issueDate: "desc" },
+    });
+    res.status(200).json({ certificates });
+  } catch (err) {
+    res.status(500).json({ error: "an error occurred in the server" });
   }
 };
 
@@ -94,16 +109,12 @@ const handleRequestStatus = async (req, res) => {
     if (status === "APPROVED") {
       await prisma.request.update({
         where: { id: id },
-        data: {
-          status: "APPROVED",
-        },
+        data: { status: "APPROVED" },
       });
     } else {
       await prisma.request.update({
         where: { id: id },
-        data: {
-          status: "REJECTED",
-        },
+        data: { status: "REJECTED" },
       });
     }
     res.status(200).json({ message: "Request status updated successfully" });
@@ -203,9 +214,7 @@ const revokeCertificate = async (req, res) => {
     }
     await prisma.certificate.update({
       where: { id: id },
-      data: {
-        status: "REVOKED",
-      },
+      data: { status: "REVOKED" },
     });
     res.status(200).json({ message: "Certificate revoked succesfully" });
   } catch (err) {
@@ -228,9 +237,7 @@ const changePassword = async (req, res) => {
     const newHashedPassword = await bcrypt.hash(newPassword, 10);
     await prisma.user.update({
       where: { id: userId },
-      data: {
-        password: newHashedPassword,
-      },
+      data: { password: newHashedPassword },
     });
     res.status(200).json({ message: "Password updated successfully" });
   } catch (err) {
@@ -238,7 +245,7 @@ const changePassword = async (req, res) => {
   }
 };
 
-// sync Student
+// sync students
 const syncStudents = async (req, res) => {
   try {
     const result = await universityDB.query("SELECT * FROM students");
@@ -288,7 +295,7 @@ const syncStudents = async (req, res) => {
   }
 };
 
-// import students from excel file
+// import diplomas from excel file
 const importDiplomas = async (req, res) => {
   try {
     const { graduationDate } = req.body;
@@ -319,6 +326,20 @@ const importDiplomas = async (req, res) => {
 
       if (!student) {
         errors.push({ matricule: row.matricule, error: "student not found" });
+        continue;
+      }
+
+      // ✅ NEW: prevent duplicate certificates for same student
+      const existingCert = await prisma.certificate.findFirst({
+        where: {
+          studentId: student.id,
+          specialty: row.specialty,
+          type: row.type,
+        },
+      });
+
+      if (existingCert) {
+        errors.push({ matricule: row.matricule, error: "certificate already exists" });
         continue;
       }
 
@@ -361,7 +382,6 @@ const importDiplomas = async (req, res) => {
         data: { isGraduated: true },
       });
 
-      // ✅ Send email notification with login button
       await sendEmail(
         student.email,
         "Your Diploma is Ready 🎓",
@@ -419,14 +439,8 @@ const getStatistics = async (req, res) => {
     };
     const topSpecialties = await prisma.certificate.groupBy({
       by: ["specialty"],
-      _count: {
-        specialty: true,
-      },
-      orderBy: {
-        _count: {
-          specialty: "desc",
-        },
-      },
+      _count: { specialty: true },
+      orderBy: { _count: { specialty: "desc" } },
       take: 5,
     });
     const certificates = await prisma.certificate.findMany();
@@ -466,7 +480,62 @@ const getStatistics = async (req, res) => {
     res.status(500).json({ error: "an error occurred in the server" });
   }
 };
+// admin view/download certificate
+const downloadCertificate = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const certificate = await prisma.certificate.findUnique({
+      where: { id: id },
+    });
+    if (!certificate) {
+      return res.status(404).json({ message: "Certificate not found" });
+    }
+    if (!certificate.fileUrl) {
+      return res.status(404).json({ message: "Certificate file not found" });
+    }
+    const filePath = path.resolve(certificate.fileUrl);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File does not exist on server" });
+    }
+    res.download(filePath);
+  } catch (err) {
+    res.status(500).json({ error: "an error occurred in the server" });
+  }
+};
 
+const exportCertificates = async (req, res) => {
+  try {
+    const certificates = await prisma.certificate.findMany({
+      include: { student: true },
+      orderBy: { issueDate: "desc" },
+    });
+
+    const rows = certificates.map((cert) => ({
+      "Student Name": cert.student?.fullName || "",
+      "Matricule": cert.student?.matricule || "",
+      "Type": cert.type || "",
+      "Specialty": cert.specialty || "",
+      "Mention": cert.mention || "",
+      "Faculty": cert.faculty || "",
+      "Issue Date": new Date(cert.issueDate).toLocaleDateString("fr-FR"),
+      "Status": cert.status || "",
+      "Unique Code": cert.uniqueCode || "",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Certificates");
+
+    const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+    res.setHeader("Content-Disposition", "attachment; filename=certificates.xlsx");
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.send(buffer);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "an error occurred in the server" });
+  }
+};
 module.exports = {
   changePassword,
   revokeCertificate,
@@ -477,4 +546,7 @@ module.exports = {
   handleRequestDocument,
   importDiplomas,
   getStatistics,
+  getAllCertificates, 
+   downloadCertificate,
+   exportCertificates,
 };

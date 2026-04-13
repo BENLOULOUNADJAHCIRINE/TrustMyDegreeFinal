@@ -1,4 +1,4 @@
-/* Animations */
+/* Page load animations */
 @keyframes fadeInDown {
   from { opacity: 0; transform: translateY(-20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -25,8 +25,8 @@
 }
 
 @keyframes countUp {
-  from { opacity: 0; transform: scale(0.5); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .main-content {
@@ -108,7 +108,7 @@
   transform: scale(1.1);
 }
 
-/* nav info */
+/* stats row */
 .row {
   grid-area: nav;
   display: flex;
@@ -178,6 +178,7 @@
   margin: 0;
 }
 
+/* number pushed further down */
 .total-certificates > h2,
 .active-certificates > h2,
 .revoked-certificates > h2,
@@ -186,13 +187,13 @@
   font-size: 24px;
   font-weight: 700;
   position: relative;
-  bottom: 10px;
+  top: 25px;
   left: 10px;
   margin: 0;
   animation: countUp 0.5s ease;
 }
 
-/* list */
+/* recent activity */
 .history {
   grid-area: list;
   margin-top: 40px;
@@ -270,7 +271,7 @@
   border-radius: 7px;
 }
 
-/* scroll */
+/* scrollbar */
 .activity-list::-webkit-scrollbar {
   width: 5px;
 }
@@ -357,28 +358,10 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 16px;
   padding: 20px;
   margin-top: 40px;
   animation: slideInRight 0.7s ease;
-}
-
-.quick-actions > div > button {
-  color: #007a55;
-  background-color: #d0fae5;
-  border: 1px solid #007a55;
-  border-radius: 15px;
-  padding: 10px 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 600;
-}
-
-.quick-actions > div > button:hover {
-  color: #d0fae5;
-  background-color: #007a55;
-  border: 1px solid #d0fae5;
-  transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(0, 122, 85, 0.3);
 }
 
 .quick-actions > div > h5 {
@@ -387,6 +370,43 @@
   font-weight: 700;
 }
 
+/* sync button - styled like issue certificate card */
+.quick-actions > div > button {
+  width: 100%;
+  max-width: 320px;
+  padding: 20px 25px;
+  border-radius: 40px;
+  background: linear-gradient(135deg, #0f1e3f, #1a3a7c);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.quick-actions > div > button:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(15, 30, 63, 0.35);
+  background: linear-gradient(135deg, #0f1e3f, #1a3a7c);
+  color: white;
+  border: none;
+}
+
+.quick-actions > div > button img {
+  width: 48px;
+  height: 48px;
+  transition: transform 0.3s ease;
+}
+
+.quick-actions > div > button:hover img {
+  transform: rotate(90deg);
+}
+
+/* issue certificate card */
 .actions {
   width: 100%;
   max-width: 320px;
