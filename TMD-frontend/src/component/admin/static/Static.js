@@ -3,11 +3,6 @@ import { useState, useEffect } from "react";
 import { defaults } from "chart.js/auto";
 import { Line, Bar, Doughnut } from "react-chartjs-2";
 
-import dataset from "./dataset";
-import linedata from "./linedata.json";
-import piedata from "./piedata.json";
-import heatmapdata from "./heatmapdata.json";
-
 defaults.maintainAspectRatio = false;
 defaults.responsive = true;
 
@@ -36,64 +31,51 @@ function Static() {
       .catch((err) => console.log(err));
   }, []);
 
-  // useEffect(() => {
-  //     fetch("http://localhost:5000/api/auth/bardata", {
-  //     headers: {
-  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //     },
-  //   })
-  //       .then((res) => res.json())
-  //       .then((data) => setBargraph(data))
-  //       .catch((err) => console.log(err));
-  //   }, []);
-
   useEffect(() => {
-    setBargraph(dataset);
-  }, []);
+    fetch("http://localhost:5000/api/admin/statistics", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        // Line graph - monthly issuance
+        const lineFormatted = Object.entries(data.monthlyIssuance).map(
+          ([label, value]) => ({
+            label,
+            Issuances: value,
+            verification: 0,
+          }),
+        );
+        setLinegraph(lineFormatted);
 
-  // useEffect(() => {
-  //      fetch("http://localhost:5000/api/auth/linedata", {
-  //     headers: {
-  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //     },
-  //   })
-  //       .then((res) => res.json())
-  //       .then((data) => setLinegraph(data))
-  //       .catch((err) => console.log(err));
-  //   }, []);
+        // Pie graph - distribution by type
+        const pieFormatted = Object.entries(data.distributionByType).map(
+          ([label, value]) => ({
+            label,
+            value,
+          }),
+        );
+        setPiegraph(pieFormatted);
 
-  useEffect(() => {
-    setLinegraph(linedata);
-  }, []);
+        // Bar graph - top specialties
+        const barFormatted = data.topSpecialties.map((s) => ({
+          label: s.specialty,
+          value: s._count.specialty,
+        }));
+        setBargraph(barFormatted);
 
-  // useEffect(() => {
-  //      fetch("http://localhost:5000/api/auth/piedata", {
-  //     headers: {
-  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //     },
-  //   })
-  //       .then((res) => res.json())
-  //       .then((data) =>  setPiegraph(data))
-  //       .catch((err) => console.log(err));
-  //   }, []);
-
-  useEffect(() => {
-    setPiegraph(piedata);
-  }, []);
-
-  //  useEffect(() => {
-  //   fetch("http://localhost:5000/api/auth/heatmapdata", {
-  //     headers: {
-  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //     },
-  //   })
-  //     .then((res) => res.json())
-  //     .then((data) => setHeatmap(data))
-  //     .catch((err) => console.log(err));
-  //       }, []);
-
-  useEffect(() => {
-    setHeatmap(heatmapdata);
+        // Heatmap - verifications per day
+        const heatFormatted = Object.entries(data.verificationsPerDay).map(
+          ([day, value], i) => ({
+            day,
+            week: Math.floor(i / 7),
+            value,
+          }),
+        );
+        setHeatmap(heatFormatted);
+      })
+      .catch((err) => console.log(err));
   }, []);
 
   return (
