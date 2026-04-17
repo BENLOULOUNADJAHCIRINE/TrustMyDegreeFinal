@@ -144,37 +144,33 @@ const handleRequestDocument = async (req, res) => {
       return res.status(400).json({ message: "Request not found" });
     }
 
-  
     const fileName = `${Date.now()}_${file.name}`;
     const uploadPath = path.join(__dirname, "../../uploads", fileName);
-    
+
     await file.mv(uploadPath);
 
-  
     const relativePathForDB = `uploads/${fileName}`;
 
     const updatedRequest = await prisma.request.update({
       where: { id: id },
-      data: { 
-        fileUrl: relativePathForDB, 
-        status: "APPROVED" 
+      data: {
+        fileUrl: relativePathForDB,
+        status: "APPROVED",
       },
-      include: { student: true } 
+      include: { student: true },
     });
-    
 
     await sendEmail(
       findRequest.student.email,
       "Document Ready for Download",
       `<h2>Hello ${findRequest.student.fullName}</h2>
-       <p>The document you requested (<strong>${findRequest.documentType}</strong>) is ready.</p>`
+       <p>The document you requested (<strong>${findRequest.documentType}</strong>) is ready.</p>`,
     );
 
-    res.status(200).json({ 
-      message: "File uploaded successfully", 
-      request: updatedRequest 
+    res.status(200).json({
+      message: "File uploaded successfully",
+      request: updatedRequest,
     });
-
   } catch (err) {
     console.error("Upload Error:", err);
     res.status(500).json({ error: "An error occurred on the server" });
@@ -207,8 +203,7 @@ const revokeCertificate = async (req, res) => {
 
 const changePassword = async (req, res) => {
   try {
-   
-    const adminId = req.user.userId || req.user.id; 
+    const adminId = req.user.userId || req.user.id;
     const { currentPassword, newPassword } = req.body;
 
     const admin = await prisma.user.findUnique({
@@ -219,7 +214,7 @@ const changePassword = async (req, res) => {
       return res.status(404).json({ message: "Admin account not found" });
     }
 
-   //compare
+    //compare
     const isMatch = await bcrypt.compare(currentPassword, admin.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid current password" });
@@ -277,8 +272,19 @@ const syncStudents = async (req, res) => {
           email: student.email,
         },
       });
+      await sendEmail(
+        student.email,
+        "Welcome to TrustMyDegree",
+        `<h2>Hello ${student.full_name}</h2>
+   <p>Your account has been created on TrustMyDegree.</p>
+   <p><strong>Matricule:</strong> ${student.matricule}</p>
+   <p><strong>Password:</strong> ${dateOfBirth}</p>
+   <p>Please login and change your password as soon as possible.</p>
+   <p>TrustMyDegree Team</p>`,
+      );
       created++;
     }
+
     res.json({
       message: "sync completed",
       created,
@@ -541,7 +547,6 @@ const exportCertificates = async (req, res) => {
     res.status(500).json({ error: "an error occurred in the server" });
   }
 };
-
 
 const downloadRequestFile = async (req, res) => {
   try {

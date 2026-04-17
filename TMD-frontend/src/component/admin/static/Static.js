@@ -24,45 +24,6 @@ function Static() {
     const storedUser = localStorage.getItem("user");
     if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
-
-  useEffect(() => {
-    fetch("http://localhost:5000/api/admin/statistics", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setBargraph(
-          data.topSpecialties.map((s) => ({
-            label: s.specialty,
-            value: s._count.specialty,
-          })),
-        );
-        setLinegraph(
-          data.monthlyIssuance.map((m) => ({
-            label: m.month,
-            Issuances: m.total,
-            verification: 0,
-          })),
-        );
-        setPiegraph(
-          data.distributionByType.map((d) => ({
-            label: d.type,
-            value: d._count.type,
-          })),
-        );
-        setHeatmap(
-          data.verificationsPerDay.map((v, i) => ({
-            day: v.date,
-            week: Math.floor(i / 7) + 1,
-            value: v.total,
-          })),
-        );
-      })
-      .catch((err) => console.log(err));
-  }, []);
-
   useEffect(() => {
     fetch("http://localhost:5000/api/admin/statistics", {
       headers: {
@@ -82,7 +43,7 @@ function Static() {
         setLinegraph(lineFormatted);
 
         // Pie graph - distribution by type
-        const pieFormatted = Object.entries(data.distributionByType).map(
+        const pieFormatted = Object.entries(data.DistributionByType).map(
           ([label, value]) => ({
             label,
             value,
