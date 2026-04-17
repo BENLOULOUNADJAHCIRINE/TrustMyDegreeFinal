@@ -25,6 +25,12 @@
   100% { background-position: 100% 0, 100% 100%, 0 100%, 0 0; }
 }
 
+/* ── NEW: banner slide-in ── */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .main-content {
   min-height: 100vh;
   display: grid;
@@ -254,35 +260,75 @@
   background-color: white;
 }
 
-/* upload area */
+/* ── upload area (improved) ─────────────────────────────────────────────── */
 .sndrow {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 20px 0;
+  padding: 10px 0;
 }
 
 .upload {
   width: 75%;
-  min-height: 200px;
+  min-height: 180px;
   border: 2px dashed #d1d5db;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 20px;
-  padding: 20px;
+  gap: 10px;
+  padding: 28px 20px;
   transition: all 0.3s ease;
   cursor: pointer;
   background-color: #fafafa;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(21,93,252,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.upload:hover::before {
+  opacity: 1;
 }
 
 .upload:hover {
   border-color: #155dfc;
   background-color: #f0f7ff;
   animation: pulse 1.5s infinite;
+}
+
+/* file selected state */
+.uploadReady {
+  border-color: #16a34a !important;
+  border-style: solid !important;
+  background-color: #f0fdf4 !important;
+  animation: none !important;
+}
+
+.uploadReady:hover {
+  border-color: #15803d !important;
+  background-color: #dcfce7 !important;
+}
+
+/* icon inside dropzone */
+.uploadIcon {
+  font-size: 40px;
+  line-height: 1;
+  transition: transform 0.3s ease;
+}
+
+.upload:hover .uploadIcon {
+  transform: translateY(-4px) scale(1.1);
 }
 
 .hand {
@@ -298,9 +344,15 @@
 .lab {
   font-family: arimo;
   font-size: 14px;
-  letter-spacing: 5px;
-  word-spacing: 5px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: #374151;
+}
+
+.fileSize {
+  font-size: 12px;
   color: #6a7282;
+  letter-spacing: 0.5px;
 }
 
 input[type="file"]::-webkit-file-upload-button {
@@ -319,6 +371,67 @@ input[type="file"]::-webkit-file-upload-button:hover {
   background-color: #0f1e3f;
   color: #f9fafb;
   border: 1px solid #f9fafb;
+}
+
+/* ── Success / Error banners (improved) ─────────────────────────────────── */
+.successBanner,
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  animation: slideDown 0.35s ease both;
+}
+
+.successBanner {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border: 1px solid #86efac;
+  box-shadow: 0 4px 16px rgba(22,163,74,0.12);
+}
+
+.errorBanner {
+  background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+  border: 1px solid #fca5a5;
+  box-shadow: 0 4px 16px rgba(220,38,38,0.1);
+}
+
+.successIcon,
+.errorIcon {
+  font-size: 28px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.successText,
+.errorText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.successText strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #15803d;
+  letter-spacing: 0.02em;
+}
+
+.successText span {
+  font-size: 13px;
+  color: #166534;
+}
+
+.errorText strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #b91c1c;
+  letter-spacing: 0.02em;
+}
+
+.errorText span {
+  font-size: 13px;
+  color: #991b1b;
 }
 
 /* buttons */

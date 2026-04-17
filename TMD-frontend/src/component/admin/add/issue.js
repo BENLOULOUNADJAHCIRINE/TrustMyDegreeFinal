@@ -5,7 +5,7 @@ import api from "../../../api";
 
 function Issue() {
   const [user, setUser] = useState(null);
-  const [formData, setFormData] = useState({ date: "", file: null });
+const [formData, setFormData] = useState({ date: "", file: null, templateType: "diploma" });
   const [fileKey, setFileKey] = useState(0);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -51,19 +51,20 @@ function Issue() {
 
     const form = new FormData();
     form.append("graduationDate", formData.date);
-    form.append("excel", formData.file); //  backend expects "excel"
+    form.append("excel", formData.file);
+    form.append("templateType", formData.templateType);
 
-  try {
-  const res = await api.post("/admin/import", form, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  console.log("RESPONSE:", res.data);
-  setSuccess(`✅ ${res.data.created} certificates issued successfully!`);
-  handleReset();
-} catch (err) {
-  console.log("ERROR:", err.response?.data);
-  setError(err.response?.data?.message || "Something went wrong");
-}
+    try {
+      const res = await api.post("/admin/import", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      console.log("RESPONSE:", res.data);
+      setSuccess(`✅ ${res.data.created} certificates issued successfully!`);
+      handleReset();
+    } catch (err) {
+      console.log("ERROR:", err.response?.data);
+      setError(err.response?.data?.message || "Something went wrong");
+    }
   }
 
   return (
@@ -93,6 +94,49 @@ function Issue() {
           </div>
 
           <form className={styles.send} onSubmit={handleSubmit}>
+
+            {/* Template selector — moved inside the white form */}
+            <div className={styles.slach}>
+              <img src="/slach.png" alt="slash" />
+              <h2 className={styles.h2}>Choose Template</h2>
+            </div>
+
+            <div className={styles.date}>
+              <label>Certificate Type</label>
+              <div style={{ display: "flex", gap: "15px", marginTop: "10px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                  <input
+                    type="radio"
+                    name="templateType"
+                    value="diploma"
+                    checked={formData.templateType === "diploma"}
+                    onChange={(e) => setFormData({ ...formData, templateType: e.target.value })}
+                  />
+                   Diplôme de Réussite
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                  <input
+                    type="radio"
+                    name="templateType"
+                    value="scolarite"
+                    checked={formData.templateType === "scolarite"}
+                    onChange={(e) => setFormData({ ...formData, templateType: e.target.value })}
+                  />
+                   Certificat de Scolarité
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                  <input
+                    type="radio"
+                    name="templateType"
+                    value="internship"
+                    checked={formData.templateType === "internship"}
+                    onChange={(e) => setFormData({ ...formData, templateType: e.target.value })}
+                  />
+                   Attestation de Stage
+                </label>
+              </div>
+            </div>
+
             <div className={styles.firstrow}>
               <div className={styles.slach}>
                 <img src="/slach.png" alt="slash" />
@@ -115,13 +159,18 @@ function Issue() {
               </div>
             </div>
 
-            {success && <p style={{ color: "green", textAlign: "center" }}>{success}</p>}
-            {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
-
             <div className={styles.sndrow}>
-              <div className={styles.upload}>
-                <img src="/hand.png" alt="file" className={styles.hand} />
-                <label className={styles.lab}>Drag & drop xlxs.file</label>
+              <div className={`${styles.upload} ${formData.file ? styles.uploadReady : ""}`}>
+                <div className={styles.uploadIcon}>
+                  {formData.file ? "✅" : ""}
+                </div>
+                <label className={styles.lab}>
+                  {formData.file ? formData.file.name : "Drag & drop .xlsx file here"}
+                </label>
+                {formData.file
+                  ? <span className={styles.fileSize}>{(formData.file.size / 1024).toFixed(1)} KB · Click to replace</span>
+                  : <span className={styles.fileSize}>or click to browse your files</span>
+                }
                 <input
                   className={styles.file}
                   type="file"
@@ -131,6 +180,25 @@ function Issue() {
                 />
               </div>
             </div>
+
+            {success && (
+              <div className={styles.successBanner}>
+                <span className={styles.successIcon}>🎓</span>
+                <div className={styles.successText}>
+                  <strong>Success!</strong>
+                  <span>{success}</span>
+                </div>
+              </div>
+            )}
+            {error && (
+              <div className={styles.errorBanner}>
+                <span className={styles.errorIcon}>⚠️</span>
+                <div className={styles.errorText}>
+                  <strong>Error</strong>
+                  <span>{error}</span>
+                </div>
+              </div>
+            )}
 
             <div className={styles.buts}>
               <button className={styles.cancle} type="button" onClick={handleReset}>

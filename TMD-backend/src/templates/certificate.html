@@ -4,18 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Certificat — TrustMyDegree</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet"/>
     <style>
-      *,
-      *::before,
-      *::after {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
       body {
         background: #c8d0da;
@@ -33,28 +24,17 @@
         height: 742px;
         background: #f7f9ff;
         position: relative;
-        overflow: hidden;
-        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+        overflow: hidden; /* ✅ KEY FIX: prevents overflow to page 2 */
+        box-shadow: 0 24px 70px rgba(0,0,0,0.38);
         flex-shrink: 0;
       }
 
-      /* ─── BACKGROUND PATTERN ─── */
       .bg-pattern {
         position: absolute;
         inset: 0;
         background:
-          repeating-linear-gradient(
-            0deg,
-            transparent,
-            transparent 14px,
-            rgba(26, 52, 102, 0.022) 15px
-          ),
-          repeating-linear-gradient(
-            90deg,
-            transparent,
-            transparent 14px,
-            rgba(26, 52, 102, 0.022) 15px
-          );
+          repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(26,52,102,0.022) 15px),
+          repeating-linear-gradient(90deg, transparent, transparent 14px, rgba(26,52,102,0.022) 15px);
         pointer-events: none;
       }
 
@@ -67,7 +47,6 @@
         pointer-events: none;
       }
 
-      /* ─── BORDER SVG ─── */
       .border-svg {
         position: absolute;
         inset: 0;
@@ -77,12 +56,12 @@
         z-index: 1;
       }
 
-      /* ─── CONTENT WRAPPER ─── */
+      /* ✅ FIXED: tighter content area */
       .content {
         position: absolute;
         left: 62px;
         right: 62px;
-        top: 72px; /* pushed down */
+        top: 58px;  /* ✅ reduced from 72px */
         bottom: 44px;
         z-index: 2;
         display: flex;
@@ -90,60 +69,52 @@
         align-items: center;
       }
 
-      /* ─── HEADER AREA ─── */
       .header {
         width: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding-top: 6px;
+        padding-top: 4px; /* ✅ reduced from 6px */
       }
 
       .cert-title {
-        font-family: "Cinzel", serif;
-        font-size: 38px;
+        font-family: 'Cinzel', serif;
+        font-size: 34px; /* ✅ reduced from 38px */
         font-weight: 700;
         color: #1a3466;
         letter-spacing: 0.12em;
         text-align: center;
         line-height: 1;
-        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+        text-shadow: 0 1px 0 rgba(255,255,255,0.9);
       }
 
       .ornament {
         display: flex;
         align-items: center;
         gap: 10px;
-        margin: 8px 0 5px;
+        margin: 5px 0 3px; /* ✅ reduced margins */
         width: 55%;
       }
       .orn-line {
         flex: 1;
         height: 1px;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          #1a3466 30%,
-          #1a3466 70%,
-          transparent
-        );
+        background: linear-gradient(90deg, transparent, #1a3466 30%, #1a3466 70%, transparent);
       }
       .orn-center {
-        font-size: 17px;
+        font-size: 15px; /* ✅ reduced from 17px */
         color: #1a3466;
         line-height: 1;
       }
 
       .cert-subtitle {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 16px;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 14px; /* ✅ reduced from 16px */
         font-style: italic;
         color: #2a4070;
         letter-spacing: 0.04em;
-        margin-bottom: 4px;
+        margin-bottom: 2px; /* ✅ reduced from 4px */
       }
 
-      /* ─── BODY AREA ─── */
       .body {
         width: 100%;
         flex: 1;
@@ -152,29 +123,27 @@
         padding: 0 4px;
       }
 
-      /* Specialty */
       .specialty-tag {
-        font-family: "Cinzel", serif;
-        font-size: 12.5px;
+        font-family: 'Cinzel', serif;
+        font-size: 11px; /* ✅ reduced from 12.5px */
         font-weight: 600;
         letter-spacing: 0.14em;
         color: #1a3466;
-        border-bottom: 1px solid rgba(26, 52, 102, 0.35);
+        border-bottom: 1px solid rgba(26,52,102,0.35);
         padding-bottom: 2px;
-        margin-bottom: 7px;
+        margin-bottom: 5px; /* ✅ reduced from 7px */
         align-self: flex-start;
       }
 
-      /* Exam label + student name row */
       .name-row {
         display: flex;
         align-items: baseline;
         gap: 0;
-        margin-bottom: 9px;
+        margin-bottom: 6px; /* ✅ reduced from 9px */
       }
       .exam-label {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 18px;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 16px; /* ✅ reduced from 18px */
         font-style: italic;
         color: #2a3a6a;
         letter-spacing: 0.02em;
@@ -183,30 +152,29 @@
         white-space: nowrap;
       }
       .student-name {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 50px;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 44px; /* ✅ reduced from 50px */
         font-weight: 400;
         font-style: italic;
         color: #1a3466;
         line-height: 1;
         letter-spacing: 0.02em;
         flex: 1;
-        border-bottom: 1px solid rgba(26, 52, 102, 0.28);
+        border-bottom: 1px solid rgba(26,52,102,0.28);
         padding-bottom: 2px;
         min-width: 0;
       }
 
-      /* Info grid */
       .info-grid {
         width: 100%;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 6px 24px;
-        margin-bottom: 8px;
+        gap: 4px 24px; /* ✅ reduced from 6px */
+        margin-bottom: 6px; /* ✅ reduced from 8px */
       }
       .info-line {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 15.5px;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 14px; /* ✅ reduced from 15.5px */
         color: #1a3466;
         display: flex;
         align-items: baseline;
@@ -219,24 +187,23 @@
         flex-shrink: 0;
       }
       .info-line .val {
-        border-bottom: 0.5px solid rgba(26, 52, 102, 0.28);
+        border-bottom: 0.5px solid rgba(26,52,102,0.28);
         flex: 1;
         padding-bottom: 1px;
-        min-height: 20px;
+        min-height: 18px; /* ✅ reduced from 20px */
         min-width: 0;
       }
 
-      /* Status badge */
       .status-line {
         display: inline-flex;
         align-items: center;
         gap: 7px;
         align-self: flex-start;
-        background: rgba(26, 52, 102, 0.05);
-        border: 0.5px solid rgba(26, 52, 102, 0.22);
+        background: rgba(26,52,102,0.05);
+        border: 0.5px solid rgba(26,52,102,0.22);
         padding: 3px 12px;
         border-radius: 2px;
-        margin-bottom: 7px;
+        margin-bottom: 5px; /* ✅ reduced from 7px */
       }
       .status-dot {
         width: 6px;
@@ -246,38 +213,31 @@
         flex-shrink: 0;
       }
       .status-text {
-        font-family: "Cinzel", serif;
+        font-family: 'Cinzel', serif;
         font-size: 9px;
         letter-spacing: 0.2em;
         color: #1a3466;
       }
 
-      /* Jury text */
       .jury-text {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 14.5px;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 13px; /* ✅ reduced from 14.5px */
         color: #1a3466;
-        line-height: 1.58;
+        line-height: 1.5; /* ✅ reduced from 1.58 */
         width: 100%;
       }
-      .jury-text strong {
-        font-weight: 700;
-      }
-      .jury-text em {
-        font-style: italic;
-      }
+      .jury-text strong { font-weight: 700; }
+      .jury-text em { font-style: italic; }
 
-      /* ─── BOTTOM ROW ─── */
       .bottom-row {
         width: 100%;
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
         margin-top: auto;
-        padding-top: 6px;
+        padding-top: 4px; /* ✅ reduced from 6px */
       }
 
-      /* Signature blocks */
       .sig-block {
         display: flex;
         flex-direction: column;
@@ -288,32 +248,30 @@
       .sig-line-hr {
         width: 160px;
         height: 0.5px;
-        background: rgba(26, 52, 102, 0.45);
+        background: rgba(26,52,102,0.45);
         margin-bottom: 4px;
       }
       .sig-name {
-        font-family: "Cormorant Garamond", serif;
+        font-family: 'Cormorant Garamond', serif;
         font-size: 13px;
         font-style: italic;
         color: #1a3466;
       }
       .sig-title {
-        font-family: "Cinzel", serif;
+        font-family: 'Cinzel', serif;
         font-size: 7.5px;
         letter-spacing: 0.14em;
         color: #2a4080;
         text-transform: uppercase;
       }
 
-      /* Center seal+QR */
       .center-block {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 5px;
+        gap: 4px; /* ✅ reduced from 5px */
       }
 
-      /* QR block */
       .qr-block {
         display: flex;
         flex-direction: column;
@@ -321,9 +279,9 @@
         gap: 2px;
       }
       .qr-wrap {
-        width: 54px;
-        height: 54px;
-        border: 1px solid rgba(26, 52, 102, 0.38);
+        width: 50px; /* ✅ reduced from 54px */
+        height: 50px;
+        border: 1px solid rgba(26,52,102,0.38);
         background: white;
         padding: 3px;
         display: flex;
@@ -331,29 +289,28 @@
         justify-content: center;
       }
       .qr-label {
-        font-family: "Cinzel", serif;
+        font-family: 'Cinzel', serif;
         font-size: 6.5px;
         letter-spacing: 0.14em;
         color: #2a4080;
         text-transform: uppercase;
       }
       .qr-code {
-        font-family: "Cormorant Garamond", serif;
+        font-family: 'Cormorant Garamond', serif;
         font-size: 9px;
         color: #1a3466;
         letter-spacing: 0.1em;
       }
 
-      /* Bottom watermark */
       .bottom-watermark {
         position: absolute;
         bottom: 16px;
         left: 50%;
         transform: translateX(-50%);
-        font-family: "Cinzel", serif;
+        font-family: 'Cinzel', serif;
         font-size: 6.5px;
         letter-spacing: 0.28em;
-        color: rgba(26, 52, 102, 0.18);
+        color: rgba(26,52,102,0.18);
         white-space: nowrap;
         z-index: 3;
       }
@@ -365,365 +322,77 @@
       <div class="bg-waves"></div>
 
       <!-- BORDER SVG -->
-      <svg
-        class="border-svg"
-        viewBox="0 0 1050 742"
-        xmlns="http://www.w3.org/2000/svg"
-      >
+      <svg class="border-svg" viewBox="0 0 1050 742" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <pattern
-            id="guil"
-            x="0"
-            y="0"
-            width="30"
-            height="12"
-            patternUnits="userSpaceOnUse"
-          >
-            <path
-              d="M0 6 Q7.5 0 15 6 Q22.5 12 30 6"
-              fill="none"
-              stroke="#1a3466"
-              stroke-width="0.6"
-              opacity="0.7"
-            />
-            <path
-              d="M0 6 Q7.5 12 15 6 Q22.5 0 30 6"
-              fill="none"
-              stroke="#1a3466"
-              stroke-width="0.6"
-              opacity="0.4"
-            />
+          <pattern id="guil" x="0" y="0" width="30" height="12" patternUnits="userSpaceOnUse">
+            <path d="M0 6 Q7.5 0 15 6 Q22.5 12 30 6" fill="none" stroke="#1a3466" stroke-width="0.6" opacity="0.7"/>
+            <path d="M0 6 Q7.5 12 15 6 Q22.5 0 30 6" fill="none" stroke="#1a3466" stroke-width="0.6" opacity="0.4"/>
           </pattern>
-          <pattern
-            id="guil2"
-            x="0"
-            y="0"
-            width="30"
-            height="12"
-            patternUnits="userSpaceOnUse"
-            patternTransform="rotate(90)"
-          >
-            <path
-              d="M0 6 Q7.5 0 15 6 Q22.5 12 30 6"
-              fill="none"
-              stroke="#1a3466"
-              stroke-width="0.6"
-              opacity="0.7"
-            />
-            <path
-              d="M0 6 Q7.5 12 15 6 Q22.5 0 30 6"
-              fill="none"
-              stroke="#1a3466"
-              stroke-width="0.6"
-              opacity="0.4"
-            />
+          <pattern id="guil2" x="0" y="0" width="30" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(90)">
+            <path d="M0 6 Q7.5 0 15 6 Q22.5 12 30 6" fill="none" stroke="#1a3466" stroke-width="0.6" opacity="0.7"/>
+            <path d="M0 6 Q7.5 12 15 6 Q22.5 0 30 6" fill="none" stroke="#1a3466" stroke-width="0.6" opacity="0.4"/>
           </pattern>
-          <pattern
-            id="rosette"
-            x="0"
-            y="0"
-            width="44"
-            height="44"
-            patternUnits="userSpaceOnUse"
-          >
-            <circle
-              cx="22"
-              cy="22"
-              r="10"
-              fill="none"
-              stroke="#1a3466"
-              stroke-width="0.5"
-            />
-            <circle
-              cx="22"
-              cy="22"
-              r="7"
-              fill="none"
-              stroke="#1a3466"
-              stroke-width="0.5"
-            />
-            <circle cx="22" cy="22" r="4" fill="#1a3466" opacity="0.3" />
-            <line
-              x1="12"
-              y1="22"
-              x2="32"
-              y2="22"
-              stroke="#1a3466"
-              stroke-width="0.3"
-              opacity="0.5"
-            />
-            <line
-              x1="22"
-              y1="12"
-              x2="22"
-              y2="32"
-              stroke="#1a3466"
-              stroke-width="0.3"
-              opacity="0.5"
-            />
-            <line
-              x1="15"
-              y1="15"
-              x2="29"
-              y2="29"
-              stroke="#1a3466"
-              stroke-width="0.3"
-              opacity="0.5"
-            />
-            <line
-              x1="29"
-              y1="15"
-              x2="15"
-              y2="29"
-              stroke="#1a3466"
-              stroke-width="0.3"
-              opacity="0.5"
-            />
+          <pattern id="rosette" x="0" y="0" width="44" height="44" patternUnits="userSpaceOnUse">
+            <circle cx="22" cy="22" r="10" fill="none" stroke="#1a3466" stroke-width="0.5"/>
+            <circle cx="22" cy="22" r="7"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
+            <circle cx="22" cy="22" r="4"  fill="#1a3466" opacity="0.3"/>
+            <line x1="12" y1="22" x2="32" y2="22" stroke="#1a3466" stroke-width="0.3" opacity="0.5"/>
+            <line x1="22" y1="12" x2="22" y2="32" stroke="#1a3466" stroke-width="0.3" opacity="0.5"/>
+            <line x1="15" y1="15" x2="29" y2="29" stroke="#1a3466" stroke-width="0.3" opacity="0.5"/>
+            <line x1="29" y1="15" x2="15" y2="29" stroke="#1a3466" stroke-width="0.3" opacity="0.5"/>
           </pattern>
         </defs>
 
-        <!-- Outer borders -->
-        <rect
-          x="4"
-          y="4"
-          width="1042"
-          height="734"
-          rx="3"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="2.5"
-        />
-        <rect
-          x="8"
-          y="8"
-          width="1034"
-          height="726"
-          rx="2"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.7"
-        />
-        <!-- Guilloche bands -->
-        <rect x="10" y="10" width="1030" height="40" fill="url(#guil)" rx="1" />
-        <rect
-          x="10"
-          y="692"
-          width="1030"
-          height="40"
-          fill="url(#guil)"
-          rx="1"
-        />
-        <rect x="10" y="10" width="40" height="722" fill="url(#guil2)" rx="1" />
-        <rect
-          x="1000"
-          y="10"
-          width="40"
-          height="722"
-          fill="url(#guil2)"
-          rx="1"
-        />
-        <!-- Rosette strips -->
-        <rect
-          x="10"
-          y="10"
-          width="1030"
-          height="24"
-          fill="url(#rosette)"
-          opacity="0.5"
-        />
-        <rect
-          x="10"
-          y="708"
-          width="1030"
-          height="24"
-          fill="url(#rosette)"
-          opacity="0.5"
-        />
-        <!-- Inner border -->
-        <rect
-          x="52"
-          y="52"
-          width="946"
-          height="638"
-          rx="1"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="1.2"
-        />
-        <rect
-          x="56"
-          y="56"
-          width="938"
-          height="630"
-          rx="1"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.5"
-        />
+        <rect x="4"  y="4"  width="1042" height="734" rx="3" fill="none" stroke="#1a3466" stroke-width="2.5"/>
+        <rect x="8"  y="8"  width="1034" height="726" rx="2" fill="none" stroke="#1a3466" stroke-width="0.7"/>
+        <rect x="10" y="10" width="1030" height="40"  fill="url(#guil)"  rx="1"/>
+        <rect x="10" y="692" width="1030" height="40" fill="url(#guil)"  rx="1"/>
+        <rect x="10" y="10" width="40"   height="722" fill="url(#guil2)" rx="1"/>
+        <rect x="1000" y="10" width="40" height="722" fill="url(#guil2)" rx="1"/>
+        <rect x="10" y="10"  width="1030" height="24" fill="url(#rosette)" opacity="0.5"/>
+        <rect x="10" y="708" width="1030" height="24" fill="url(#rosette)" opacity="0.5"/>
+        <rect x="52" y="52" width="946"  height="638" rx="1" fill="none" stroke="#1a3466" stroke-width="1.2"/>
+        <rect x="56" y="56" width="938"  height="630" rx="1" fill="none" stroke="#1a3466" stroke-width="0.5"/>
 
         <!-- Corner rosettes TL -->
-        <circle
-          cx="28"
-          cy="28"
-          r="20"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.8"
-        />
-        <circle
-          cx="28"
-          cy="28"
-          r="14"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.5"
-        />
-        <circle cx="28" cy="28" r="7" fill="#1a3466" opacity="0.25" />
-        <circle cx="28" cy="28" r="3" fill="#1a3466" opacity="0.5" />
+        <circle cx="28"   cy="28"  r="20" fill="none" stroke="#1a3466" stroke-width="0.8"/>
+        <circle cx="28"   cy="28"  r="14" fill="none" stroke="#1a3466" stroke-width="0.5"/>
+        <circle cx="28"   cy="28"  r="7"  fill="#1a3466" opacity="0.25"/>
+        <circle cx="28"   cy="28"  r="3"  fill="#1a3466" opacity="0.5"/>
         <!-- TR -->
-        <circle
-          cx="1022"
-          cy="28"
-          r="20"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.8"
-        />
-        <circle
-          cx="1022"
-          cy="28"
-          r="14"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.5"
-        />
-        <circle cx="1022" cy="28" r="7" fill="#1a3466" opacity="0.25" />
-        <circle cx="1022" cy="28" r="3" fill="#1a3466" opacity="0.5" />
+        <circle cx="1022" cy="28"  r="20" fill="none" stroke="#1a3466" stroke-width="0.8"/>
+        <circle cx="1022" cy="28"  r="14" fill="none" stroke="#1a3466" stroke-width="0.5"/>
+        <circle cx="1022" cy="28"  r="7"  fill="#1a3466" opacity="0.25"/>
+        <circle cx="1022" cy="28"  r="3"  fill="#1a3466" opacity="0.5"/>
         <!-- BL -->
-        <circle
-          cx="28"
-          cy="714"
-          r="20"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.8"
-        />
-        <circle
-          cx="28"
-          cy="714"
-          r="14"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.5"
-        />
-        <circle cx="28" cy="714" r="7" fill="#1a3466" opacity="0.25" />
-        <circle cx="28" cy="714" r="3" fill="#1a3466" opacity="0.5" />
+        <circle cx="28"   cy="714" r="20" fill="none" stroke="#1a3466" stroke-width="0.8"/>
+        <circle cx="28"   cy="714" r="14" fill="none" stroke="#1a3466" stroke-width="0.5"/>
+        <circle cx="28"   cy="714" r="7"  fill="#1a3466" opacity="0.25"/>
+        <circle cx="28"   cy="714" r="3"  fill="#1a3466" opacity="0.5"/>
         <!-- BR -->
-        <circle
-          cx="1022"
-          cy="714"
-          r="20"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.8"
-        />
-        <circle
-          cx="1022"
-          cy="714"
-          r="14"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.5"
-        />
-        <circle cx="1022" cy="714" r="7" fill="#1a3466" opacity="0.25" />
-        <circle cx="1022" cy="714" r="3" fill="#1a3466" opacity="0.5" />
+        <circle cx="1022" cy="714" r="20" fill="none" stroke="#1a3466" stroke-width="0.8"/>
+        <circle cx="1022" cy="714" r="14" fill="none" stroke="#1a3466" stroke-width="0.5"/>
+        <circle cx="1022" cy="714" r="7"  fill="#1a3466" opacity="0.25"/>
+        <circle cx="1022" cy="714" r="3"  fill="#1a3466" opacity="0.5"/>
         <!-- Mid-side rosettes -->
-        <circle
-          cx="28"
-          cy="371"
-          r="16"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.7"
-        />
-        <circle
-          cx="28"
-          cy="371"
-          r="10"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.5"
-        />
-        <circle cx="28" cy="371" r="4" fill="#1a3466" opacity="0.3" />
-        <circle
-          cx="1022"
-          cy="371"
-          r="16"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.7"
-        />
-        <circle
-          cx="1022"
-          cy="371"
-          r="10"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.5"
-        />
-        <circle cx="1022" cy="371" r="4" fill="#1a3466" opacity="0.3" />
-        <circle
-          cx="525"
-          cy="28"
-          r="16"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.7"
-        />
-        <circle
-          cx="525"
-          cy="28"
-          r="10"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.5"
-        />
-        <circle cx="525" cy="28" r="4" fill="#1a3466" opacity="0.3" />
-        <circle
-          cx="525"
-          cy="714"
-          r="16"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.7"
-        />
-        <circle
-          cx="525"
-          cy="714"
-          r="10"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.5"
-        />
-        <circle cx="525" cy="714" r="4" fill="#1a3466" opacity="0.3" />
+        <circle cx="28"   cy="371" r="16" fill="none" stroke="#1a3466" stroke-width="0.7"/>
+        <circle cx="28"   cy="371" r="10" fill="none" stroke="#1a3466" stroke-width="0.5"/>
+        <circle cx="28"   cy="371" r="4"  fill="#1a3466" opacity="0.3"/>
+        <circle cx="1022" cy="371" r="16" fill="none" stroke="#1a3466" stroke-width="0.7"/>
+        <circle cx="1022" cy="371" r="10" fill="none" stroke="#1a3466" stroke-width="0.5"/>
+        <circle cx="1022" cy="371" r="4"  fill="#1a3466" opacity="0.3"/>
+        <circle cx="525"  cy="28"  r="16" fill="none" stroke="#1a3466" stroke-width="0.7"/>
+        <circle cx="525"  cy="28"  r="10" fill="none" stroke="#1a3466" stroke-width="0.5"/>
+        <circle cx="525"  cy="28"  r="4"  fill="#1a3466" opacity="0.3"/>
+        <circle cx="525"  cy="714" r="16" fill="none" stroke="#1a3466" stroke-width="0.7"/>
+        <circle cx="525"  cy="714" r="10" fill="none" stroke="#1a3466" stroke-width="0.5"/>
+        <circle cx="525"  cy="714" r="4"  fill="#1a3466" opacity="0.3"/>
         <!-- Top wavy decoration -->
-        <path
-          d="M80 76 Q200 66 320 76 Q440 86 560 76 Q680 66 800 76 Q920 86 970 76"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.6"
-          opacity="0.4"
-        />
-        <path
-          d="M80 80 Q200 70 320 80 Q440 90 560 80 Q680 70 800 80 Q920 90 970 80"
-          fill="none"
-          stroke="#1a3466"
-          stroke-width="0.4"
-          opacity="0.3"
-        />
+        <path d="M80 76 Q200 66 320 76 Q440 86 560 76 Q680 66 800 76 Q920 86 970 76" fill="none" stroke="#1a3466" stroke-width="0.6" opacity="0.4"/>
+        <path d="M80 80 Q200 70 320 80 Q440 90 560 80 Q680 70 800 80 Q920 90 970 80" fill="none" stroke="#1a3466" stroke-width="0.4" opacity="0.3"/>
       </svg>
 
-      <!-- ─── CONTENT ─── -->
+      <!-- CONTENT -->
       <div class="content">
         <!-- HEADER -->
         <div class="header">
@@ -747,9 +416,8 @@
             <span class="student-name">{{fullName}}</span>
           </div>
 
-          <!-- Info grid: 2 columns -->
+          <!-- Info grid -->
           <div class="info-grid">
-            <!-- Row 1 -->
             <div class="info-line">
               <span class="lbl">Faculté :</span>
               <span class="val">{{faculty}}</span>
@@ -758,7 +426,6 @@
               <span class="lbl">Section :</span>
               <span class="val">{{sectionNum}}</span>
             </div>
-            <!-- Row 2 -->
             <div class="info-line">
               <span class="lbl">N° Faculté :</span>
               <span class="val">{{facultyNum}}</span>
@@ -767,7 +434,6 @@
               <span class="lbl">Mention :</span>
               <span class="val">{{mention}}</span>
             </div>
-            <!-- Row 3 -->
             <div class="info-line">
               <span class="lbl">Date de soutenance :</span>
               <span class="val">{{graduationDate}}</span>
@@ -781,483 +447,103 @@
           <!-- Status -->
           <div class="status-line">
             <div class="status-dot"></div>
-            <span class="status-text"
-              >Statut :&nbsp;&nbsp;·&nbsp;&nbsp;Vérifié</span
-            >
+            <span class="status-text">Statut :&nbsp;&nbsp;·&nbsp;&nbsp;Vérifié</span>
           </div>
 
           <!-- Jury text -->
           <div class="jury-text">
-            A comparu devant un Jury le <strong>{{graduationDate}}</strong> à
-            l'Ecole nationale supérieure des technologies avancées. <br />Ce
-            jury certifie la réussite à l'examen et délivre le présent
-            certificat de diplôme nominatif, conformément aux réglementations en
-            vigueur. Ce certificat est vérifiable via <em>trustmydegree.io</em>.
+            A comparu devant un Jury le <strong>{{graduationDate}}</strong> à l'Ecole nationale supérieure des technologies avancées.
+            <br>Ce jury certifie la réussite à l'examen et délivre le présent certificat de diplôme nominatif,
+            conformément aux réglementations en vigueur. Ce certificat est vérifiable via <em>trustmydegree.io</em>.
           </div>
 
           <!-- BOTTOM ROW -->
           <div class="bottom-row">
-            <!-- Left signature -->
             <div class="sig-block">
               <div class="sig-line-hr"></div>
               <span class="sig-name"></span>
               <span class="sig-title">Président du Jury</span>
             </div>
 
-            <!-- Center: Wax seal + QR -->
             <div class="center-block">
               <!-- Wax seal -->
-              <svg
-                width="90"
-                height="90"
-                viewBox="0 0 96 96"
-                xmlns="http://www.w3.org/2000/svg"
-              >
+              <svg width="80" height="80" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                   <radialGradient id="waxGrad" cx="40%" cy="35%" r="65%">
-                    <stop offset="0%" stop-color="#c0392b" />
-                    <stop offset="40%" stop-color="#922b21" />
-                    <stop offset="100%" stop-color="#641e16" />
+                    <stop offset="0%"   stop-color="#c0392b"/>
+                    <stop offset="40%"  stop-color="#922b21"/>
+                    <stop offset="100%" stop-color="#641e16"/>
                   </radialGradient>
                   <radialGradient id="waxShine" cx="35%" cy="30%" r="50%">
-                    <stop offset="0%" stop-color="rgba(255,255,255,0.3)" />
-                    <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+                    <stop offset="0%"   stop-color="rgba(255,255,255,0.3)"/>
+                    <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
                   </radialGradient>
                 </defs>
                 <g transform="translate(48,48)">
-                  <polygon
-                    points="0,-44 5,-40 10,-43 13,-38 18,-40 20,-35 25,-36 26,-31 31,-31 31,-26 36,-25 35,-20 40,-18 38,-13 43,-10 40,-5 44,0 40,5 43,10 38,13 40,18 35,20 36,25 31,26 31,31 26,31 25,36 20,35 18,40 13,38 10,43 5,40 0,44 -5,40 -10,43 -13,38 -18,40 -20,35 -25,36 -26,31 -31,31 -31,26 -36,25 -35,20 -40,18 -38,13 -43,10 -40,5 -44,0 -40,-5 -43,-10 -38,-13 -40,-18 -35,-20 -36,-25 -31,-26 -31,-31 -26,-31 -25,-36 -20,-35 -18,-40 -13,-38 -10,-43 -5,-40"
-                    fill="url(#waxGrad)"
-                  />
-                  <circle r="36" fill="url(#waxGrad)" />
-                  <circle r="36" fill="url(#waxShine)" />
-                  <circle
-                    r="32"
-                    fill="none"
-                    stroke="rgba(255,255,255,0.2)"
-                    stroke-width="0.8"
-                  />
-                  <circle
-                    r="28"
-                    fill="none"
-                    stroke="rgba(255,255,255,0.15)"
-                    stroke-width="0.5"
-                  />
-                  <g
-                    opacity="0.6"
-                    stroke="rgba(255,255,255,0.7)"
-                    stroke-width="0.5"
-                    fill="none"
-                  >
-                    <ellipse
-                      rx="5"
-                      ry="2.5"
-                      cx="-20"
-                      cy="-8"
-                      transform="rotate(-30,-20,-8)"
-                    />
-                    <ellipse
-                      rx="5"
-                      ry="2.5"
-                      cx="-22"
-                      cy="-1"
-                      transform="rotate(-15,-22,-1)"
-                    />
-                    <ellipse
-                      rx="5"
-                      ry="2.5"
-                      cx="-22"
-                      cy="6"
-                      transform="rotate(0,-22,6)"
-                    />
-                    <ellipse
-                      rx="5"
-                      ry="2.5"
-                      cx="-20"
-                      cy="13"
-                      transform="rotate(15,-20,13)"
-                    />
-                    <ellipse
-                      rx="5"
-                      ry="2.5"
-                      cx="20"
-                      cy="-8"
-                      transform="rotate(30,20,-8)"
-                    />
-                    <ellipse
-                      rx="5"
-                      ry="2.5"
-                      cx="22"
-                      cy="-1"
-                      transform="rotate(15,22,-1)"
-                    />
-                    <ellipse
-                      rx="5"
-                      ry="2.5"
-                      cx="22"
-                      cy="6"
-                      transform="rotate(0,22,6)"
-                    />
-                    <ellipse
-                      rx="5"
-                      ry="2.5"
-                      cx="20"
-                      cy="13"
-                      transform="rotate(-15,20,13)"
-                    />
+                  <polygon points="0,-44 5,-40 10,-43 13,-38 18,-40 20,-35 25,-36 26,-31 31,-31 31,-26 36,-25 35,-20 40,-18 38,-13 43,-10 40,-5 44,0 40,5 43,10 38,13 40,18 35,20 36,25 31,26 31,31 26,31 25,36 20,35 18,40 13,38 10,43 5,40 0,44 -5,40 -10,43 -13,38 -18,40 -20,35 -25,36 -26,31 -31,31 -31,26 -36,25 -35,20 -40,18 -38,13 -43,10 -40,5 -44,0 -40,-5 -43,-10 -38,-13 -40,-18 -35,-20 -36,-25 -31,-26 -31,-31 -26,-31 -25,-36 -20,-35 -18,-40 -13,-38 -10,-43 -5,-40" fill="url(#waxGrad)"/>
+                  <circle r="36" fill="url(#waxGrad)"/>
+                  <circle r="36" fill="url(#waxShine)"/>
+                  <circle r="32" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
+                  <circle r="28" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
+                  <g opacity="0.6" stroke="rgba(255,255,255,0.7)" stroke-width="0.5" fill="none">
+                    <ellipse rx="5" ry="2.5" cx="-20" cy="-8"  transform="rotate(-30,-20,-8)"/>
+                    <ellipse rx="5" ry="2.5" cx="-22" cy="-1"  transform="rotate(-15,-22,-1)"/>
+                    <ellipse rx="5" ry="2.5" cx="-22" cy="6"   transform="rotate(0,-22,6)"/>
+                    <ellipse rx="5" ry="2.5" cx="-20" cy="13"  transform="rotate(15,-20,13)"/>
+                    <ellipse rx="5" ry="2.5" cx="20"  cy="-8"  transform="rotate(30,20,-8)"/>
+                    <ellipse rx="5" ry="2.5" cx="22"  cy="-1"  transform="rotate(15,22,-1)"/>
+                    <ellipse rx="5" ry="2.5" cx="22"  cy="6"   transform="rotate(0,22,6)"/>
+                    <ellipse rx="5" ry="2.5" cx="20"  cy="13"  transform="rotate(-15,20,13)"/>
                   </g>
-                  <polygon
-                    points="0,-12 3,-4 11,-4 5,2 7,10 0,6 -7,10 -5,2 -11,-4 -3,-4"
-                    fill="rgba(255,255,255,0.35)"
-                  />
+                  <polygon points="0,-12 3,-4 11,-4 5,2 7,10 0,6 -7,10 -5,2 -11,-4 -3,-4" fill="rgba(255,255,255,0.35)"/>
                 </g>
               </svg>
               <!-- QR -->
               <div class="qr-block">
                 <div class="qr-wrap">
-                  <svg
-                    width="48"
-                    height="48"
-                    viewBox="0 0 50 50"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect
-                      x="0"
-                      y="0"
-                      width="16"
-                      height="16"
-                      rx="1"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="2.5"
-                      y="2.5"
-                      width="11"
-                      height="11"
-                      rx="0.5"
-                      fill="white"
-                    />
-                    <rect
-                      x="5"
-                      y="5"
-                      width="6"
-                      height="6"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="34"
-                      y="0"
-                      width="16"
-                      height="16"
-                      rx="1"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="36.5"
-                      y="2.5"
-                      width="11"
-                      height="11"
-                      rx="0.5"
-                      fill="white"
-                    />
-                    <rect
-                      x="39"
-                      y="5"
-                      width="6"
-                      height="6"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="0"
-                      y="34"
-                      width="16"
-                      height="16"
-                      rx="1"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="2.5"
-                      y="36.5"
-                      width="11"
-                      height="11"
-                      rx="0.5"
-                      fill="white"
-                    />
-                    <rect
-                      x="5"
-                      y="39"
-                      width="6"
-                      height="6"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="19"
-                      y="0"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="25"
-                      y="0"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="19"
-                      y="6"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="28"
-                      y="3"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="19"
-                      y="11"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="25"
-                      y="8"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="31"
-                      y="11"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="0"
-                      y="19"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="6"
-                      y="22"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="11"
-                      y="19"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="0"
-                      y="25"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="8"
-                      y="28"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="3"
-                      y="31"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="19"
-                      y="19"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="25"
-                      y="22"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="31"
-                      y="19"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="19"
-                      y="28"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="28"
-                      y="25"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="22"
-                      y="31"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="34"
-                      y="19"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="40"
-                      y="22"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="47"
-                      y="19"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="37"
-                      y="28"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="44"
-                      y="28"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="19"
-                      y="37"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="25"
-                      y="40"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="31"
-                      y="37"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="19"
-                      y="46"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="28"
-                      y="44"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="34"
-                      y="34"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="40"
-                      y="40"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="44"
-                      y="34"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
-                    <rect
-                      x="47"
-                      y="44"
-                      width="3"
-                      height="3"
-                      rx="0.3"
-                      fill="#1a3466"
-                    />
+                  <svg width="44" height="44" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="0"    y="0"    width="16" height="16" rx="1"   fill="#1a3466"/>
+                    <rect x="2.5"  y="2.5"  width="11" height="11" rx="0.5" fill="white"/>
+                    <rect x="5"    y="5"    width="6"  height="6"  rx="0.3" fill="#1a3466"/>
+                    <rect x="34"   y="0"    width="16" height="16" rx="1"   fill="#1a3466"/>
+                    <rect x="36.5" y="2.5"  width="11" height="11" rx="0.5" fill="white"/>
+                    <rect x="39"   y="5"    width="6"  height="6"  rx="0.3" fill="#1a3466"/>
+                    <rect x="0"    y="34"   width="16" height="16" rx="1"   fill="#1a3466"/>
+                    <rect x="2.5"  y="36.5" width="11" height="11" rx="0.5" fill="white"/>
+                    <rect x="5"    y="39"   width="6"  height="6"  rx="0.3" fill="#1a3466"/>
+                    <rect x="19" y="0"  width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="25" y="0"  width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="19" y="6"  width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="28" y="3"  width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="19" y="11" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="25" y="8"  width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="31" y="11" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="0"  y="19" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="6"  y="22" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="11" y="19" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="0"  y="25" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="8"  y="28" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="3"  y="31" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="19" y="19" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="25" y="22" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="31" y="19" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="19" y="28" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="28" y="25" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="22" y="31" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="34" y="19" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="40" y="22" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="47" y="19" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="37" y="28" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="44" y="28" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="19" y="37" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="25" y="40" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="31" y="37" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="19" y="46" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="28" y="44" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="34" y="34" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="40" y="40" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="44" y="34" width="3" height="3" rx="0.3" fill="#1a3466"/>
+                    <rect x="47" y="44" width="3" height="3" rx="0.3" fill="#1a3466"/>
                   </svg>
                 </div>
                 <span class="qr-label">Vérifier · trustmydegree.io</span>
@@ -1265,22 +551,16 @@
               </div>
             </div>
 
-            <!-- Right signature -->
             <div class="sig-block">
               <div class="sig-line-hr"></div>
               <span class="sig-name"></span>
               <span class="sig-title">Diplômé(e)</span>
             </div>
           </div>
-          <!-- /bottom-row -->
         </div>
-        <!-- /body -->
       </div>
-      <!-- /content -->
 
-      <div class="bottom-watermark">
-        TRUSTMYDEGREE · CERTIFICAT VÉRIFIÉ · trustmydegree.io
-      </div>
+      <div class="bottom-watermark">TRUSTMYDEGREE · CERTIFICAT VÉRIFIÉ · trustmydegree.io</div>
     </div>
   </body>
 </html>

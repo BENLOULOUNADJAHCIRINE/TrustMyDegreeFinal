@@ -294,7 +294,7 @@ const syncStudents = async (req, res) => {
 // import diplomas from excel file
 const importDiplomas = async (req, res) => {
   try {
-    const { graduationDate } = req.body;
+    const { graduationDate, templateType } = req.body;
     const file = req.files.excel;
 
     if (!file) {
@@ -360,16 +360,24 @@ const importDiplomas = async (req, res) => {
       });
 
       const pdfPath = await generateDiplomaPDF({
-        fullName: student.fullName,
-        specialty: row.specialty,
-        faculty: row.faculty,
-        sectionNum: String(row.sectionNum),
-        facultyNum: String(row.facultyNum),
-        mention: row.mention,
-        graduationDate: graduationDate,
-        issueDate: new Date().toISOString().split("T")[0],
-        uniqueCode: uniqueCode,
-      });
+  fullName: student.fullName,
+  matricule: student.matricule,
+  specialty: row.specialty,
+  faculty: row.faculty,
+  sectionNum: String(row.sectionNum || ""),
+  facultyNum: String(row.facultyNum || ""),
+  mention: row.mention || "",
+  graduationDate: graduationDate,
+  issueDate: new Date().toISOString().split("T")[0],
+  uniqueCode: uniqueCode,
+  // scolarite fields
+  academicYear: row.academicYear || "",
+  year: row.year || "",
+  // internship fields
+  company: row.company || "",
+  duration: row.duration || "",
+  startDate: row.startDate || "",
+}, templateType || "diploma"); // pass templateType
 
       await prisma.certificate.update({
         where: { id: certificate.id },
