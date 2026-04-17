@@ -25,6 +25,7 @@ function Login() {
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.user.role);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       if (data.user.role === "ADMIN" || data.user.role === "SUPER_ADMIN") {
         navigate("/admin", { replace: true });

@@ -1,77 +1,89 @@
 import styles from "./authorisation.module.css";
 import { useState, useEffect } from "react";
-import tempo from "./admins.json";
 
 function Authorisations() {
   const [user, setUser] = useState(null);
   const [email, setEmail] = useState("");
   const [admins, setAdmins] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
+  const BASE_URL = "http://localhost:5000";
+  const token = localStorage.getItem("token");
+
+  // Get logged in user from localStorage
   useEffect(() => {
-    fetch("http://localhost:5000/api/auth/user", {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      if (parsedUser.role !== "SUPER_ADMIN") {
+        alert("Access denied");
+        window.location.href = "/admin/dashboard";
+      }
+    } else {
+      window.location.href = "/login";
+    }
+  }, []);
+
+  // Get all admins
+  useEffect(() => {
+    fetch(`${BASE_URL}/api/superadmin/admins`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${token}`,
       },
-    }) // fetch the user who logged in
+    })
       .then((resp) => resp.json())
-      .then((data) => {
-        setUser(data);
-        if (data.role !== "superadmin") {
-          alert("Access denied");
-          window.location.href = "/admin/dashboard";
-        }
-      })
+      .then((data) => setAdmins(data))
       .catch((err) => console.log(err));
   }, []);
 
-  useEffect(() => {
-    setAdmins(tempo);
-  }, []);
-
-  //   useEffect(()=>{
-  //       fetch("http://localhost:5000/api/admin/admins", {
-  //         headers: {
-  //           Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //         },
-  //       })
-  //       .then((resp)=>resp.json())
-  //       .then((data)=>setAdmins(data))
-  //       .catch((err)=>window.alert(err));
-  //   },[])
-
+  // Add admin
   function addAdmin(e) {
     e.preventDefault();
+    setLoading(true);
+    setMessage("");
 
-    fetch("http://localhost:5000/api/admin/addAdmin", {
+    fetch(`${BASE_URL}/api/superadmin/admins`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ email }),
     })
       .then((resp) => resp.json())
       .then((data) => {
-        console.log(data);
-        setAdmins((prev) => [...prev, { id: Date.now(), email }]);
-        setEmail("");
+        if (data.message === "Admin created , data to email") {
+          setAdmins((prev) => [...prev, { id: Date.now(), email }]);
+          setEmail("");
+          setMessage("Admin created successfully! Password sent to email.");
+        } else {
+          setMessage(data.message);
+        }
+        setLoading(false);
       })
-      .catch((err) => window.alert(err));
+      .catch((err) => {
+        window.alert(err);
+        setLoading(false);
+      });
   }
 
+  // Delete admin
   function deleteAdmin(id) {
-    fetch(`http://localhost:5000/api/admin/delete/${id}`, {
+    if (!window.confirm("Are you sure you want to delete this admin?")) return;
+
+    fetch(`${BASE_URL}/api/superadmin/admins/${id}`, {
       method: "DELETE",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((resp) => resp.json())
       .then((data) => {
         console.log(data);
-        // remove admin from UI
         setAdmins((prev) => prev.filter((admin) => admin.id !== id));
+        setMessage("Admin deleted successfully!");
       })
       .catch((err) => window.alert(err));
   }
@@ -84,7 +96,7 @@ function Authorisations() {
         </div>
         <div className={styles.info}>
           <div className={styles.subinfo}>
-            <h4>{user ? user.name : "guest"}</h4>
+            <h4>{user ? user.fullName : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
           <img src={user?.avatar || "/totalcertaficates.png"} alt="avatar" />
@@ -98,6 +110,11 @@ function Authorisations() {
             <p>Manage admins and their platform access</p>
           </div>
 
+          {/* Success/Error message */}
+          {message && (
+            <p style={{ color: "green", marginBottom: "10px" }}>{message}</p>
+          )}
+
           <form className={styles.search} onSubmit={addAdmin}>
             <div>
               <img src="/imgadm.png" alt="adm" />
@@ -109,8 +126,11 @@ function Authorisations() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-
-            <input type="submit" value="add admin" />
+            <input 
+              type="submit" 
+              value={loading ? "Adding..." : "add admin"} 
+              disabled={loading}
+            />
           </form>
 
           <div className={styles.scroll}>
@@ -126,6 +146,7 @@ function Authorisations() {
                       src="/delete.png"
                       alt="delete"
                       onClick={() => deleteAdmin(adm.id)}
+                      style={{ cursor: "pointer" }}
                     />
                   </div>
                 </div>

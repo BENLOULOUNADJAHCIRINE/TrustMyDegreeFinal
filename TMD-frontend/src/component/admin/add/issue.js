@@ -11,7 +11,7 @@ function Issue() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // ✅ get user info from dashboard instead
+    // get user info from dashboard instead
     api.get("/admin/dashboard")
       .then((res) => {
         setUser({ name: "Admin", email: localStorage.getItem("email") || "" });
@@ -51,17 +51,19 @@ function Issue() {
 
     const form = new FormData();
     form.append("graduationDate", formData.date);
-    form.append("excel", formData.file); // ✅ backend expects "excel"
+    form.append("excel", formData.file); //  backend expects "excel"
 
-    try {
-      const res = await api.post("/admin/import", form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setSuccess(`✅ ${res.data.created} certificates issued successfully!`);
-      handleReset();
-    } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
-    }
+  try {
+  const res = await api.post("/admin/import", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  console.log("RESPONSE:", res.data);
+  setSuccess(`✅ ${res.data.created} certificates issued successfully!`);
+  handleReset();
+} catch (err) {
+  console.log("ERROR:", err.response?.data);
+  setError(err.response?.data?.message || "Something went wrong");
+}
   }
 
   return (
