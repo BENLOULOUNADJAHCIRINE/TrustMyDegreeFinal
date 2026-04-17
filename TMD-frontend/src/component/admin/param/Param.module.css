@@ -402,3 +402,97 @@ input:focus {
   color: #721c24;
   border: 1px solid #f5c6cb;
 }
+
+
+/*responsive */
+
+/* ─── TABLET (max 1024px) ─── */
+@media (max-width: 1024px) {
+  .platform {
+    margin: 15px 0px 10px 10px;
+  }
+
+  .settings {
+    width: 90%;
+    margin: 20px 0px 0px 20px;
+  }
+
+  .name > input {
+    width: 35%;
+  }
+
+  .b1 {
+    margin-bottom: 5px;
+  }
+
+  .password > input {
+    width: 35%;
+  }
+
+  .change {
+    width: 80%;
+  }
+}
+
+/* ─── MOBILE (max 768px) ─── */
+@media (max-width: 768px) {
+  .login {
+    padding: 8px 15px;
+    margin-top: 5px;
+  }
+
+  .platform {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin: 10px 0px 10px 0px;
+    padding: 0 15px;
+  }
+
+  .titles > h3 {
+    font-size: 18px;
+  }
+
+  .buttons {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+  }
+
+  .buttons > button {
+    flex: 1;
+    padding: 12px;
+  }
+
+  .b1 {
+    margin-right: 0;
+  }
+
+  .settings {
+    width: 100%;
+    margin: 20px 0px 0px 0px;
+    padding: 15px;
+    box-sizing: border-box;
+    border-radius: 0;
+  }
+
+  .name > input {
+    width: 90%;
+  }
+
+  .password > input {
+    width: 90%;
+  }
+
+  .change {
+    width: 100%;
+    flex-direction: column;
+    gap: 15px;
+    align-items: start;
+  }
+
+  .new > input,
+  .confirm > input {
+    width: 90%;
+  }
+}

@@ -232,7 +232,7 @@
 }
 
 /*options part*/
-
+/* 
 .option {
   width: 93%;
   margin-bottom: 20px;
@@ -279,7 +279,7 @@
   font-family: Inter;
   font-size: 15px;
   margin: 0px;
-}
+} */
 
 /* priority selection*/
 .priority {
@@ -347,4 +347,92 @@
 .bottom {
   color: #90a1b9;
   background-color: #e5e7eb;
+}
+
+/*responsive part*/
+
+/* ─── TABLET (max 1024px) ─── */
+@media (max-width: 1024px) {
+  .form {
+    width: 70%;
+  }
+
+  .title > p {
+    width: 80%;
+  }
+}
+
+/* ─── MOBILE (max 768px) ─── */
+@media (max-width: 768px) {
+  .login {
+    padding: 8px 15px;
+  }
+
+  .image {
+    margin-left: 15px;
+  }
+
+  .backto {
+    padding: 10px 20px;
+  }
+
+  .content {
+    padding: 20px 15px;
+  }
+
+  .title > h1 {
+    font-size: 22px;
+    text-align: center;
+  }
+
+  .title > p {
+    width: 100%;
+    font-size: 15px;
+    text-align: center;
+  }
+
+  .form {
+    width: 100%;
+    padding: 30px 15px;
+    box-sizing: border-box;
+  }
+
+  .document > input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .reason > div {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .option > div {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option1 {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .priority {
+    width: 100%;
+  }
+
+  .priority > select {
+    width: 100%;
+  }
+
+  .buttons {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .buttons > input,
+  .buttons > button {
+    width: 100%;
+  }
 }

@@ -292,3 +292,92 @@ input::placeholder {
 a:hover {
   text-decoration: underline;
 }
+
+/*responsive*/
+
+/* ─── TABLET (max 1024px) ─── */
+@media (max-width: 1024px) {
+  .loginBody {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .left h1 {
+    font-size: 36px;
+  }
+
+  .left .description {
+    font-size: 16px;
+    line-height: 30px;
+  }
+
+  .send {
+    width: 80%;
+  }
+}
+
+/* ─── MOBILE (max 768px) ─── */
+@media (max-width: 768px) {
+  .loginBody {
+    grid-template-columns: 1fr;
+    min-height: 100vh;
+  }
+
+  /* hide left side on mobile, login form takes full screen */
+  .left {
+    /* display: none; */
+  }
+
+  .right {
+    min-height: 100vh;
+    padding: 40px 20px;
+    align-items: flex-start;
+  }
+
+  .send {
+    width: 100%;
+    height: auto;
+    padding: 30px 20px;
+    border-radius: 20px;
+    bottom: 0;
+  }
+
+  .send h2 {
+    font-size: 24px;
+    left: 0;
+    bottom: 10px;
+  }
+
+  .send .small {
+    left: 0;
+    bottom: 15px;
+  }
+
+  .email,
+  .password {
+    left: 0;
+  }
+
+  .inp {
+    width: 90%;
+  }
+
+  .sign {
+    width: 95%;
+    right: 0;
+  }
+
+  .hr {
+    width: 95%;
+    right: 0;
+  }
+
+  .send .last {
+    right: 0;
+    text-align: center;
+    width: 100%;
+  }
+
+  .toplogo2 {
+    margin-bottom: 10px;
+  }
+}

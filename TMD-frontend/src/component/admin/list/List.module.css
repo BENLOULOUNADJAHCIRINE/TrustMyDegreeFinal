@@ -1,22 +1,44 @@
 /* Animations */
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateX(-10px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .main-content {
@@ -108,12 +130,13 @@
 
 .searchNav {
   margin-left: 40px;
+  position: relative;
 }
 
 .searchNav > img {
-  position: relative;
-  right: 95px;
-  top: 27px;
+  position: absolute;
+  left: 8px;
+  top: 9px;
 }
 
 .searchNav > input {
@@ -125,7 +148,9 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   outline: none;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
   font-size: 14px;
 }
 
@@ -301,7 +326,9 @@ tbody tr:hover .column > .type {
   padding: 4px 8px;
   color: #6a7282;
   border-radius: 8px;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .dots:hover {
@@ -328,7 +355,9 @@ tbody tr:hover .column > .type {
   text-align: left;
   font-size: 13px;
   font-weight: 500;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .menu button:hover {
@@ -384,4 +413,49 @@ tbody td[colspan] {
   background-color: #155dfc;
   border: 1px solid #155dfc;
   box-shadow: 0 3px 10px rgba(21, 93, 252, 0.3);
+}
+
+/*respoonsive*/
+
+/* ─── TABLET (max 1024px) ─── */
+@media (max-width: 1024px) {
+  .searchNav > input {
+    width: 100%;
+  }
+
+  .table {
+    width: 100%;
+  }
+}
+
+/* ─── MOBILE (max 768px) ─── */
+
+@media (max-width: 768px) {
+  .arr {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    width: 100% !important;
+    padding: 15px 0 !important;
+    margin: 0 !important;
+    background-color: #f9fafb !important;
+    z-index: 999 !important;
+  }
+
+  .pagination {
+    display: flex !important;
+    visibility: visible !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 5px !important;
+    margin: 0 !important;
+    padding: 10px 0 !important;
+  }
+
+  .page-link,
+  .change {
+    display: inline-block !important;
+    visibility: visible !important;
+  }
 }

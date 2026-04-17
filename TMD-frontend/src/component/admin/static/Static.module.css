@@ -260,3 +260,70 @@
   height: 18px;
   border-radius: 4px;
 }
+
+/* responsive design*/
+
+/* ─── TABLET (max 1024px) ─── */
+@media (max-width: 1024px) {
+  .render-content {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 350px 350px 350px;
+    column-gap: 20px;
+    row-gap: 30px;
+    grid-template-areas:
+      "line line"
+      "bar pie"
+      "square square";
+  }
+
+  .line {
+    max-width: 100%;
+  }
+
+  .bar {
+    width: 100%;
+  }
+}
+
+/* ─── MOBILE (max 768px) ─── */
+@media (max-width: 768px) {
+  .render-content {
+    grid-template-columns: 1fr;
+    grid-template-rows: 250px 300px 250px 300px;
+    column-gap: 0;
+    row-gap: 20px;
+    padding: 15px;
+    grid-template-areas:
+      "line"
+      "pie"
+      "bar"
+      "square";
+    overflow: visible;
+  }
+
+  .line,
+  .pie,
+  .bar,
+  .square {
+    padding: 15px;
+    overflow: hidden;
+  }
+
+  .line {
+    max-width: 100%;
+  }
+
+  .bar {
+    width: 100%;
+  }
+
+  .line canvas,
+  .bar canvas {
+    max-height: 180px !important;
+  }
+
+  .doughnutWrapper {
+    width: 130px;
+    height: 130px;
+  }
+}

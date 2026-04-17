@@ -161,8 +161,8 @@
 
 .searchNav > img {
   position: absolute;
-  top: 5px;
-  left: 5px;
+  top: 8px;
+  left: 8px;
 }
 
 .searchNav > input {
@@ -556,27 +556,64 @@ tbody td[colspan] {
   box-shadow: 0 3px 10px rgba(21, 93, 252, 0.3);
 }
 
-.status {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: capitalize;
+
+
+
+/*respoonsive*/
+
+/* ─── TABLET (max 1024px) ─── */
+@media (max-width: 1024px) {
+  .search {
+    padding: 0px 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .title {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .row {
+    gap: 15px;
+    padding: 0 20px;
+  }
+
+  .table {
+    width: 100%;
+  }
 }
 
-.approved {
-  background-color: #d1fae5;
-  color: #065f46;
-}
+/* ─── MOBILE (max 768px) ─── */
 
-.rejected {
-  background-color: #fee2e2;
-  color: #991b1b;
-}
+@media (max-width: 768px) {
+  .arr {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    width: 100% !important;
+    padding: 15px 0 !important;
+    margin: 0 !important;
+    background-color: #f9fafb !important;
+    z-index: 999 !important;
+  }
 
-.pending {
-  background-color: #fef9c3;
-  color: #854d0e;
+  .pagination {
+    display: flex !important;
+    visibility: visible !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 5px !important;
+    margin: 0 !important;
+    padding: 10px 0 !important;
+  }
+
+  .page-link,
+  .change {
+    display: inline-block !important;
+    visibility: visible !important;
+  }
 }
 
 .successBanner {

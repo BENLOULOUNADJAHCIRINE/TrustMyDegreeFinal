@@ -1,24 +1,46 @@
 /* Page load animations */
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Makes the download button glow repeatedly */
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(21, 93, 252, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(21, 93, 252, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(21, 93, 252, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(21, 93, 252, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(21, 93, 252, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(21, 93, 252, 0);
+  }
 }
 
 .main-content {
@@ -83,7 +105,9 @@
   align-items: center;
   padding: 10px;
   /* smooth hover effect */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
   /* slides up when page loads */
   animation: fadeInUp 0.7s ease;
 }
@@ -163,7 +187,9 @@
   border-radius: 10px;
   outline: none;
   /* smooth border color change on focus */
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 /* input glows blue when you click on it */
@@ -209,7 +235,10 @@
   border: 2px solid #f3f4f6;
   border-radius: 10px;
   /* smooth hover transition */
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
   /* each card slides up when it appears */
   animation: fadeInUp 0.5s ease;
 }
@@ -325,7 +354,10 @@
   background-color: #155dfc;
   cursor: pointer;
   /* smooth hover transition */
-  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.2s ease;
   /* button glows repeatedly to grab attention */
   animation: pulse 2s infinite;
 }
@@ -360,7 +392,9 @@
   align-items: center;
   justify-content: space-evenly;
   /* smooth hover transition */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 /* request card lifts up when you hover */
@@ -389,7 +423,9 @@
   background-color: white;
   cursor: pointer;
   /* smooth color change on hover */
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* button fills blue when you hover */
@@ -534,7 +570,9 @@
   height: 15px;
   cursor: pointer;
   /* smooth scale and fade transition */
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
 }
 
 /* logout icon grows and fades slightly on hover */
@@ -563,4 +601,157 @@
 /* back link turns blue on hover */
 .backto a:hover {
   color: #155dfc;
+}
+
+/*responsive*/
+
+/* ─── TABLET (max 1024px) ─── */
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "login"
+      "nav"
+      "dashboard"
+      "policy";
+  }
+
+  .hello {
+    padding: 30px 20px;
+  }
+
+  .information {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .inf {
+    width: 30%;
+  }
+
+  .dashboard {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "left"
+      "right";
+    margin-top: 30px;
+  }
+
+  .right {
+    align-items: center;
+    padding: 20px;
+  }
+
+  .button > button {
+    width: 100%;
+  }
+
+  .button > img {
+    left: auto;
+    right: 20px;
+  }
+}
+
+/* ─── MOBILE (max 768px) ─── */
+@media (max-width: 768px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "login"
+      "nav"
+      "dashboard"
+      "policy";
+  }
+
+  .hello {
+    padding: 20px 15px;
+  }
+
+  .information {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .inf {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dashboard {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "left"
+      "right";
+    margin-top: 20px;
+  }
+
+  .left {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .search {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .search > div {
+    width: 100%;
+  }
+
+  .diplomes {
+    width: 100%;
+    height: auto;
+    max-height: 500px;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  .date {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .button {
+    margin-top: 10px;
+  }
+
+  .button > button {
+    width: 100%;
+  }
+
+  .button > img {
+    display: none;
+  }
+
+  .right {
+    align-items: center;
+    padding: 20px 15px;
+  }
+
+  .request {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .request button {
+    width: 100%;
+  }
+
+  .login {
+    padding: 8px 15px;
+  }
+
+  .image {
+    margin-left: 15px;
+  }
+
+  .policy {
+    padding: 15px;
+    font-size: 12px;
+  }
 }

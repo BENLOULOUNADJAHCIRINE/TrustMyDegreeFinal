@@ -156,3 +156,58 @@
   font-weight: 400;
   margin: 2px 9px 2px 3px;
 }
+
+/*responsive*/
+
+/* ─── TABLET (max 1024px) ─── */
+@media (max-width: 1024px) {
+  .main-content > p {
+    width: 60%;
+  }
+
+  .verify {
+    width: 60%;
+  }
+}
+
+/* ─── MOBILE (max 768px) ─── */
+@media (max-width: 768px) {
+  .main-content {
+    height: auto;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .main-content > h1 {
+    font-size: 24px;
+  }
+
+  .main-content > p {
+    width: 90%;
+    font-size: 14px;
+  }
+
+  .verify {
+    width: 90%;
+  }
+
+  .inputBox > input {
+    width: 80%;
+  }
+
+  .submit {
+    width: 90%;
+  }
+
+  .successBox,
+  .errorBox {
+    width: 90%;
+    max-width: 100%;
+  }
+
+  .bottomStatus {
+    width: 90%;
+    flex-direction: column;
+    gap: 10px;
+  }
+}

@@ -8,7 +8,7 @@ function RequestStudent() {
   const [user, setUser] = useState(null);
   const [doc, setDoc] = useState("");
   const [reason, setReason] = useState("");
-  const [delivery, setDelivery] = useState("");
+  // const [delivery, setDelivery] = useState("");
   const [priority, setPriority] = useState("");
   const [openMenu, setOpenMenu] = useState(false);
   const [success, setSuccess] = useState("");
@@ -16,7 +16,8 @@ function RequestStudent() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.get("/student/dashboard")
+    api
+      .get("/student/dashboard")
       .then((res) => {
         setUser({ name: res.data.fullName, isGraduated: res.data.isGraduated });
       })
@@ -31,13 +32,13 @@ function RequestStudent() {
       await api.post("/student/requests", {
         documentType: doc,
         reason,
-        delivery: delivery.toUpperCase(),
+        // delivery: delivery.toUpperCase(),
         priority: priority.toUpperCase(),
       });
       setSuccess("Request submitted successfully! ✅");
       setDoc("");
       setReason("");
-      setDelivery("");
+      // setDelivery("");
       setPriority("");
       if (editorRef.current) editorRef.current.textContent = "";
     } catch (err) {
@@ -48,7 +49,7 @@ function RequestStudent() {
   function clear() {
     setDoc("");
     setReason("");
-    setDelivery("");
+    // setDelivery("");
     setPriority("");
     if (editorRef.current) editorRef.current.textContent = "";
   }
@@ -76,19 +77,30 @@ function RequestStudent() {
           {openMenu && (
             <div className={styles.menu}>
               <ul className={styles.list}>
-                <li><Link to="/student/Settings">Parameters</Link></li>
+                <li>
+                  <Link to="/student/Settings">Parameters</Link>
+                </li>
               </ul>
             </div>
           )}
         </div>
 
         <div className={styles.info}>
-          <img src="/totalcertaficates.png" alt="ava" className={styles.student} />
+          <img
+            src="/totalcertaficates.png"
+            alt="ava"
+            className={styles.student}
+          />
           <div className={styles.subinfo}>
             <h4>{user ? user.name : "guest"}</h4>
             <p>{user?.isGraduated ? "Graduated ✅" : "Not graduated yet"}</p>
           </div>
-          <img src="/exit.png" alt="exit" onClick={handleLogout} className={styles.exit} />
+          <img
+            src="/exit.png"
+            alt="exit"
+            onClick={handleLogout}
+            className={styles.exit}
+          />
         </div>
       </div>
 
@@ -105,7 +117,9 @@ function RequestStudent() {
           </p>
         </div>
 
-        {success && <p style={{ color: "green", marginBottom: "10px" }}>{success}</p>}
+        {success && (
+          <p style={{ color: "green", marginBottom: "10px" }}>{success}</p>
+        )}
         {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
 
         <form className={styles.form} onSubmit={handleSubmit}>
@@ -129,7 +143,7 @@ function RequestStudent() {
             ></div>
           </div>
 
-          <div className={styles.option}>
+          {/* <div className={styles.option}>
             <h4>3. Delivery Option</h4>
             <div>
               <div className={styles.option1}>
@@ -160,12 +174,18 @@ function RequestStudent() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           <div className={styles.priority}>
             <label>4. Priority Level</label>
-            <select value={priority} onChange={(e) => setPriority(e.target.value)} required>
-              <option value="" disabled>Choose</option>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              required
+            >
+              <option value="" disabled>
+                Choose
+              </option>
               <option value="urgent">Urgent</option>
               <option value="normal">Normal</option>
             </select>
@@ -173,7 +193,9 @@ function RequestStudent() {
 
           <div className={styles.buttons}>
             <input type="submit" value="Submit Request" />
-            <button type="button" onClick={clear}>Cancel</button>
+            <button type="button" onClick={clear}>
+              Cancel
+            </button>
           </div>
         </form>
       </div>

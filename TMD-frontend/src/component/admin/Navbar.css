@@ -120,3 +120,55 @@ nav {
 .logout {
   font-size: 17px;
 }
+
+/*responsive*/
+/* hamburger button — hidden on desktop */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 100;
+}
+
+.hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background-color: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    position: relative;
+    padding: 5px 20px;
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hamburger {
+    display: flex;
+    position: static; /* remove absolute positioning */
+    align-self: flex-end;
+    margin-bottom: 0;
+  }
+
+  nav {
+    display: none;
+    flex-direction: column;
+    padding-top: 50px;
+  }
+
+  nav.open {
+    display: flex;
+  }
+}
