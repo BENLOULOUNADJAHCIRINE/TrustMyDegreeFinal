@@ -27,6 +27,7 @@ app.use("/api/student", require("./routes/student"));
 app.use("/api/verify", require("./routes/verify"));
 app.use("/api/contact", require("./routes/contact"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));

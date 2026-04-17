@@ -433,6 +433,7 @@ tbody tr:hover .column {
   font-weight: 400;
 }
 
+.upload, 
 .uploadcontainer > button {
   color: #155dfc;
   font-weight: 600;
@@ -442,16 +443,19 @@ tbody tr:hover .column {
   background-color: #dbeafe;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
+.upload:hover,
 .uploadcontainer > button:hover {
-  color: #dbeafe;
+  color: #ffffff;
   border: 1px solid #155dfc;
   background-color: #155dfc;
   box-shadow: 0 4px 12px rgba(21, 93, 252, 0.3);
   transform: scale(1.05);
 }
-
 tbody td[colspan] {
   padding: 40px;
   font-size: 15px;
@@ -610,4 +614,30 @@ tbody td[colspan] {
     display: inline-block !important;
     visibility: visible !important;
   }
+}
+
+.successBanner {
+  background-color: #d1fae5;
+  color: #065f46;
+  padding: 12px;
+  border-radius: 6px;
+  text-align: center;
+  margin-bottom: 20px;
+  border: 1px solid #6ee7b7;
+  font-weight: bold;
+}
+
+.viewBtn {
+  color: #2563eb !important;
+  font-weight: bold !important;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  width: 100%;
+  text-align: left;
+}
+
+.viewBtn:hover {
+  background-color: #f3f4f6;
 }

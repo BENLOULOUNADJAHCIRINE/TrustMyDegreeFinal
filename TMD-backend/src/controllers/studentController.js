@@ -131,30 +131,26 @@ const downloadRequestDocument = async (req, res) => {
       where: { id: id },
     });
 
-    if (!request) {
-      return res.status(404).json({ message: "Request not found" });
+    if (!request || !request.fileUrl) {
+      return res.status(404).json({ message: "Document not found" });
     }
 
     if (request.studentId !== userId) {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    if (!request.fileUrl) {
-      return res.status(404).json({ message: "Document not uploaded yet" });
-    }
+    const fileName = path.basename(request.fileUrl);
+    const filePath = path.join(process.cwd(), "uploads", fileName);
 
-    const filePath = path.resolve(request.fileUrl);
-
-    if (!fs.existsSync(filePath)) {
+    if (fs.existsSync(filePath)) {
+      return res.download(filePath);
+    } else {
       return res.status(404).json({ message: "File does not exist on server" });
     }
-
-    res.download(filePath);
   } catch (err) {
-    res.status(500).json({ error: "an error occurred in the server" });
+    res.status(500).json({ error: "An error occurred on the server" });
   }
 };
-
 // Student Change Password
 const changePassword = async (req, res) => {
   try {
