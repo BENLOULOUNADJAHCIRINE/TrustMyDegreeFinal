@@ -32,7 +32,7 @@ function Navbar() {
             <span className="same">dashboard</span>
           </Link>
 
-          {role === "superadmin" && (
+          {role === "SUPER_ADMIN" && (
             <Link to="/admin/authorisations">
               <img src="/superadmine.png" alt="superadmine" />
               <span className="same">Manage admins</span>

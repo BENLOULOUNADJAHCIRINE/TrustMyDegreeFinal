@@ -9,7 +9,7 @@ function Parameters() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/admin/user", {
+    fetch("http://localhost:5000/api/auth/user", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -33,10 +33,10 @@ function Parameters() {
       return;
     }
 
-    fetch("http://localhost:5000/password", {
-      method: "POST",
+    fetch("http://localhost:5000/api/admin/settings", {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, currentPassword, newPassword }),
+      body: JSON.stringify({ currentPassword, newPassword }),
     })
       .then((reponse) => reponse.json())
       .then((data) => {

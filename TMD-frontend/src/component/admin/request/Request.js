@@ -1,60 +1,48 @@
 import styles from "./Request.module.css";
 import { useState, useEffect } from "react";
-import data from "./data.json";
 
 function Request() {
-  const [user, setUser] = useState(null); //state for the profile
-  const [stats, setStats] = useState(null); // State to hold activity data
+  const [user, setUser] = useState(null);
+  const [stats, setStats] = useState(null);
   const [request, setRequest] = useState([]);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/auth/user", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    }) // fetch the user who logged in
-      .then((res) => res.json())
-      .then((data) => setUser(data))
-      .catch((err) => console.log(err));
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/admin/activity", {
+    fetch("http://localhost:5000/api/admin/requests", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     })
-      // Fetch activityrow from the backend API
       .then((res) => res.json())
-      .then((data) => setStats(data))
+      .then((data) => {
+        setRequest(data.requests || []);
+        setStats({
+          TotalRequests: { number: data.summary.total, percentage: "" },
+          pendingApproval: { number: data.summary.pending, percentage: "" },
+          Approved: { number: data.summary.approved, percentage: "" },
+          Rejected: { number: data.summary.rejected, percentage: "" },
+        });
+      })
       .catch((err) => console.log(err));
   }, []);
 
-  useEffect(() => setRequest(data), []); //json data
-
-  // useEffect(() => {
-  //   console.log("called");
-  //   fetch("http://localhost:5000/api/auth/Requests")       // fetch the requests from the backend API
-  //     .then((res) => res.json())
-  //     .then((data) => setRequest(data))
-  //     .catch((err) => console.log(err));
-  // }, []);
-
   const filteredRequests = request.filter(
     (req) =>
-      req.RequestID.toLowerCase().includes(search.toLowerCase()) ||
-      req.student.toLowerCase().includes(search.toLowerCase()) ||
-      req.email.toLowerCase().includes(search.toLowerCase()) ||
-      req.DocumentType.toLowerCase().includes(search.toLowerCase()) ||
-      req.priority.toLowerCase().includes(search.toLowerCase()) ||
-      req.issue_date.toLowerCase().includes(search.toLowerCase()),
+      req.id?.toLowerCase().includes(search.toLowerCase()) ||
+      req.student?.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+      req.student?.matricule?.toLowerCase().includes(search.toLowerCase()) ||
+      req.documentType?.toLowerCase().includes(search.toLowerCase()) ||
+      req.priority?.toLowerCase().includes(search.toLowerCase()) ||
+      req.createdAt?.toLowerCase().includes(search.toLowerCase()),
   );
 
   function downloadExcel() {
     console.log("downlaod request");
-    // add the download url of the backend
-
     fetch("http://localhost:5000/api/admin/requests/export", {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token"),
@@ -63,11 +51,9 @@ function Request() {
       .then((res) => res.blob())
       .then((blob) => {
         const url = window.URL.createObjectURL(blob);
-
         const a = document.createElement("a");
         a.href = url;
         a.download = "certificates.xlsx";
-
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -77,19 +63,18 @@ function Request() {
 
   useEffect(() => {
     setcurentPage(1);
-  }, [search]); // make the search result return always to the first page
+  }, [search]);
 
-  /* the pagination */
   const [currentPage, setcurentPage] = useState(1);
-  const perPage = 5; // nmbr of element to show per page
-  const pagesPerGroup = 3; // make the array of list contain 4 buttons each time
+  const perPage = 5;
+  const pagesPerGroup = 3;
 
   const Lastindex = currentPage * perPage;
   const Firstindex = Lastindex - perPage;
 
-  const records = filteredRequests.slice(Firstindex, Lastindex); // the elements showing per page , it was Certificate.slice
+  const records = filteredRequests.slice(Firstindex, Lastindex);
 
-  const numberofpages = Math.ceil(filteredRequests.length / perPage); // nmbr of pages we have
+  const numberofpages = Math.ceil(filteredRequests.length / perPage);
   const currentGroup = Math.ceil(currentPage / pagesPerGroup);
 
   const startPage = (currentGroup - 1) * pagesPerGroup + 1;
@@ -101,10 +86,6 @@ function Request() {
   }
 
   function prevPage() {
-    // if (currentPage !== 1) {
-    //   setcurentPage(currentPage - 1);
-    // }
-
     if (startPage > 1) {
       setcurentPage(startPage - pagesPerGroup);
     }
@@ -120,36 +101,47 @@ function Request() {
     }
   }
 
-  function downloadPDF(id) {
-    fetch(`http://localhost:5000/api/admin/requests/${id}/download`, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-    })
-      .then((res) => res.blob())
-      .then((blob) => {
-        const url = window.URL.createObjectURL(blob);
+  function uploadDocument(id) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".pdf,.doc,.docx";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `certificate-${id}.pdf`;
+      const formData = new FormData();
+      formData.append("document", file);
+      formData.append("status", "APPROVED");
 
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+      fetch(`http://localhost:5000/api/admin/requests/${id}/upload`, {
+        method: "PUT",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+        body: formData,
       })
-      .catch((err) => console.log(err));
+        .then((res) => res.json())
+        .then((data) => {
+          const updated = request.map((r) =>
+            r.id === id
+              ? { ...r, status: "APPROVED", fileUrl: data.request.fileUrl }
+              : r,
+          );
+          setRequest(updated);
+          alert("Document uploaded successfully!");
+        })
+        .catch((err) => console.log(err));
+    };
+    input.click();
   }
 
-  const [openMenu, setOpenMenu] = useState(null); // perform the action on status
+  const [openMenu, setOpenMenu] = useState(null);
 
   function updateStatus(id, newStatus) {
-    //change the fetch url
-
     console.log("active demande");
 
     fetch(`http://localhost:5000/api/admin/requests/${id}/status`, {
-      method: "PATCH",
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("token"),
@@ -158,11 +150,9 @@ function Request() {
     })
       .then((res) => res.json())
       .then((data) => {
-        // update the UI after backend confirms
         const updated = request.map((c) =>
           c.id === id ? { ...c, status: newStatus } : c,
         );
-
         setRequest(updated);
         setOpenMenu(null);
       })
@@ -175,7 +165,7 @@ function Request() {
         <h4>Requests</h4>
         <div className={styles.info}>
           <div className={styles.subinfo}>
-            <h4>{user ? user.name : "guest"}</h4>{" "}
+            <h4>{user ? user.fullName : "guest"}</h4>{" "}
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
           <img src={user?.avatar || "/totalcertaficates.png"} alt="ava" />
@@ -217,8 +207,7 @@ function Request() {
             <p>{stats ? stats.TotalRequests.percentage : "..."}</p>
           </div>
           <h5>Total Requests</h5>
-          <h2>{stats ? stats.TotalRequests.number : "..."}</h2>{" "}
-          {/*Display Total Requests from stats or show "..." if stats is not loaded yet*/}
+          <h2>{stats ? stats.TotalRequests.number : "..."}</h2>
         </div>
 
         <div className={styles["Pending-Approval"]}>
@@ -227,8 +216,7 @@ function Request() {
             <p>{stats ? stats.pendingApproval.percentage : "..."}</p>
           </div>
           <h5>Pending Approval</h5>
-          <h2>{stats ? stats.pendingApproval.number : "..."}</h2>{" "}
-          {/*Display pending approval requests from stats or show "..." if stats is not loaded yet*/}
+          <h2>{stats ? stats.pendingApproval.number : "..."}</h2>
         </div>
 
         <div className={styles["Approved"]}>
@@ -237,8 +225,7 @@ function Request() {
             <p>{stats ? stats.Approved.percentage : "..."}</p>
           </div>
           <h5>Approved</h5>
-          <h2>{stats ? stats.Approved.number : "..."}</h2>{" "}
-          {/*Display Approved requestsfrom stats or show "..." if stats is not loaded yet*/}
+          <h2>{stats ? stats.Approved.number : "..."}</h2>
         </div>
         <div className={styles["Rejected"]}>
           <div>
@@ -246,8 +233,7 @@ function Request() {
             <p>{stats ? stats.Rejected.percentage : "..."}</p>
           </div>
           <h5>Rejected</h5>
-          <h2>{stats ? stats.Rejected.number : "..."}</h2>{" "}
-          {/*Display Rejected requests from stats or show "..." if stats is not loaded yet*/}
+          <h2>{stats ? stats.Rejected.number : "..."}</h2>
         </div>
       </div>
 
@@ -261,6 +247,7 @@ function Request() {
                 <th className={styles.colu}>Document Type</th>
                 <th className={styles.colu}>Priority</th>
                 <th className={styles.colu}>Submitted</th>
+                <th className={styles.colu}>Status</th>
                 <th className={styles.colu}>upload</th>
                 <th className={styles.colu}>Actions</th>
               </tr>
@@ -269,29 +256,46 @@ function Request() {
               {records.length > 0 ? (
                 records.map((req) => (
                   <tr className={styles.line} key={req.id}>
-                    <td className={styles.column}>{req.RequestID}</td>
+                    <td className={styles.column}>
+                      {req.id.substring(0, 8)}...
+                    </td>
                     <td className={styles.column}>
                       <div className={styles.leftside}>
-                        <span className={styles.student}>{req.student} </span>
-                        <span className={styles.email}>{req.email} </span>
+                        <span className={styles.student}>
+                          {req.student?.fullName}
+                        </span>
+                        <span className={styles.email}>
+                          {req.student?.matricule}
+                        </span>
                       </div>
                     </td>
                     <td className={styles.column}>
-                      {" "}
-                      <span className={styles.docum}>{req.DocumentType}</span>
+                      <span className={styles.docum}>{req.documentType}</span>
                     </td>
                     <td className={styles.column}>
                       <span
-                        className={`${styles.priority} ${req.priority.toLowerCase() === "normal" ? styles.normal : styles.urgent}`}
+                        className={`${styles.priority} ${req.priority?.toLowerCase() === "normal" ? styles.normal : styles.urgent}`}
                       >
-                        {" "}
                         {req.priority}
                       </span>
                     </td>
                     <td className={styles.column}>
                       <span className={styles.issue_date}>
-                        {" "}
-                        {req.issue_date}{" "}
+                        {new Date(req.createdAt).toLocaleDateString("fr-FR")}
+                      </span>
+                    </td>
+
+                    <td className={styles.column}>
+                      <span
+                        className={`${styles.status} ${
+                          req.status?.toLowerCase() === "approved"
+                            ? styles.approved
+                            : req.status?.toLowerCase() === "rejected"
+                              ? styles.rejected
+                              : styles.pending
+                        }`}
+                      >
+                        {req.status || "PENDING"}
                       </span>
                     </td>
 
@@ -299,9 +303,8 @@ function Request() {
                       <div className={styles.uploadcontainer}>
                         <button
                           className={styles.upload}
-                          onClick={() => downloadPDF(req.RequestID)}
+                          onClick={() => uploadDocument(req.id)}
                         >
-                          {" "}
                           &#10515; upload
                         </button>
                       </div>
@@ -314,23 +317,20 @@ function Request() {
                             setOpenMenu(openMenu === req.id ? null : req.id)
                           }
                         >
-                          {" "}
-                          ⋮{" "}
+                          ⋮
                         </span>
                         {openMenu === req.id && (
                           <div className={styles.menu}>
                             <button
-                              onClick={() => updateStatus(req.id, "approved")}
+                              onClick={() => updateStatus(req.id, "APPROVED")}
                             >
-                              {" "}
                               approve
-                            </button>{" "}
+                            </button>
                             <button
-                              onClick={() => updateStatus(req.id, "rejected")}
+                              onClick={() => updateStatus(req.id, "REJECTED")}
                             >
-                              {" "}
                               reject
-                            </button>{" "}
+                            </button>
                           </div>
                         )}
                       </div>
@@ -339,8 +339,7 @@ function Request() {
                 ))
               ) : (
                 <tr className={styles.row}>
-                  {" "}
-                  <td colSpan="7">No data found</td>{" "}
+                  <td colSpan="8">No data found</td>
                 </tr>
               )}
             </tbody>
