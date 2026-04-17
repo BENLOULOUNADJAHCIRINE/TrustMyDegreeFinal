@@ -83,11 +83,13 @@ const getRequests = async (req, res) => {
       },
     });
     res.status(200).json({
-      totalRequests,
-      pendingRequests,
-      approvedRequests,
-      rejectedRequests,
-      fullList,
+      requests: fullList, //
+      summary: {
+        total: totalRequests,
+        pending: pendingRequests,
+        approved: approvedRequests,
+        rejected: rejectedRequests,
+      },
     });
   } catch (err) {
     res.status(500).json({ error: "an error occured in the server" });
@@ -339,7 +341,10 @@ const importDiplomas = async (req, res) => {
       });
 
       if (existingCert) {
-        errors.push({ matricule: row.matricule, error: "certificate already exists" });
+        errors.push({
+          matricule: row.matricule,
+          error: "certificate already exists",
+        });
         continue;
       }
 
@@ -512,13 +517,13 @@ const exportCertificates = async (req, res) => {
 
     const rows = certificates.map((cert) => ({
       "Student Name": cert.student?.fullName || "",
-      "Matricule": cert.student?.matricule || "",
-      "Type": cert.type || "",
-      "Specialty": cert.specialty || "",
-      "Mention": cert.mention || "",
-      "Faculty": cert.faculty || "",
+      Matricule: cert.student?.matricule || "",
+      Type: cert.type || "",
+      Specialty: cert.specialty || "",
+      Mention: cert.mention || "",
+      Faculty: cert.faculty || "",
       "Issue Date": new Date(cert.issueDate).toLocaleDateString("fr-FR"),
-      "Status": cert.status || "",
+      Status: cert.status || "",
       "Unique Code": cert.uniqueCode || "",
     }));
 
@@ -528,8 +533,14 @@ const exportCertificates = async (req, res) => {
 
     const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
-    res.setHeader("Content-Disposition", "attachment; filename=certificates.xlsx");
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=certificates.xlsx",
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
     res.send(buffer);
   } catch (err) {
     console.error(err);
@@ -546,7 +557,7 @@ module.exports = {
   handleRequestDocument,
   importDiplomas,
   getStatistics,
-  getAllCertificates, 
-   downloadCertificate,
-   exportCertificates,
+  getAllCertificates,
+  downloadCertificate,
+  exportCertificates,
 };

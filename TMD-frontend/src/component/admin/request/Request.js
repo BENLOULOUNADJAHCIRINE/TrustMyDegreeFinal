@@ -2,8 +2,8 @@ import styles from "./Request.module.css";
 import { useState, useEffect } from "react";
 
 function Request() {
-  const [user, setUser] = useState(null); //state for the profile
-  const [stats, setStats] = useState(null); // State to hold activity data
+  const [user, setUser] = useState(null);
+  const [stats, setStats] = useState(null);
   const [request, setRequest] = useState([]);
   const [search, setSearch] = useState("");
 
@@ -63,19 +63,18 @@ function Request() {
 
   useEffect(() => {
     setcurentPage(1);
-  }, [search]); // make the search result return always to the first page
+  }, [search]);
 
-  /* the pagination */
   const [currentPage, setcurentPage] = useState(1);
-  const perPage = 5; // nmbr of element to show per page
-  const pagesPerGroup = 3; // make the array of list contain 4 buttons each time
+  const perPage = 5;
+  const pagesPerGroup = 3;
 
   const Lastindex = currentPage * perPage;
   const Firstindex = Lastindex - perPage;
 
-  const records = filteredRequests.slice(Firstindex, Lastindex); // the elements showing per page , it was Certificate.slice
+  const records = filteredRequests.slice(Firstindex, Lastindex);
 
-  const numberofpages = Math.ceil(filteredRequests.length / perPage); // nmbr of pages we have
+  const numberofpages = Math.ceil(filteredRequests.length / perPage);
   const currentGroup = Math.ceil(currentPage / pagesPerGroup);
 
   const startPage = (currentGroup - 1) * pagesPerGroup + 1;
@@ -87,10 +86,6 @@ function Request() {
   }
 
   function prevPage() {
-    // if (currentPage !== 1) {
-    //   setcurentPage(currentPage - 1);
-    // }
-
     if (startPage > 1) {
       setcurentPage(startPage - pagesPerGroup);
     }
@@ -115,10 +110,10 @@ function Request() {
       if (!file) return;
 
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("document", file);
       formData.append("status", "APPROVED");
 
-      fetch(`http://localhost:5000/api/admin/requests/${id}`, {
+      fetch(`http://localhost:5000/api/admin/requests/${id}/upload`, {
         method: "PUT",
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token"),
@@ -128,7 +123,9 @@ function Request() {
         .then((res) => res.json())
         .then((data) => {
           const updated = request.map((r) =>
-            r.id === id ? { ...r, status: "APPROVED", fileUrl: data.request.fileUrl } : r,
+            r.id === id
+              ? { ...r, status: "APPROVED", fileUrl: data.request.fileUrl }
+              : r,
           );
           setRequest(updated);
           alert("Document uploaded successfully!");
@@ -138,12 +135,12 @@ function Request() {
     input.click();
   }
 
-  const [openMenu, setOpenMenu] = useState(null); // perform the action on status
+  const [openMenu, setOpenMenu] = useState(null);
 
   function updateStatus(id, newStatus) {
     console.log("active demande");
 
-    fetch(`http://localhost:5000/api/admin/requests/${id}`, {
+    fetch(`http://localhost:5000/api/admin/requests/${id}/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -153,7 +150,6 @@ function Request() {
     })
       .then((res) => res.json())
       .then((data) => {
-        // update the UI after backend confirms
         const updated = request.map((c) =>
           c.id === id ? { ...c, status: newStatus } : c,
         );
@@ -211,8 +207,7 @@ function Request() {
             <p>{stats ? stats.TotalRequests.percentage : "..."}</p>
           </div>
           <h5>Total Requests</h5>
-          <h2>{stats ? stats.TotalRequests.number : "..."}</h2>{" "}
-          {/*Display Total Requests from stats or show "..." if stats is not loaded yet*/}
+          <h2>{stats ? stats.TotalRequests.number : "..."}</h2>
         </div>
 
         <div className={styles["Pending-Approval"]}>
@@ -221,8 +216,7 @@ function Request() {
             <p>{stats ? stats.pendingApproval.percentage : "..."}</p>
           </div>
           <h5>Pending Approval</h5>
-          <h2>{stats ? stats.pendingApproval.number : "..."}</h2>{" "}
-          {/*Display pending approval requests from stats or show "..." if stats is not loaded yet*/}
+          <h2>{stats ? stats.pendingApproval.number : "..."}</h2>
         </div>
 
         <div className={styles["Approved"]}>
@@ -231,8 +225,7 @@ function Request() {
             <p>{stats ? stats.Approved.percentage : "..."}</p>
           </div>
           <h5>Approved</h5>
-          <h2>{stats ? stats.Approved.number : "..."}</h2>{" "}
-          {/*Display Approved requestsfrom stats or show "..." if stats is not loaded yet*/}
+          <h2>{stats ? stats.Approved.number : "..."}</h2>
         </div>
         <div className={styles["Rejected"]}>
           <div>
@@ -240,8 +233,7 @@ function Request() {
             <p>{stats ? stats.Rejected.percentage : "..."}</p>
           </div>
           <h5>Rejected</h5>
-          <h2>{stats ? stats.Rejected.number : "..."}</h2>{" "}
-          {/*Display Rejected requests from stats or show "..." if stats is not loaded yet*/}
+          <h2>{stats ? stats.Rejected.number : "..."}</h2>
         </div>
       </div>
 
@@ -255,6 +247,7 @@ function Request() {
                 <th className={styles.colu}>Document Type</th>
                 <th className={styles.colu}>Priority</th>
                 <th className={styles.colu}>Submitted</th>
+                <th className={styles.colu}>Status</th>
                 <th className={styles.colu}>upload</th>
                 <th className={styles.colu}>Actions</th>
               </tr>
@@ -263,29 +256,46 @@ function Request() {
               {records.length > 0 ? (
                 records.map((req) => (
                   <tr className={styles.line} key={req.id}>
-                    <td className={styles.column}>{req.id.substring(0, 8)}...</td>
+                    <td className={styles.column}>
+                      {req.id.substring(0, 8)}...
+                    </td>
                     <td className={styles.column}>
                       <div className={styles.leftside}>
-                        <span className={styles.student}>{req.student?.fullName}</span>
-                        <span className={styles.email}>{req.student?.matricule}</span>
+                        <span className={styles.student}>
+                          {req.student?.fullName}
+                        </span>
+                        <span className={styles.email}>
+                          {req.student?.matricule}
+                        </span>
                       </div>
                     </td>
                     <td className={styles.column}>
-                      {" "}
                       <span className={styles.docum}>{req.documentType}</span>
                     </td>
                     <td className={styles.column}>
                       <span
                         className={`${styles.priority} ${req.priority?.toLowerCase() === "normal" ? styles.normal : styles.urgent}`}
                       >
-                        {" "}
                         {req.priority}
                       </span>
                     </td>
                     <td className={styles.column}>
                       <span className={styles.issue_date}>
-                        {" "}
-                        {new Date(req.createdAt).toLocaleDateString("fr-FR")}{" "}
+                        {new Date(req.createdAt).toLocaleDateString("fr-FR")}
+                      </span>
+                    </td>
+
+                    <td className={styles.column}>
+                      <span
+                        className={`${styles.status} ${
+                          req.status?.toLowerCase() === "approved"
+                            ? styles.approved
+                            : req.status?.toLowerCase() === "rejected"
+                              ? styles.rejected
+                              : styles.pending
+                        }`}
+                      >
+                        {req.status || "PENDING"}
                       </span>
                     </td>
 
@@ -295,7 +305,6 @@ function Request() {
                           className={styles.upload}
                           onClick={() => uploadDocument(req.id)}
                         >
-                          {" "}
                           &#10515; upload
                         </button>
                       </div>
@@ -308,23 +317,20 @@ function Request() {
                             setOpenMenu(openMenu === req.id ? null : req.id)
                           }
                         >
-                          {" "}
-                          ⋮{" "}
+                          ⋮
                         </span>
                         {openMenu === req.id && (
                           <div className={styles.menu}>
                             <button
                               onClick={() => updateStatus(req.id, "APPROVED")}
                             >
-                              {" "}
                               approve
-                            </button>{" "}
+                            </button>
                             <button
                               onClick={() => updateStatus(req.id, "REJECTED")}
                             >
-                              {" "}
                               reject
-                            </button>{" "}
+                            </button>
                           </div>
                         )}
                       </div>
@@ -333,8 +339,7 @@ function Request() {
                 ))
               ) : (
                 <tr className={styles.row}>
-                  {" "}
-                  <td colSpan="7">No data found</td>{" "}
+                  <td colSpan="8">No data found</td>
                 </tr>
               )}
             </tbody>

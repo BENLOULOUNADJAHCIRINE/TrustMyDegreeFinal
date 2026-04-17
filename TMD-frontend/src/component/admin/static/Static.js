@@ -37,28 +37,75 @@ function Static() {
           data.topSpecialties.map((s) => ({
             label: s.specialty,
             value: s._count.specialty,
-          }))
+          })),
         );
         setLinegraph(
           data.monthlyIssuance.map((m) => ({
             label: m.month,
             Issuances: m.total,
             verification: 0,
-          }))
+          })),
         );
         setPiegraph(
           data.distributionByType.map((d) => ({
             label: d.type,
             value: d._count.type,
-          }))
+          })),
         );
         setHeatmap(
           data.verificationsPerDay.map((v, i) => ({
             day: v.date,
             week: Math.floor(i / 7) + 1,
             value: v.total,
-          }))
+          })),
         );
+      })
+      .catch((err) => console.log(err));
+  }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/admin/statistics", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        // Line graph - monthly issuance
+        const lineFormatted = Object.entries(data.monthlyIssuance).map(
+          ([label, value]) => ({
+            label,
+            Issuances: value,
+            verification: 0,
+          }),
+        );
+        setLinegraph(lineFormatted);
+
+        // Pie graph - distribution by type
+        const pieFormatted = Object.entries(data.distributionByType).map(
+          ([label, value]) => ({
+            label,
+            value,
+          }),
+        );
+        setPiegraph(pieFormatted);
+
+        // Bar graph - top specialties
+        const barFormatted = data.topSpecialties.map((s) => ({
+          label: s.specialty,
+          value: s._count.specialty,
+        }));
+        setBargraph(barFormatted);
+
+        // Heatmap - verifications per day
+        const heatFormatted = Object.entries(data.verificationsPerDay).map(
+          ([day, value], i) => ({
+            day,
+            week: Math.floor(i / 7),
+            value,
+          }),
+        );
+        setHeatmap(heatFormatted);
       })
       .catch((err) => console.log(err));
   }, []);

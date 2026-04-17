@@ -1,22 +1,44 @@
 /* Animations */
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateX(-10px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .main-content {
@@ -153,7 +175,9 @@
   color: black;
   cursor: pointer;
   outline: none;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .searchNav > input:focus {
@@ -222,7 +246,10 @@
   border: 2px solid #f3f4f6;
   width: 160px;
   height: 120px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .Total-Requests:hover,
@@ -442,7 +469,9 @@ tbody td[colspan] {
   padding: 4px 8px;
   color: #6a7282;
   border-radius: 8px;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .dots:hover {
@@ -469,7 +498,9 @@ tbody td[colspan] {
   text-align: left;
   font-size: 13px;
   font-weight: 500;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .menu button:hover {
@@ -519,4 +550,27 @@ tbody td[colspan] {
   background-color: #155dfc;
   border: 1px solid #155dfc;
   box-shadow: 0 3px 10px rgba(21, 93, 252, 0.3);
+}
+
+.status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.approved {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.rejected {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.pending {
+  background-color: #fef9c3;
+  color: #854d0e;
 }
