@@ -6,10 +6,13 @@ import api from "../../api";
 function DashboardStudent() {
   const [user, setUser] = useState(null);
   const [certificates, setCertificates] = useState([]);
+  const [requests, setRequests] = useState([]); 
   const [search, setSearch] = useState("");
+  const [openMenu, setOpenMenu] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Single fetch to get everything (User, Certs, and Requests)
     api.get("/student/dashboard")
       .then((res) => {
         const data = res.data;
@@ -20,39 +23,56 @@ function DashboardStudent() {
           activeCertificates: data.activeCertificates,
           lastIssued: data.lastIssuedCertificate?.issueDate || null,
         });
-        setCertificates(data.certificates);
+
+        setCertificates(data.certificates || []);
+        
+        // Filter approved requests that have a file attached
+        const approvedDocs = (data.requests || []).filter(
+          (req) => req.status === "APPROVED" && req.fileUrl
+        );
+        setRequests(approvedDocs);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => console.log("Dashboard fetch error:", err));
   }, []);
 
+  // Filter both lists based on search bar
   const filteredCertificates = certificates.filter(
     (cert) =>
       cert.specialty?.toLowerCase().includes(search.toLowerCase()) ||
       cert.type?.toLowerCase().includes(search.toLowerCase()) ||
-      cert.uniqueCode?.toLowerCase().includes(search.toLowerCase()) ||
-      cert.status?.toLowerCase().includes(search.toLowerCase())
+      cert.uniqueCode?.toLowerCase().includes(search.toLowerCase())
   );
 
-  function downloadPDF(id) {
-    const token = localStorage.getItem("token");
-    fetch(`http://localhost:5000/api/student/certificates/${id}/download`, {
-      headers: { Authorization: `Bearer ${token}` },
+  const filteredRequests = requests.filter((req) =>
+    req.documentType?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Unified download function
+ function downloadFile(id, type = "CERT") {
+  const token = localStorage.getItem("token");
+  const endpoint = type === "CERT" 
+    ? `http://localhost:5000/api/student/certificates/${id}/download`
+    : `http://localhost:5000/api/student/requests/${id}/download`;
+
+  fetch(endpoint, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("File not found");
+      return res.blob();
     })
-      .then((res) => res.blob())
-      .then((blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `diploma_${id}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      })
-      .catch((err) => console.log(err));
-  }
-
-  const [openMenu, setOpenMenu] = useState(false);
-
+    .then((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = type === "CERT" ? `cert_${id}.pdf` : `doc_${id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    })
+    .catch((err) => alert(err.message));
+}
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -69,7 +89,7 @@ function DashboardStudent() {
 
         <div className={styles.information}>
           <div className={styles.inf}>
-            <img src="/studenttotalcertificates.png" alt="studenttotalcertificates" />
+            <img src="/studenttotalcertificates.png" alt="total" />
             <div>
               <h5>Total Certificates</h5>
               <p>{user ? user.totalCertificates : "..."}</p>
@@ -77,7 +97,7 @@ function DashboardStudent() {
           </div>
 
           <div className={styles.inf}>
-            <img src="/studentactivecertificates.png" alt="studentactivecertificates" />
+            <img src="/studentactivecertificates.png" alt="active" />
             <div>
               <h5>Active Certificates</h5>
               <p>{user ? user.activeCertificates : "..."}</p>
@@ -85,7 +105,7 @@ function DashboardStudent() {
           </div>
 
           <div className={styles.inf}>
-            <img src="/studentlastissued.png" alt="studentlastissued" />
+            <img src="/studentlastissued.png" alt="last" />
             <div>
               <h5>Last Issued</h5>
               <p>{user?.lastIssued ? new Date(user.lastIssued).toLocaleDateString() : "..."}</p>
@@ -97,7 +117,7 @@ function DashboardStudent() {
       <div className={styles.dashboard}>
         <div className={styles.left}>
           <div className={styles.search}>
-            <h3>My Certificates</h3>
+            <h3>My Certificates & Documents</h3>
             <div>
               <img src="/searchbar.png" alt="searching" />
               <input
@@ -110,40 +130,67 @@ function DashboardStudent() {
           </div>
 
           <div className={styles.diplomes}>
-            {filteredCertificates.length > 0
-              ? filteredCertificates.map((cert) => (
-                  <div key={cert.id} className={styles["diplome-div"]}>
-                    <div className={styles.type}>
-                      <div>
-                        <h4>{cert.specialty}</h4>
-                        <p>{cert.type}</p>
-                      </div>
-                    </div>
-                    <div className={styles.date}>
-                      <div>
-                        <div className={styles.calander}>
-                          <img src="/calander.png" alt="calander" />
-                          <h5>{new Date(cert.graduationDate).toLocaleDateString()}</h5>
-                        </div>
-                        <div className={styles.chain}>
-                          <img src="/chain.png" alt="chain" />
-                          <p>{cert.uniqueCode}</p>
-                        </div>
-                      </div>
-                      <span className={`${styles.state} ${cert.status === "ACTIVE" ? styles.verified : styles.notveri}`}>
-                        {cert.status === "ACTIVE" ? "verified" : "revoked"} on the Blockchain
-                      </span>
-                    </div>
-
-                    <div className={styles.button}>
-                      <img src="/downloadsign.png" alt="dwnld" />
-                      <button type="button" onClick={() => downloadPDF(cert.id)}>
-                        Download PDF
-                      </button>
-                    </div>
+            {/* 1. Map Certificates */}
+            {filteredCertificates.map((cert) => (
+              <div key={cert.id} className={styles["diplome-div"]}>
+                <div className={styles.type}>
+                  <div>
+                    <h4>{cert.specialty}</h4>
+                    <p>{cert.type}</p>
                   </div>
-                ))
-              : "nothing to show"}
+                </div>
+                <div className={styles.date}>
+                  <div className={styles.calander}>
+                    <img src="/calander.png" alt="cal" />
+                    <h5>{new Date(cert.graduationDate).toLocaleDateString()}</h5>
+                  </div>
+                  <div className={styles.chain}>
+                    <img src="/chain.png" alt="chain" />
+                    <p>{cert.uniqueCode}</p>
+                  </div>
+                  <span className={`${styles.state} ${styles.verified}`}>
+                    verified on the Blockchain
+                  </span>
+                </div>
+                <div className={styles.button}>
+                  <img src="/downloadsign.png" alt="dwnld" />
+                  <button type="button" onClick={() => downloadFile(cert.id, "CERT")}>
+                    Download PDF
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {/* 2. Map Approved Document Requests */}
+            {filteredRequests.map((req) => (
+              <div key={req.id} className={styles["diplome-div"]}>
+                <div className={styles.type}>
+                  <div>
+                    <h4>{req.documentType}</h4>
+                    <p>OFFICIAL DOCUMENT</p>
+                  </div>
+                </div>
+                <div className={styles.date}>
+                  <div className={styles.calander}>
+                    <img src="/calander.png" alt="cal" />
+                    <h5>{new Date(req.updatedAt).toLocaleDateString()}</h5>
+                  </div>
+                  <span className={`${styles.state} ${styles.verified}`}>
+                    verified on the Blockchain
+                  </span>
+                </div>
+                <div className={styles.button}>
+                  <img src="/downloadsign.png" alt="dwnld" />
+                  <button type="button" onClick={() => downloadFile(req.id, "REQ")}>
+                    Download PDF
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {filteredCertificates.length === 0 && filteredRequests.length === 0 && (
+              <p className={styles.noData}>No records found.</p>
+            )}
           </div>
         </div>
 
@@ -162,6 +209,7 @@ function DashboardStudent() {
         <h4>© 2026 TrustMyDegree ENSTA - Verix Solution for Decentralized Academic Management.</h4>
       </div>
 
+      {/* Profile & Settings Menu */}
       <div className={styles.login}>
         <div className={styles.image}>
           <img

@@ -14,6 +14,7 @@ const {
   getStatistics,
   downloadCertificate,
   exportCertificates,
+  downloadRequestFile,
 } = require("../controllers/adminController");
 
 router.get("/dashboard", protect, isAdmin, dashboard);
@@ -28,5 +29,6 @@ router.post("/import", protect, isAdmin, importDiplomas);
 router.get("/certificates", protect, isAdmin, getAllCertificates);
 router.get("/statistics", protect, isAdmin, getStatistics);
 router.get("/certificates/:id/download", protect, isAdmin, downloadCertificate);
+router.get('/requests/:id/download', protect, isAdmin, downloadRequestFile);
 
 module.exports = router;

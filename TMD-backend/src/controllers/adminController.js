@@ -126,81 +126,60 @@ const handleRequestStatus = async (req, res) => {
 };
 
 // request upload document
+
 const handleRequestDocument = async (req, res) => {
   const id = req.params.id;
   try {
-    const file = req.files.document;
-    if (!file) {
-      return res.status(400).json({ message: "no file uploaded" });
+    if (!req.files || !req.files.document) {
+      return res.status(400).json({ message: "No file uploaded" });
     }
+
+    const file = req.files.document;
     const findRequest = await prisma.request.findUnique({
       where: { id: id },
       include: { student: true },
     });
+
     if (!findRequest) {
-      return res.status(400).json({ message: "request not found" });
+      return res.status(400).json({ message: "Request not found" });
     }
+
+  
     const fileName = `${Date.now()}_${file.name}`;
-    await file.mv(`./uploads/${fileName}`);
-    await prisma.request.update({
+    const uploadPath = path.join(__dirname, "../../uploads", fileName);
+    
+    await file.mv(uploadPath);
+
+  
+    const relativePathForDB = `uploads/${fileName}`;
+
+    const updatedRequest = await prisma.request.update({
       where: { id: id },
-      data: { fileUrl: `uploads/${fileName}` },
+      data: { 
+        fileUrl: relativePathForDB, 
+        status: "APPROVED" 
+      },
+      include: { student: true } 
     });
-    if (findRequest.status === "APPROVED") {
-      await sendEmail(
-        findRequest.student.email,
-        "Request Approved",
-        `<h2>Hello ${findRequest.student.fullName}</h2>
-        <p>Your request for <strong>${findRequest.documentType}</strong> has been approved.</p>
-        <p>You can download your document from your dashboard.</p>
-        <a href="http://localhost:3000/login" 
-          style="
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #4F46E5;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-top: 16px;
-          ">
-          Login to Dashboard
-        </a>
-        <p style="color: #888; font-size: 12px; margin-top: 16px;">
-          If the button doesn't work, copy this link: http://localhost:3000/login
-        </p>`,
-      );
-    } else {
-      await sendEmail(
-        findRequest.student.email,
-        "Request Rejected",
-        `<h2>Hello ${findRequest.student.fullName}</h2>
-        <p>Your request for <strong>${findRequest.documentType}</strong> has been rejected.</p>
-        <p>Please contact your university for more information.</p>
-        <a href="http://localhost:3000/login" 
-          style="
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #4F46E5;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-top: 16px;
-          ">
-          Login to Dashboard
-        </a>
-        <p style="color: #888; font-size: 12px; margin-top: 16px;">
-          If the button doesn't work, copy this link: http://localhost:3000/login
-        </p>`,
-      );
-    }
-    res.status(200).json({ message: "File uploaded succesfully" });
+    
+
+    await sendEmail(
+      findRequest.student.email,
+      "Document Ready for Download",
+      `<h2>Hello ${findRequest.student.fullName}</h2>
+       <p>The document you requested (<strong>${findRequest.documentType}</strong>) is ready.</p>`
+    );
+
+    res.status(200).json({ 
+      message: "File uploaded successfully", 
+      request: updatedRequest 
+    });
+
   } catch (err) {
-    res.status(500).json({ error: "an error occured in the server" });
+    console.error("Upload Error:", err);
+    res.status(500).json({ error: "An error occurred on the server" });
   }
 };
-
 // revoke Certificate
 const revokeCertificate = async (req, res) => {
   try {
@@ -225,28 +204,43 @@ const revokeCertificate = async (req, res) => {
 };
 
 // Change admin password
+
 const changePassword = async (req, res) => {
   try {
-    const userId = req.user.userId;
-    const student = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+   
+    const adminId = req.user.userId || req.user.id; 
     const { currentPassword, newPassword } = req.body;
-    const identical = await bcrypt.compare(currentPassword, student.password);
-    if (!identical) {
-      return res.status(400).json({ message: "Current password is false" });
-    }
-    const newHashedPassword = await bcrypt.hash(newPassword, 10);
-    await prisma.user.update({
-      where: { id: userId },
-      data: { password: newHashedPassword },
+
+    const admin = await prisma.user.findUnique({
+      where: { id: adminId },
     });
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin account not found" });
+    }
+
+   //compare
+    const isMatch = await bcrypt.compare(currentPassword, admin.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid current password" });
+    }
+
+    // Hash the new password
+    const saltRounds = 10;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    //  Update the database
+    await prisma.user.update({
+      where: { id: adminId },
+      data: { password: hashedNewPassword },
+    });
+
     res.status(200).json({ message: "Password updated successfully" });
   } catch (err) {
-    res.status(500).json({ error: "an error occured in the server" });
+    console.error("Change Password Error:", err);
+    res.status(500).json({ error: "An error occurred in the server" });
   }
 };
-
 // sync students
 const syncStudents = async (req, res) => {
   try {
@@ -331,7 +325,7 @@ const importDiplomas = async (req, res) => {
         continue;
       }
 
-      // ✅ NEW: prevent duplicate certificates for same student
+      // prevent duplicate certificates for same student
       const existingCert = await prisma.certificate.findFirst({
         where: {
           studentId: student.id,
@@ -547,6 +541,27 @@ const exportCertificates = async (req, res) => {
     res.status(500).json({ error: "an error occurred in the server" });
   }
 };
+
+
+const downloadRequestFile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const request = await prisma.request.findUnique({ where: { id } });
+
+    if (!request || !request.fileUrl) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    const filePath = path.resolve(request.fileUrl);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File does not exist on server" });
+    }
+
+    res.download(filePath);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
 module.exports = {
   changePassword,
   revokeCertificate,
@@ -560,4 +575,5 @@ module.exports = {
   getAllCertificates,
   downloadCertificate,
   exportCertificates,
+  downloadRequestFile,
 };

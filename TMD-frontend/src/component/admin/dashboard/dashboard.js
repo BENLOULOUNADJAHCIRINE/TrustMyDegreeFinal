@@ -8,6 +8,7 @@ function Dashboard() {
   const [stats, setStats] = useState(null);
   const [activities, setActivities] = useState([]);
   const [user, setUser] = useState(null);
+  const [statusMsg, setStatusMsg] = useState(""); // New state for the message
   const token = localStorage.getItem("token");
 
   // Get user from localStorage
@@ -31,7 +32,7 @@ function Dashboard() {
         setActivities(data.recentActivity || []);
       })
       .catch((err) => console.log(err));
-  }, []);
+  }, [token]);
 
   function handleSync() {
     fetch(`${BASE_URL}/api/admin/sync-students`, {
@@ -43,11 +44,16 @@ function Dashboard() {
       .then((res) => res.json())
       .then((data) => {
         console.log("SYNC DONE:", data);
-        alert(`Sync complete! Created: ${data.created}, Skipped: ${data.skipped}`);
+        // Set on-page message instead of alert
+        setStatusMsg(`Sync complete! Created: ${data.created}, Skipped: ${data.skipped}`);
+        
+        // Auto-hide after 4 seconds
+        setTimeout(() => setStatusMsg(""), 4000);
       })
       .catch((err) => {
         console.log(err);
-        alert("Sync failed");
+        setStatusMsg("Sync failed");
+        setTimeout(() => setStatusMsg(""), 4000);
       });
   }
 
@@ -63,6 +69,13 @@ function Dashboard() {
           <img src={user?.avatar || "/totalcertaficates.png"} alt="ava" />
         </div>
       </div>
+
+      {/* SUCCESS/ERROR MESSAGE BANNER */}
+      {statusMsg && (
+        <div className={styles.successBanner}>
+          {statusMsg}
+        </div>
+      )}
 
       {/* Dashboard Row */}
       <div className={styles.row}>
@@ -91,7 +104,6 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Activity */}
       <div className={styles.history}>
         <div className={styles.card}>
           <div className={styles.title}>
@@ -138,7 +150,6 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className={styles["quick-actions"]}>
         <div className={styles.sync}>
           <button onClick={handleSync}>Sync students</button>

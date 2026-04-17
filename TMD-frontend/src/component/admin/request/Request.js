@@ -6,13 +6,22 @@ function Request() {
   const [stats, setStats] = useState(null);
   const [request, setRequest] = useState([]);
   const [search, setSearch] = useState("");
+  const [statusMsg, setStatusMsg] = useState(""); 
+  const [openMenu, setOpenMenu] = useState(null);
+
+  // Pagination State
+  const [currentPage, setcurentPage] = useState(1);
+  const perPage = 5;
+  const pagesPerGroup = 3;
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) setUser(JSON.parse(storedUser));
+    fetchRequests();
   }, []);
 
-  useEffect(() => {
+  // Centralized fetch to keep stats and list in sync
+  const fetchRequests = () => {
     fetch("http://localhost:5000/api/admin/requests", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -29,7 +38,7 @@ function Request() {
         });
       })
       .catch((err) => console.log(err));
-  }, []);
+  };
 
   const filteredRequests = request.filter(
     (req) =>
@@ -38,11 +47,11 @@ function Request() {
       req.student?.matricule?.toLowerCase().includes(search.toLowerCase()) ||
       req.documentType?.toLowerCase().includes(search.toLowerCase()) ||
       req.priority?.toLowerCase().includes(search.toLowerCase()) ||
-      req.createdAt?.toLowerCase().includes(search.toLowerCase()),
+      req.createdAt?.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Handle Export
   function downloadExcel() {
-    console.log("downlaod request");
     fetch("http://localhost:5000/api/admin/requests/export", {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token"),
@@ -61,45 +70,27 @@ function Request() {
       .catch((err) => console.log(err));
   }
 
-  useEffect(() => {
-    setcurentPage(1);
-  }, [search]);
+ 
 
-  const [currentPage, setcurentPage] = useState(1);
-  const perPage = 5;
-  const pagesPerGroup = 3;
-
-  const Lastindex = currentPage * perPage;
-  const Firstindex = Lastindex - perPage;
-
-  const records = filteredRequests.slice(Firstindex, Lastindex);
-
-  const numberofpages = Math.ceil(filteredRequests.length / perPage);
-  const currentGroup = Math.ceil(currentPage / pagesPerGroup);
-
-  const startPage = (currentGroup - 1) * pagesPerGroup + 1;
-  const endPage = Math.min(startPage + pagesPerGroup - 1, numberofpages);
-
-  const numbers = [];
-  for (let i = startPage; i <= endPage; i++) {
-    numbers.push(i);
-  }
-
-  function prevPage() {
-    if (startPage > 1) {
-      setcurentPage(startPage - pagesPerGroup);
-    }
-  }
-
-  function changeCurrentPage(id) {
-    setcurentPage(id);
-  }
-
-  function nextPage() {
-    if (endPage < numberofpages) {
-      setcurentPage(endPage + 1);
-    }
-  }
+ function viewDocument(id) {
+  const token = localStorage.getItem("token");
+  
+  fetch(`http://localhost:5000/api/admin/requests/${id}/download`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("File not found");
+      return res.blob();
+    })
+    .then((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    })
+    .catch((err) => {
+      console.error(err);
+      alert("Could not open document. Ensure it was uploaded correctly.");
+    });
+}
 
   function uploadDocument(id) {
     const input = document.createElement("input");
@@ -111,7 +102,6 @@ function Request() {
 
       const formData = new FormData();
       formData.append("document", file);
-      formData.append("status", "APPROVED");
 
       fetch(`http://localhost:5000/api/admin/requests/${id}/upload`, {
         method: "PUT",
@@ -122,24 +112,22 @@ function Request() {
       })
         .then((res) => res.json())
         .then((data) => {
-          const updated = request.map((r) =>
-            r.id === id
-              ? { ...r, status: "APPROVED", fileUrl: data.request.fileUrl }
-              : r,
-          );
-          setRequest(updated);
-          alert("Document uploaded successfully!");
+          if (data.request) {
+            // Update local state with the returned object
+            const updated = request.map((r) =>
+              r.id === id ? data.request : r
+            );
+            setRequest(updated);
+            setStatusMsg("Document uploaded and approved successfully!");
+            setTimeout(() => setStatusMsg(""), 4000);
+          }
         })
         .catch((err) => console.log(err));
     };
     input.click();
   }
 
-  const [openMenu, setOpenMenu] = useState(null);
-
   function updateStatus(id, newStatus) {
-    console.log("active demande");
-
     fetch(`http://localhost:5000/api/admin/requests/${id}/status`, {
       method: "PUT",
       headers: {
@@ -149,15 +137,37 @@ function Request() {
       body: JSON.stringify({ status: newStatus }),
     })
       .then((res) => res.json())
-      .then((data) => {
+      .then(() => {
         const updated = request.map((c) =>
-          c.id === id ? { ...c, status: newStatus } : c,
+          c.id === id ? { ...c, status: newStatus } : c
         );
         setRequest(updated);
         setOpenMenu(null);
+        setStatusMsg(`Request ${newStatus.toLowerCase()} successfully.`);
+        setTimeout(() => setStatusMsg(""), 3000);
       })
       .catch((err) => console.log(err));
   }
+
+  // --- PAGINATION LOGIC ---
+  useEffect(() => {
+    setcurentPage(1);
+  }, [search]);
+
+  const Lastindex = currentPage * perPage;
+  const Firstindex = Lastindex - perPage;
+  const records = filteredRequests.slice(Firstindex, Lastindex);
+  const numberofpages = Math.ceil(filteredRequests.length / perPage);
+  const currentGroup = Math.ceil(currentPage / pagesPerGroup);
+  const startPage = (currentGroup - 1) * pagesPerGroup + 1;
+  const endPage = Math.min(startPage + pagesPerGroup - 1, numberofpages);
+
+  const numbers = [];
+  for (let i = startPage; i <= endPage; i++) numbers.push(i);
+
+  function prevPage() { if (startPage > 1) setcurentPage(startPage - pagesPerGroup); }
+  function nextPage() { if (endPage < numberofpages) setcurentPage(endPage + 1); }
+  function changeCurrentPage(id) { setcurentPage(id); }
 
   return (
     <div className={styles["main-content"]}>
@@ -165,12 +175,18 @@ function Request() {
         <h4>Requests</h4>
         <div className={styles.info}>
           <div className={styles.subinfo}>
-            <h4>{user ? user.fullName : "guest"}</h4>{" "}
+            <h4>{user ? user.fullName : "Guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
           <img src={user?.avatar || "/totalcertaficates.png"} alt="ava" />
         </div>
       </div>
+
+      {statusMsg && (
+        <div className={styles.successBanner}>
+          {statusMsg}
+        </div>
+      )}
 
       <div className={styles.search}>
         <div className={styles.title}>
@@ -184,12 +200,9 @@ function Request() {
             <input
               className={styles.look}
               type="search"
-              name="search"
               placeholder="Search requests..."
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-              }}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
@@ -202,38 +215,24 @@ function Request() {
 
       <div className={styles.row}>
         <div className={styles["Total-Requests"]}>
-          <div>
-            <img src="/TotalRequests.png" alt="TotalRequests" />
-            <p>{stats ? stats.TotalRequests.percentage : "..."}</p>
-          </div>
+          <div><img src="/TotalRequests.png" alt="TR" /><p>{stats?.TotalRequests.percentage}</p></div>
           <h5>Total Requests</h5>
-          <h2>{stats ? stats.TotalRequests.number : "..."}</h2>
+          <h2>{stats?.TotalRequests.number || "0"}</h2>
         </div>
-
         <div className={styles["Pending-Approval"]}>
-          <div>
-            <img src="/PendingApproval.png" alt="PendingApproval" />
-            <p>{stats ? stats.pendingApproval.percentage : "..."}</p>
-          </div>
+          <div><img src="/PendingApproval.png" alt="PA" /><p>{stats?.pendingApproval.percentage}</p></div>
           <h5>Pending Approval</h5>
-          <h2>{stats ? stats.pendingApproval.number : "..."}</h2>
+          <h2>{stats?.pendingApproval.number || "0"}</h2>
         </div>
-
         <div className={styles["Approved"]}>
-          <div>
-            <img src="/Approved.png" alt="Approved" />
-            <p>{stats ? stats.Approved.percentage : "..."}</p>
-          </div>
+          <div><img src="/Approved.png" alt="AP" /><p>{stats?.Approved.percentage}</p></div>
           <h5>Approved</h5>
-          <h2>{stats ? stats.Approved.number : "..."}</h2>
+          <h2>{stats?.Approved.number || "0"}</h2>
         </div>
         <div className={styles["Rejected"]}>
-          <div>
-            <img src="/Rejected.png" alt="Rejected" />
-            <p>{stats ? stats.Rejected.percentage : "..."}</p>
-          </div>
+          <div><img src="/Rejected.png" alt="RE" /><p>{stats?.Rejected.percentage}</p></div>
           <h5>Rejected</h5>
-          <h2>{stats ? stats.Rejected.number : "..."}</h2>
+          <h2>{stats?.Rejected.number || "0"}</h2>
         </div>
       </div>
 
@@ -248,7 +247,7 @@ function Request() {
                 <th className={styles.colu}>Priority</th>
                 <th className={styles.colu}>Submitted</th>
                 <th className={styles.colu}>Status</th>
-                <th className={styles.colu}>upload</th>
+                <th className={styles.colu}>Upload</th>
                 <th className={styles.colu}>Actions</th>
               </tr>
             </thead>
@@ -256,81 +255,52 @@ function Request() {
               {records.length > 0 ? (
                 records.map((req) => (
                   <tr className={styles.line} key={req.id}>
-                    <td className={styles.column}>
-                      {req.id.substring(0, 8)}...
-                    </td>
+                    <td className={styles.column}>{req.id.substring(0, 8)}...</td>
                     <td className={styles.column}>
                       <div className={styles.leftside}>
-                        <span className={styles.student}>
-                          {req.student?.fullName}
-                        </span>
-                        <span className={styles.email}>
-                          {req.student?.matricule}
-                        </span>
+                        <span className={styles.student}>{req.student?.fullName}</span>
+                        <span className={styles.email}>{req.student?.matricule}</span>
                       </div>
                     </td>
+                    <td className={styles.column}>{req.documentType}</td>
                     <td className={styles.column}>
-                      <span className={styles.docum}>{req.documentType}</span>
-                    </td>
-                    <td className={styles.column}>
-                      <span
-                        className={`${styles.priority} ${req.priority?.toLowerCase() === "normal" ? styles.normal : styles.urgent}`}
-                      >
+                      <span className={`${styles.priority} ${req.priority?.toLowerCase() === "normal" ? styles.normal : styles.urgent}`}>
                         {req.priority}
                       </span>
                     </td>
                     <td className={styles.column}>
-                      <span className={styles.issue_date}>
-                        {new Date(req.createdAt).toLocaleDateString("fr-FR")}
-                      </span>
+                      {new Date(req.createdAt).toLocaleDateString("fr-FR")}
                     </td>
-
                     <td className={styles.column}>
-                      <span
-                        className={`${styles.status} ${
-                          req.status?.toLowerCase() === "approved"
-                            ? styles.approved
-                            : req.status?.toLowerCase() === "rejected"
-                              ? styles.rejected
-                              : styles.pending
-                        }`}
-                      >
+                      <span className={`${styles.status} ${styles[req.status?.toLowerCase() || 'pending']}`}>
                         {req.status || "PENDING"}
                       </span>
                     </td>
-
                     <td className={styles.column}>
-                      <div className={styles.uploadcontainer}>
-                        <button
-                          className={styles.upload}
-                          onClick={() => uploadDocument(req.id)}
-                        >
-                          &#10515; upload
-                        </button>
-                      </div>
+                      <button 
+  className={styles.upload} 
+  onClick={() => uploadDocument(req.id)}
+>
+  &#10515; upload
+</button>
                     </td>
                     <td className={styles.column}>
                       <div className={styles.actions}>
-                        <span
-                          className={styles.dots}
-                          onClick={() =>
-                            setOpenMenu(openMenu === req.id ? null : req.id)
-                          }
-                        >
+                        <span className={styles.dots} onClick={() => setOpenMenu(openMenu === req.id ? null : req.id)}>
                           ⋮
                         </span>
                         {openMenu === req.id && (
                           <div className={styles.menu}>
-                            <button
-                              onClick={() => updateStatus(req.id, "APPROVED")}
-                            >
-                              approve
-                            </button>
-                            <button
-                              onClick={() => updateStatus(req.id, "REJECTED")}
-                            >
-                              reject
-                            </button>
+                            {req.fileUrl && (
+                              <button 
+                                className={styles.viewBtn} 
+                                onClick={() => { viewDocument(req.id); setOpenMenu(null); }}
+                              >
+                                View Doc
+                              </button>
+                            )}
+                            <button onClick={() => updateStatus(req.id, "APPROVED")}>approve</button>
+                            <button onClick={() => updateStatus(req.id, "REJECTED")}>reject</button>
                           </div>
                         )}
                       </div>
@@ -338,9 +308,7 @@ function Request() {
                   </tr>
                 ))
               ) : (
-                <tr className={styles.row}>
-                  <td colSpan="8">No data found</td>
-                </tr>
+                <tr><td colSpan="8" style={{textAlign: 'center', padding: '20px'}}>No data found</td></tr>
               )}
             </tbody>
           </table>
@@ -348,31 +316,13 @@ function Request() {
 
         <nav className={styles.arr}>
           <div className={styles.pagination}>
-            <div className={styles["page-item"]}>
-              <button className={styles.change} onClick={prevPage}>
-                prev
-              </button>
-            </div>
-
-            {numbers.map((n, i) => (
-              <div
-                className={`${styles["page-item"]} ${currentPage === n ? styles.pageActive : ""}`}
-                key={i}
-              >
-                <button
-                  className={styles["page-link"]}
-                  onClick={() => changeCurrentPage(n)}
-                >
-                  {n}
-                </button>
+            <button className={styles.change} onClick={prevPage}>prev</button>
+            {numbers.map((n) => (
+              <div className={`${styles["page-item"]} ${currentPage === n ? styles.pageActive : ""}`} key={n}>
+                <button className={styles["page-link"]} onClick={() => changeCurrentPage(n)}>{n}</button>
               </div>
             ))}
-
-            <div className={styles["page-item"]}>
-              <button className={styles.change} onClick={nextPage}>
-                next
-              </button>
-            </div>
+            <button className={styles.change} onClick={nextPage}>next</button>
           </div>
         </nav>
       </div>
