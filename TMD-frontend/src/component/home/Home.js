@@ -180,13 +180,15 @@ function Home() {
 
         <div className={styles.methods}>
           <div className={styles.method}>
-            <img className={styles.m} src="/m1.png " alt="m1" />
+            {/* FIX 2: removed trailing space in src */}
+            <img className={styles.m} src="/m1.png" alt="m1" />
             <h3>Manual Search</h3>
             <p>Find certificates by registration number or name.</p>
           </div>
 
           <div className={styles.method}>
-            <img src="/m2.png " alt="m2" />
+            {/* FIX 3: removed trailing space in src */}
+            <img src="/m2.png" alt="m2" />
             <h3>QR Scanner</h3>
             <p>Quick scan mobile verification for physical copies.</p>
           </div>
@@ -319,9 +321,10 @@ function Home() {
 
               <div className={styles.R2}>
                 <h4>REQUIREMENT DETAILS</h4>
+                {/* FIX 1: contenteditable → contentEditable (React camelCase) */}
                 <div
                   ref={editorRef}
-                  contenteditable="true"
+                  contentEditable="true"
                   className={styles.editor}
                   onInput={(e) => setRequest(e.currentTarget.textContent)}
                 ></div>

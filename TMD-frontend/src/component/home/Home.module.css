@@ -69,8 +69,8 @@ html {
   width: 13%;
   height: 40px;
   background-color: #3b82f6;
-  box-shadow: 1px 1px 1px navy;
-  border: 1px solid navy;
+  box-shadow: none;
+  border: none;
   border-radius: 20px;
   font-size: 15px;
   color: white;
@@ -152,12 +152,13 @@ html {
   margin-top: 30px;
 }
 
+
 .introd > button {
   width: 25%;
   height: 40px;
   background-color: #3b82f6;
-  box-shadow: 1px 1px 1px navy;
-  border: 1px solid navy;
+  border: none;
+  box-shadow: none;
   border-radius: 15px;
   font-size: 15px;
   color: white;
@@ -166,8 +167,7 @@ html {
 }
 
 .introd > button:hover {
-  background-color: navy;
-  border: 1px solid 3B82F6;
+  background-color: #2563eb;
   box-shadow:
     1px 1px 5px #3b82f6,
     1px -1px 5px #3b82f6,
@@ -616,7 +616,7 @@ details[open] .icon {
 input[type="checkbox"] {
   width: 20px;
   margin: 5px 5px 5px 20px;
-  accent-color: #0f1e3f; /* changes the checkmark and box color */
+  accent-color: #0f1e3f;
   cursor: pointer;
 }
 
