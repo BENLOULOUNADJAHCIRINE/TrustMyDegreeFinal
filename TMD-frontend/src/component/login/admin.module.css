@@ -20,3 +20,26 @@
   display: flex;
   flex-direction: column;
 }
+
+/* responsive*/
+
+/* ─── TABLET (max 1024px) ─── */
+@media (max-width: 1024px) {
+  .admin {
+    grid-template-columns: 200px 1fr;
+  }
+}
+
+/* ─── MOBILE (max 768px) ─── */
+@media (max-width: 768px) {
+  .admin {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "nav"
+      "content";
+  }
+
+  .nav {
+    min-height: auto;
+  }
+}

@@ -1,3 +1,48 @@
+/* Page load animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Makes the download button glow repeatedly */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(21, 93, 252, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(21, 93, 252, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(21, 93, 252, 0);
+  }
+}
+
 .main-content {
   min-height: 100vh;
   background-color: #f9fafb;
@@ -9,6 +54,8 @@
     "nav ."
     "dashboard dashboard"
     "policy policy";
+  /* whole page fades in when it loads */
+  animation: fadeIn 0.5s ease;
 }
 
 /* nav top greeting*/
@@ -18,6 +65,8 @@
   flex-direction: column;
   align-items: start;
   padding: 50px 0px 20px 30px;
+  /* slides down when page loads */
+  animation: fadeInDown 0.6s ease;
 }
 
 .title {
@@ -44,6 +93,7 @@
   align-items: center;
   justify-content: space-between;
 }
+
 .inf {
   width: 25%;
   background-color: #ffffff;
@@ -54,7 +104,21 @@
   justify-content: space-evenly;
   align-items: center;
   padding: 10px;
+  /* smooth hover effect */
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  /* slides up when page loads */
+  animation: fadeInUp 0.7s ease;
 }
+
+/* card lifts up when you hover over it */
+.inf:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(21, 93, 252, 0.1);
+  border-color: #155dfc;
+}
+
 .inf > div {
   text-align: start;
 }
@@ -71,10 +135,13 @@
   margin-top: 0px;
   margin-bottom: 0px;
   font-weight: bold;
+  /* made bigger so numbers stand out */
+  font-size: 22px;
+  /* changed to blue to match the theme */
+  color: #155dfc;
 }
 
 /*dashboard*/
-
 .dashboard {
   grid-area: dashboard;
   display: grid;
@@ -85,12 +152,13 @@
 }
 
 /* left side*/
-
 .left {
   padding-left: 30px;
   display: flex;
   flex-direction: column;
   align-items: start;
+  /* slides up when page loads */
+  animation: fadeInUp 0.8s ease;
 }
 
 .search {
@@ -100,10 +168,12 @@
   align-items: center;
   justify-content: space-between;
 }
+
 .search > h3 {
   font-weight: 700;
   margin-left: 20px;
 }
+
 .search > div {
   position: relative;
   width: 40%;
@@ -116,6 +186,16 @@
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   outline: none;
+  /* smooth border color change on focus */
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* input glows blue when you click on it */
+.search > div > input:focus {
+  border-color: #155dfc;
+  box-shadow: 0 0 0 3px rgba(21, 93, 252, 0.1);
 }
 
 .search > div > img {
@@ -139,11 +219,12 @@
 }
 
 .diplomes::-webkit-scrollbar-track {
-  background: transparent; /* dark background */
+  background: transparent;
 }
 
 .diplomes::-webkit-scrollbar-thumb {
-  background: #155dfc; /* your navy transparent */
+  /* changed from lightblue to match the blue theme */
+  background: #155dfc;
   border-radius: 10px;
 }
 
@@ -153,6 +234,20 @@
   padding: 10px;
   border: 2px solid #f3f4f6;
   border-radius: 10px;
+  /* smooth hover transition */
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+  /* each card slides up when it appears */
+  animation: fadeInUp 0.5s ease;
+}
+
+/* certificate card slides right when you hover */
+.diplome-div:hover {
+  transform: translateX(5px);
+  box-shadow: 0 8px 20px rgba(21, 93, 252, 0.08);
+  border-color: #155dfc;
 }
 
 .type {
@@ -161,10 +256,12 @@
   align-items: center;
   margin: 10px 0px 0px 10px;
 }
+
 .type > img {
   width: 40px;
   height: 40px;
 }
+
 .type > div {
   text-align: start;
   margin-left: 5px;
@@ -200,6 +297,7 @@
   flex-direction: row;
   align-items: center;
 }
+
 .calander > img {
   margin: 0px;
 }
@@ -225,6 +323,8 @@
 
 .date > span {
   font-size: 15px;
+  /* made bold so status is more visible */
+  font-weight: 600;
 }
 
 .verified {
@@ -238,6 +338,7 @@
 .button {
   position: relative;
 }
+
 .button > img {
   width: 13px;
   position: absolute;
@@ -252,13 +353,22 @@
   border-radius: 10px;
   background-color: #155dfc;
   cursor: pointer;
+  /* smooth hover transition */
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.2s ease;
+  /* button glows repeatedly to grab attention */
+  animation: pulse 2s infinite;
 }
 
+/* pulse stops and button darkens when you hover */
 .button > button:hover {
   color: white;
   background-color: navy;
   box-shadow: 1px 1px 10px #155dfc;
-  cursor: pointer;
+  transform: scale(1.02);
+  animation: none;
 }
 
 /* right side*/
@@ -267,6 +377,8 @@
   flex-direction: column;
   align-items: end;
   padding: 20px 50px 20px 20px;
+  /* slides up slightly after left side */
+  animation: fadeInUp 0.9s ease;
 }
 
 .request {
@@ -279,12 +391,24 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-evenly;
+  /* smooth hover transition */
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
+
+/* request card lifts up when you hover */
+.request:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(2, 8, 62, 0.3);
+}
+
 .request img {
   width: 50px;
   height: 50px;
   margin-bottom: 0px;
 }
+
 .request h3 {
   color: #ffffff;
   margin-top: 0px;
@@ -298,6 +422,17 @@
   border-radius: 10px;
   background-color: white;
   cursor: pointer;
+  /* smooth color change on hover */
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* button fills blue when you hover */
+.request button:hover {
+  background-color: #155dfc;
+  color: white;
+  border-color: #155dfc;
 }
 
 /*policy*/
@@ -309,8 +444,7 @@
   padding: 20px 20px 20px 40px;
 }
 
-/*bottom profile*/
-
+/*top bar*/
 .login {
   grid-area: login;
   display: flex;
@@ -320,6 +454,10 @@
   background-color: #ffffff;
   padding: 10px;
   height: 55px;
+  /* subtle shadow under the top bar */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  /* slides down when page loads */
+  animation: fadeInDown 0.4s ease;
 }
 
 .image {
@@ -332,8 +470,10 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
+  /* smooth rotation transition */
   transition: transform 0.3s ease;
 }
+
 .rotate {
   transform: rotate(180deg);
 }
@@ -347,6 +487,8 @@
   border-radius: 8px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   padding: 6px 0;
+  /* dropdown slides down smoothly */
+  animation: fadeInDown 0.2s ease;
 }
 
 .list {
@@ -362,9 +504,11 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
+  /* smooth background color change */
   transition: background 0.2s ease;
 }
 
+/* light blue highlight on hover */
 .list li:hover {
   background-color: #e0f2fe;
 }
@@ -376,6 +520,7 @@
   width: 100%;
 }
 
+/* link turns blue when hovered */
 .list li:hover a {
   color: #2563eb;
 }
@@ -389,6 +534,13 @@
   border-radius: 20px;
   padding: 5px;
   margin-right: 20px;
+  /* smooth shadow transition */
+  transition: box-shadow 0.3s ease;
+}
+
+/* profile section gets a shadow when hovered */
+.info:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
 .subinfo {
@@ -400,6 +552,7 @@
   font-size: 12px;
   margin: 0px;
 }
+
 .subinfo p {
   color: #6a7282;
   font-size: 10px;
@@ -416,16 +569,23 @@
   width: 15px;
   height: 15px;
   cursor: pointer;
+  /* smooth scale and fade transition */
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+
+/* logout icon grows and fades slightly on hover */
+.exit:hover {
+  transform: scale(1.2);
+  opacity: 0.7;
 }
 
 .backto {
   grid-area: backto;
-
   display: flex;
   align-items: center;
-
   padding: 10px 80px;
-
   background-color: #e5e7eb;
 }
 
@@ -434,4 +594,164 @@
   color: #62748e;
   font-weight: 500;
   margin-top: 30px;
+  /* smooth color change on hover */
+  transition: color 0.3s ease;
+}
+
+/* back link turns blue on hover */
+.backto a:hover {
+  color: #155dfc;
+}
+
+/*responsive*/
+
+/* ─── TABLET (max 1024px) ─── */
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "login"
+      "nav"
+      "dashboard"
+      "policy";
+  }
+
+  .hello {
+    padding: 30px 20px;
+  }
+
+  .information {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .inf {
+    width: 30%;
+  }
+
+  .dashboard {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "left"
+      "right";
+    margin-top: 30px;
+  }
+
+  .right {
+    align-items: center;
+    padding: 20px;
+  }
+
+  .button > button {
+    width: 100%;
+  }
+
+  .button > img {
+    left: auto;
+    right: 20px;
+  }
+}
+
+/* ─── MOBILE (max 768px) ─── */
+@media (max-width: 768px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "login"
+      "nav"
+      "dashboard"
+      "policy";
+  }
+
+  .hello {
+    padding: 20px 15px;
+  }
+
+  .information {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .inf {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dashboard {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "left"
+      "right";
+    margin-top: 20px;
+  }
+
+  .left {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .search {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .search > div {
+    width: 100%;
+  }
+
+  .diplomes {
+    width: 100%;
+    height: auto;
+    max-height: 500px;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  .date {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .button {
+    margin-top: 10px;
+  }
+
+  .button > button {
+    width: 100%;
+  }
+
+  .button > img {
+    display: none;
+  }
+
+  .right {
+    align-items: center;
+    padding: 20px 15px;
+  }
+
+  .request {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .request button {
+    width: 100%;
+  }
+
+  .login {
+    padding: 8px 15px;
+  }
+
+  .image {
+    margin-left: 15px;
+  }
+
+  .policy {
+    padding: 15px;
+    font-size: 12px;
+  }
 }

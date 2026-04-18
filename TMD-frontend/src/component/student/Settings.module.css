@@ -366,3 +366,110 @@ input:focus {
   color: #90a1b9;
   font-size: 13px;
 }
+
+/* responive section*/
+
+/* ─── TABLET (max 1024px) ─── */
+@media (max-width: 1024px) {
+  .platform {
+    margin: 15px 0px 10px 10px;
+  }
+
+  .titles {
+    margin-left: 10px;
+  }
+
+  .settings {
+    width: 90%;
+    margin: 20px 0px 0px 20px;
+  }
+
+  .name > input {
+    width: 35%;
+  }
+
+  .password > input {
+    width: 35%;
+  }
+
+  .change {
+    width: 80%;
+  }
+}
+
+/* ─── MOBILE (max 768px) ─── */
+@media (max-width: 768px) {
+  .login {
+    padding: 8px 15px;
+  }
+
+  .image {
+    margin-left: 15px;
+  }
+
+  .backto {
+    padding: 10px 20px;
+  }
+
+  .form {
+    padding: 15px;
+  }
+
+  .platform {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin: 10px 0px 10px 0px;
+  }
+
+  .titles {
+    margin-left: 0px;
+  }
+
+  .titles > h3 {
+    font-size: 18px;
+  }
+
+  .buttons {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .buttons > button {
+    flex: 1;
+    padding: 12px;
+  }
+
+  .settings {
+    width: 100%;
+    margin: 20px 0px 0px 0px;
+    padding: 15px;
+    box-sizing: border-box;
+  }
+
+  .name > input {
+    width: 90%;
+  }
+
+  .password > input {
+    width: 90%;
+  }
+
+  .change {
+    width: 100%;
+    flex-direction: column;
+    gap: 15px;
+    align-items: start;
+  }
+
+  .new > input,
+  .confirm > input {
+    width: 90%;
+  }
+
+  .bottom {
+    padding: 15px 20px;
+  }
+}

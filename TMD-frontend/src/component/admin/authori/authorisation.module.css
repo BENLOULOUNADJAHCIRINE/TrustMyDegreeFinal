@@ -191,3 +191,68 @@
 .right {
   cursor: pointer;
 }
+
+/*responsive design*/
+
+/* ─── TABLET (max 1024px) ─── */
+@media (max-width: 1024px) {
+  .info {
+    margin-top: 5px;
+  }
+  .content {
+    padding: 30px 30px;
+  }
+
+  .card {
+    max-width: 100%;
+  }
+
+  .search > div > input {
+    width: 400px;
+  }
+}
+
+/* ─── MOBILE (max 768px) ─── */
+@media (max-width: 768px) {
+  .content {
+    padding: 20px 15px;
+  }
+
+  .card {
+    padding: 15px;
+  }
+
+  .search {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .search > div {
+    width: 100%;
+  }
+
+  .search > div > input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .search > input {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .scroll {
+    height: 500px;
+  }
+
+  .admin {
+    padding: 10px;
+  }
+
+  .left > h3 {
+    font-size: 13px;
+    word-break: break-all;
+  }
+}

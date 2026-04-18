@@ -3,11 +3,6 @@ import { useState, useEffect } from "react";
 import { defaults } from "chart.js/auto";
 import { Line, Bar, Doughnut } from "react-chartjs-2";
 
-import dataset from "./dataset";
-import linedata from "./linedata.json";
-import piedata from "./piedata.json";
-import heatmapdata from "./heatmapdata.json";
-
 defaults.maintainAspectRatio = false;
 defaults.responsive = true;
 
@@ -19,81 +14,100 @@ defaults.plugins.title.color = "black";
 function Static() {
   const pieColors = ["#1E3A8A", "#10B981", "#F59E0B"];
 
-  const [user, setUser] = useState(null); //state for the profile
+  const [user, setUser] = useState(null);
   const [bargraph, setBargraph] = useState([]);
   const [linegraph, setLinegraph] = useState([]);
   const [piegraph, setPiegraph] = useState([]);
   const [heatmap, setHeatmap] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/auth/user", {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
+  }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/admin/statistics", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-    }) // fetch the user who logged in
+    })
       .then((res) => res.json())
-      .then((data) => setUser(data))
+      .then((data) => {
+        setBargraph(
+          data.topSpecialties.map((s) => ({
+            label: s.specialty,
+            value: s._count.specialty,
+          })),
+        );
+        setLinegraph(
+          data.monthlyIssuance.map((m) => ({
+            label: m.month,
+            Issuances: m.total,
+            verification: 0,
+          })),
+        );
+        setPiegraph(
+          data.distributionByType.map((d) => ({
+            label: d.type,
+            value: d._count.type,
+          })),
+        );
+        setHeatmap(
+          data.verificationsPerDay.map((v, i) => ({
+            day: v.date,
+            week: Math.floor(i / 7) + 1,
+            value: v.total,
+          })),
+        );
+      })
       .catch((err) => console.log(err));
   }, []);
 
-  // useEffect(() => {
-  //     fetch("http://localhost:5000/api/auth/bardata", {
-  //     headers: {
-  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //     },
-  //   })
-  //       .then((res) => res.json())
-  //       .then((data) => setBargraph(data))
-  //       .catch((err) => console.log(err));
-  //   }, []);
-
   useEffect(() => {
-    setBargraph(dataset);
-  }, []);
+    fetch("http://localhost:5000/api/admin/statistics", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        // Line graph - monthly issuance
+        const lineFormatted = Object.entries(data.monthlyIssuance).map(
+          ([label, value]) => ({
+            label,
+            Issuances: value,
+            verification: 0,
+          }),
+        );
+        setLinegraph(lineFormatted);
 
-  // useEffect(() => {
-  //      fetch("http://localhost:5000/api/auth/linedata", {
-  //     headers: {
-  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //     },
-  //   })
-  //       .then((res) => res.json())
-  //       .then((data) => setLinegraph(data))
-  //       .catch((err) => console.log(err));
-  //   }, []);
+        // Pie graph - distribution by type
+        const pieFormatted = Object.entries(data.distributionByType).map(
+          ([label, value]) => ({
+            label,
+            value,
+          }),
+        );
+        setPiegraph(pieFormatted);
 
-  useEffect(() => {
-    setLinegraph(linedata);
-  }, []);
+        // Bar graph - top specialties
+        const barFormatted = data.topSpecialties.map((s) => ({
+          label: s.specialty,
+          value: s._count.specialty,
+        }));
+        setBargraph(barFormatted);
 
-  // useEffect(() => {
-  //      fetch("http://localhost:5000/api/auth/piedata", {
-  //     headers: {
-  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //     },
-  //   })
-  //       .then((res) => res.json())
-  //       .then((data) =>  setPiegraph(data))
-  //       .catch((err) => console.log(err));
-  //   }, []);
-
-  useEffect(() => {
-    setPiegraph(piedata);
-  }, []);
-
-  //  useEffect(() => {
-  //   fetch("http://localhost:5000/api/auth/heatmapdata", {
-  //     headers: {
-  //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //     },
-  //   })
-  //     .then((res) => res.json())
-  //     .then((data) => setHeatmap(data))
-  //     .catch((err) => console.log(err));
-  //       }, []);
-
-  useEffect(() => {
-    setHeatmap(heatmapdata);
+        // Heatmap - verifications per day
+        const heatFormatted = Object.entries(data.verificationsPerDay).map(
+          ([day, value], i) => ({
+            day,
+            week: Math.floor(i / 7),
+            value,
+          }),
+        );
+        setHeatmap(heatFormatted);
+      })
+      .catch((err) => console.log(err));
   }, []);
 
   return (
@@ -102,7 +116,7 @@ function Static() {
         <h4>Statistics</h4>
         <div className={styles.info}>
           <div className={styles.subinfo}>
-            <h4>{user ? user.name : "guest"}</h4>{" "}
+            <h4>{user ? user.fullName : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
           <img src={user?.avatar || "/totalcertaficates.png"} alt="ava" />
@@ -150,7 +164,6 @@ function Static() {
                   hoverRadius: 6,
                 },
               },
-
               plugins: {
                 legend: {
                   position: "top",
@@ -197,13 +210,10 @@ function Static() {
             <Doughnut
               data={{
                 labels: piegraph.map((data) => data.label),
-
                 datasets: [
                   {
                     data: piegraph.map((data) => data.value),
-
                     backgroundColor: ["#1E3A8A", "#10B981", "#F59E0B"],
-
                     borderRadius: 8,
                     spacing: 4,
                   },
@@ -211,7 +221,6 @@ function Static() {
               }}
               options={{
                 cutout: "70%",
-
                 plugins: {
                   legend: { display: false },
                   title: { display: false },
