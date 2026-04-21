@@ -28,6 +28,8 @@ model Certificate {
   id               String         @id @default(uuid())
   studentId        String
   uniqueCode       String         @unique
+  type             String?
+  specialty        String?
   status           CertStatus     @default(ACTIVE)
   issueDate        DateTime       @default(now())
   ipfsHash         String?
