@@ -2,8 +2,12 @@ const prisma = require("../config/prisma");
 const bcrypt = require("bcrypt");
 const sendEmail = require("../utils/sendEmail");
 const XLSX = require("xlsx");
+const axios = require("axios");
 const generateDiplomaPDF = require("../utils/generatePDF");
 const universityDB = require("../config/universityDB");
+const { uploadPDFtoPinata } = require("../services/pinata.service");
+const { issueDiploma, issueInternship, issueStudyCertificate } = require("../services/blockchain.service");
+const { revokeCertificate: revokeCertificateOnChain } = require("../services/blockchain.service");
 const path = require("path");
 const fs = require("fs");
 
@@ -180,22 +184,24 @@ const handleRequestDocument = async (req, res) => {
 const revokeCertificate = async (req, res) => {
   try {
     const id = req.params.id;
-    const exist = await prisma.certificate.findUnique({
-      where: { id: id },
-    });
-    if (!exist) {
-      return res.status(400).json({ message: "certificate not found" });
-    }
-    if (exist.status === "REVOKED") {
-      return res.status(400).json({ message: "certificate already revoked" });
-    }
+
+    const exist = await prisma.certificate.findUnique({ where: { id } });
+
+    if (!exist) return res.status(400).json({ message: "certificate not found" });
+    if (exist.status === "REVOKED") return res.status(400).json({ message: "certificate already revoked" });
+
+    // blockchain first
+    await revokeCertificateOnChain(exist.contractType, exist.blockchainCertId);
+
     await prisma.certificate.update({
-      where: { id: id },
+      where: { id },
       data: { status: "REVOKED" },
     });
-    res.status(200).json({ message: "Certificate revoked succesfully" });
+
+    res.status(200).json({ message: "Certificate revoked successfully" });
   } catch (err) {
-    res.status(500).json({ error: "an error occured in the server" });
+    console.error(err);
+    res.status(500).json({ error: "an error occurred in the server" });
   }
 };
 
@@ -303,130 +309,162 @@ const importDiplomas = async (req, res) => {
     const { graduationDate, templateType } = req.body;
     const file = req.files.excel;
 
-    if (!file) {
-      return res.status(400).json({ message: "no file uploaded" });
-    }
-    if (!graduationDate) {
-      return res.status(400).json({ message: "graduationDate is required" });
-    }
+    if (!file) return res.status(400).json({ message: "no file uploaded" });
+    if (!graduationDate) return res.status(400).json({ message: "graduationDate is required" });
+    if (!templateType) return res.status(400).json({ message: "templateType is required" });
 
     const workbook = XLSX.read(file.data);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
 
-    if (rows.length === 0) {
-      return res.status(400).json({ message: "excel file is empty" });
-    }
+    if (rows.length === 0) return res.status(400).json({ message: "excel file is empty" });
+
+    // map templateType coming from frontend to the contract name
+    const contractType =
+      templateType === "internship" ? "INTERNSHIP" :
+      templateType === "scolarite"  ? "STUDY" : "DIPLOMA";
 
     let created = 0;
     const errors = [];
 
     for (const row of rows) {
-      const student = await prisma.user.findUnique({
-        where: { matricule: String(row.matricule) },
-      });
-
-      if (!student) {
-        errors.push({ matricule: row.matricule, error: "student not found" });
-        continue;
-      }
-
-      // prevent duplicate certificates for same student
-      const existingCert = await prisma.certificate.findFirst({
-        where: {
-          studentId: student.id,
-          specialty: row.specialty,
-          type: row.type,
-        },
-      });
-
-      if (existingCert) {
-        errors.push({
-          matricule: row.matricule,
-          error: "certificate already exists",
+      try {
+        const student = await prisma.user.findUnique({
+          where: { matricule: String(row.matricule) },
         });
-        continue;
+
+        if (!student) {
+          errors.push({ matricule: row.matricule, error: "student not found" });
+          continue;
+        }
+
+        // duplicate check — one certificate per student per contractType
+        const existingCert = await prisma.certificate.findFirst({
+          where: { studentId: student.id, contractType },
+        });
+
+        if (existingCert) {
+          errors.push({ matricule: row.matricule, error: "certificate already exists" });
+          continue;
+        }
+
+        const uniqueCode = `CERT-${student.matricule}-${Date.now()}`;
+
+        // store on blockchain
+        // ipfsHash is "pending" because we don't have the PDF yet
+        let blockchainResult;
+
+        if (contractType === "DIPLOMA") {
+          blockchainResult = await issueDiploma({
+            studentId: student.matricule,
+            studentName: student.fullName,
+            degreeName: row.type || templateType,
+            fieldOfStudy: row.specialty || "",
+            ipfsHash: "pending",
+          });
+
+        } else if (contractType === "INTERNSHIP") {
+          const start = new Date(row.startDate || graduationDate);
+          const end = new Date(row.endDate || graduationDate);
+          // contract requires end strictly after start
+          if (end <= start) end.setDate(end.getDate() + 1);
+
+          blockchainResult = await issueInternship({
+            studentId: student.matricule,
+            studentName: student.fullName,
+            companyName: row.company || "ENSTA",
+            internshipRole: row.specialty || "",
+            ipfsHash: "pending",
+            startDate: start.toISOString(),
+            endDate: end.toISOString(),
+          });
+
+        } else {
+          // STUDY / scolarite
+          blockchainResult = await issueStudyCertificate({
+            studentId: student.matricule,
+            studentName: student.fullName,
+            programName: row.specialty || "",
+            academicYear: row.academicYear || graduationDate,
+            certificateType: row.type || templateType,
+            ipfsHash: "pending",
+          });
+        }
+
+        //generate PDF using correct template
+        const pdfPath = await generateDiplomaPDF({
+          fullName: student.fullName,
+          matricule: student.matricule,
+          specialty: row.specialty || "",
+          faculty: row.faculty || "",
+          sectionNum: String(row.sectionNum || ""),
+          facultyNum: String(row.facultyNum || ""),
+          mention: row.mention || "",
+          graduationDate,
+          issueDate: new Date().toISOString().split("T")[0],
+          uniqueCode,
+          academicYear: row.academicYear || "",
+          year: row.year || "",
+          company: row.company || "",
+          duration: row.duration || "",
+          startDate: row.startDate || "",
+        }, templateType);
+
+        //upload PDF to IPFS, get back the CID
+        const ipfsHash = await uploadPDFtoPinata(pdfPath);
+
+        //save to Prisma
+        await prisma.certificate.create({
+          data: {
+            studentId: student.id,
+            uniqueCode,
+            ipfsHash,
+            blockchainCertId: blockchainResult.blockchainCertId,
+            contractType,
+            type: row.type || templateType,
+            specialty: row.specialty || "",
+            status: "ACTIVE",
+          },
+        });
+
+        //mark student as graduated
+        await prisma.user.update({
+          where: { id: student.id },
+          data: { isGraduated: true },
+        });
+
+        // notify student by email 
+        await sendEmail(
+          student.email,
+          "Your Certificate is Ready 🎓",
+          `<h2>Congratulations ${student.fullName}!</h2>
+          <p>Your certificate is now available on your dashboard.</p>
+          <a href="http://localhost:3000/login"
+            style="
+              display: inline-block;
+              padding: 12px 24px;
+              background-color: #4F46E5;
+              color: white;
+              text-decoration: none;
+              border-radius: 8px;
+              font-weight: bold;
+              margin-top: 16px;
+            ">
+            Login to Dashboard
+          </a>
+          <p style="color: #888; font-size: 12px; margin-top: 16px;">
+            If the button doesn't work, copy this link: http://localhost:3000/login
+          </p>`
+        );
+
+        created++;
+      } catch (rowErr) {
+        console.error(`Error on matricule ${row.matricule}:`, rowErr.message);
+        errors.push({ matricule: row.matricule, error: rowErr.message });
       }
-
-      const uniqueCode = `CERT-${student.matricule}-${Date.now()}`;
-
-      const certificate = await prisma.certificate.create({
-        data: {
-          studentId: student.id,
-          type: row.type,
-          specialty: row.specialty,
-          mention: row.mention,
-          faculty: row.faculty,
-          sectionNum: String(row.sectionNum),
-          facultyNum: String(row.facultyNum),
-          graduationDate: graduationDate,
-          uniqueCode: uniqueCode,
-          status: "ACTIVE",
-        },
-      });
-
-      const pdfPath = await generateDiplomaPDF({
-  fullName: student.fullName,
-  matricule: student.matricule,
-  specialty: row.specialty,
-  faculty: row.faculty,
-  sectionNum: String(row.sectionNum || ""),
-  facultyNum: String(row.facultyNum || ""),
-  mention: row.mention || "",
-  graduationDate: graduationDate,
-  issueDate: new Date().toISOString().split("T")[0],
-  uniqueCode: uniqueCode,
-  // scolarite fields
-  academicYear: row.academicYear || "",
-  year: row.year || "",
-  // internship fields
-  company: row.company || "",
-  duration: row.duration || "",
-  startDate: row.startDate || "",
-}, templateType || "diploma"); // pass templateType
-
-      await prisma.certificate.update({
-        where: { id: certificate.id },
-        data: { fileUrl: pdfPath },
-      });
-
-      await prisma.user.update({
-        where: { id: student.id },
-        data: { isGraduated: true },
-      });
-
-      await sendEmail(
-        student.email,
-        "Your Diploma is Ready 🎓",
-        `<h2>Congratulations ${student.fullName}!</h2>
-        <p>Your diploma is now available on your dashboard.</p>
-        <a href="http://localhost:3000/login" 
-          style="
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #4F46E5;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-top: 16px;
-          ">
-          Login to Dashboard
-        </a>
-        <p style="color: #888; font-size: 12px; margin-top: 16px;">
-          If the button doesn't work, copy this link: http://localhost:3000/login
-        </p>`,
-      );
-
-      created++;
     }
 
-    res.status(200).json({
-      message: "import completed",
-      created,
-      errors,
-      total: rows.length,
-    });
+    res.status(200).json({ message: "import completed", created, errors, total: rows.length });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "an error occurred in the server" });
@@ -436,52 +474,43 @@ const importDiplomas = async (req, res) => {
 // get statistics
 const getStatistics = async (req, res) => {
   try {
-    const totalMaster = await prisma.certificate.count({
-      where: { type: "MASTER" },
-    });
-    const totalEngineer = await prisma.certificate.count({
-      where: { type: "ENGINEER" },
-    });
-    const totalstages = await prisma.certificate.count({
-      where: { type: "STAGE" },
-    });
+    const totalMaster = await prisma.certificate.count({ where: { type: "MASTER" } });
+    const totalEngineer = await prisma.certificate.count({ where: { type: "ENGINEER" } });
+    const totalStage = await prisma.certificate.count({ where: { type: "STAGE" } });
+
     const DistributionByType = {
       MASTER: totalMaster,
       ENGINEER: totalEngineer,
-      STAGE: totalstages,
+      STAGE: totalStage,
     };
+
     const topSpecialties = await prisma.certificate.groupBy({
       by: ["specialty"],
       _count: { specialty: true },
       orderBy: { _count: { specialty: "desc" } },
       take: 5,
     });
+
     const certificates = await prisma.certificate.findMany();
     const monthlyIssuance = {};
     certificates.forEach((cert) => {
-      const month = new Date(cert.issueDate).toLocaleString("fr-FR", {
-        month: "short",
-      });
-      if (monthlyIssuance[month]) {
-        monthlyIssuance[month]++;
-      } else {
-        monthlyIssuance[month] = 1;
-      }
+      const month = new Date(cert.issueDate).toLocaleString("fr-FR", { month: "short" });
+      monthlyIssuance[month] = (monthlyIssuance[month] || 0) + 1;
     });
+
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     const verifications = await prisma.verification.findMany({
       where: { verifiedAt: { gte: thirtyDaysAgo } },
     });
+
     const verificationsPerDay = {};
     verifications.forEach((v) => {
       const day = new Date(v.verifiedAt).toISOString().split("T")[0];
-      if (verificationsPerDay[day]) {
-        verificationsPerDay[day]++;
-      } else {
-        verificationsPerDay[day] = 1;
-      }
+      verificationsPerDay[day] = (verificationsPerDay[day] || 0) + 1;
     });
+
     res.status(200).json({
       DistributionByType,
       topSpecialties,
@@ -493,25 +522,24 @@ const getStatistics = async (req, res) => {
     res.status(500).json({ error: "an error occurred in the server" });
   }
 };
+
 // admin view/download certificate
 const downloadCertificate = async (req, res) => {
   try {
     const id = req.params.id;
-    const certificate = await prisma.certificate.findUnique({
-      where: { id: id },
-    });
-    if (!certificate) {
-      return res.status(404).json({ message: "Certificate not found" });
-    }
-    if (!certificate.fileUrl) {
-      return res.status(404).json({ message: "Certificate file not found" });
-    }
-    const filePath = path.resolve(certificate.fileUrl);
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: "File does not exist on server" });
-    }
-    res.download(filePath);
+    const certificate = await prisma.certificate.findUnique({ where: { id } });
+
+    if (!certificate) return res.status(404).json({ message: "Certificate not found" });
+    if (!certificate.ipfsHash) return res.status(404).json({ message: "Certificate file not found" });
+
+    const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${certificate.ipfsHash}`;
+    const response = await axios.get(ipfsUrl, { responseType: "stream" });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="certificate_${id}.pdf"`);
+    response.data.pipe(res);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "an error occurred in the server" });
   }
 };
@@ -525,13 +553,14 @@ const exportCertificates = async (req, res) => {
 
     const rows = certificates.map((cert) => ({
       "Student Name": cert.student?.fullName || "",
-      Matricule: cert.student?.matricule || "",
-      Type: cert.type || "",
-      Specialty: cert.specialty || "",
-      Mention: cert.mention || "",
-      Faculty: cert.faculty || "",
+      "Matricule": cert.student?.matricule || "",
+      "Type": cert.type || "",
+      "Specialty": cert.specialty || "",
+      "Contract Type": cert.contractType || "",
+      "IPFS Hash": cert.ipfsHash || "",
+      "Blockchain Cert ID": cert.blockchainCertId || "",
       "Issue Date": new Date(cert.issueDate).toLocaleDateString("fr-FR"),
-      Status: cert.status || "",
+      "Status": cert.status || "",
       "Unique Code": cert.uniqueCode || "",
     }));
 
@@ -541,14 +570,8 @@ const exportCertificates = async (req, res) => {
 
     const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=certificates.xlsx",
-    );
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    );
+    res.setHeader("Content-Disposition", "attachment; filename=certificates.xlsx");
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     res.send(buffer);
   } catch (err) {
     console.error(err);
