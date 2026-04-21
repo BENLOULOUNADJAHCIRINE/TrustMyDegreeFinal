@@ -3,6 +3,7 @@ const cors = require("cors");
 const path = require("path");
 const fileUpload = require("express-fileupload");
 const prisma = require("./config/prisma");
+const { verifyCertificate, getCertificateData } = require("./services/blockchain.service");
 require("dotenv").config();
 
 const app = express();
@@ -76,18 +77,45 @@ app.post("/verify", async (req, res) => {
       data: { certificateId: certificate.id, ipAddress: req.ip },
     });
 
-    res.json({
-      valid: true,
-      message: "Certificate is valid",
-      certificate: {
-        uniqueCode: certificate.uniqueCode,
-        type: certificate.type,
-        specialty: certificate.specialty,
-        status: certificate.status,
-        issueDate: certificate.issueDate,
-        student: certificate.student,
-      },
-    });
+    const chainData = await getCertificateData(
+    certificate.contractType,
+    certificate.blockchainCertId
+  );
+
+  const academicData = {
+    studentName: chainData.studentName,
+    schoolName: chainData.schoolName,
+    issueDate: chainData.issueDate,
+  };
+
+  if (certificate.contractType === "INTERNSHIP") {
+    academicData.companyName = chainData.companyName;
+    academicData.internshipRole = chainData.internshipRole;
+    academicData.startDate = chainData.startDate;
+    academicData.endDate = chainData.endDate;
+  } else if (certificate.contractType === "STUDY") {
+    academicData.programName = chainData.programName;
+    academicData.academicYear = chainData.academicYear;
+    academicData.certificateType = chainData.certificateType;
+  } else {
+    academicData.degreeName = chainData.degreeName;
+    academicData.fieldOfStudy = chainData.fieldOfStudy;
+  }
+
+  res.json({
+    valid: true,
+    message: "Certificate is valid",
+    certificate: {
+      uniqueCode: certificate.uniqueCode,
+      type: certificate.type,
+      specialty: certificate.specialty,
+      status: certificate.status,
+      issueDate: certificate.issueDate,
+      contractType: certificate.contractType,
+      academicData,
+      student: certificate.student,
+    },
+  });
   } catch (err) {
     console.error(err);
     res.status(500).json({ valid: false, message: "Something went wrong" });
