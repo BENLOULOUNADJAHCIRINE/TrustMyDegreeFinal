@@ -6,7 +6,7 @@ const axios = require("axios");
 const generateDiplomaPDF = require("../utils/generatePDF");
 const universityDB = require("../config/universityDB");
 const { uploadPDFtoPinata } = require("../services/pinata.service");
-const { issueDiploma, issueInternship, issueStudyCertificate } = require("../services/blockchain.service");
+const { issueDiploma, issueInternship, issueStudyCertificate, issueDocument } = require("../services/blockchain.service");
 const { revokeCertificate: revokeCertificateOnChain } = require("../services/blockchain.service");
 const path = require("path");
 const fs = require("fs");
@@ -130,7 +130,6 @@ const handleRequestStatus = async (req, res) => {
 };
 
 // request upload document
-
 const handleRequestDocument = async (req, res) => {
   const id = req.params.id;
   try {
@@ -140,46 +139,53 @@ const handleRequestDocument = async (req, res) => {
 
     const file = req.files.document;
     const findRequest = await prisma.request.findUnique({
-      where: { id: id },
+      where: { id },
       include: { student: true },
     });
 
-    if (!findRequest) {
-      return res.status(400).json({ message: "Request not found" });
-    }
+    if (!findRequest) return res.status(400).json({ message: "Request not found" });
 
     const fileName = `${Date.now()}_${file.name}`;
     const uploadPath = path.join(__dirname, "../../uploads", fileName);
-
     await file.mv(uploadPath);
 
-    const relativePathForDB = `uploads/${fileName}`;
+    // upload to IPFS
+    const ipfsHash = await uploadPDFtoPinata(uploadPath);
 
-    const updatedRequest = await prisma.request.update({
-      where: { id: id },
+    // delete local file
+    fs.unlinkSync(uploadPath);
+
+    // store on blockchain
+    const blockchainResult = await issueDocument({
+      studentId: findRequest.student.matricule,
+      studentName: findRequest.student.fullName,
+      documentType: findRequest.documentType,
+      ipfsHash,
+    });
+
+    await prisma.request.update({
+      where: { id },
       data: {
-        fileUrl: relativePathForDB,
+        ipfsHash,
+        blockchainDocId: blockchainResult.blockchainDocId,
         status: "APPROVED",
       },
-      include: { student: true },
     });
 
     await sendEmail(
       findRequest.student.email,
       "Document Ready for Download",
       `<h2>Hello ${findRequest.student.fullName}</h2>
-       <p>The document you requested (<strong>${findRequest.documentType}</strong>) is ready.</p>`,
+       <p>The document you requested (<strong>${findRequest.documentType}</strong>) is ready on your dashboard.</p>`
     );
 
-    res.status(200).json({
-      message: "File uploaded successfully",
-      request: updatedRequest,
-    });
+    res.status(200).json({ message: "Document uploaded to IPFS and stored on blockchain successfully" });
   } catch (err) {
     console.error("Upload Error:", err);
     res.status(500).json({ error: "An error occurred on the server" });
   }
 };
+
 // revoke Certificate
 const revokeCertificate = async (req, res) => {
   try {
@@ -584,16 +590,15 @@ const downloadRequestFile = async (req, res) => {
     const { id } = req.params;
     const request = await prisma.request.findUnique({ where: { id } });
 
-    if (!request || !request.fileUrl) {
-      return res.status(404).json({ message: "File not found" });
-    }
+    if (!request) return res.status(404).json({ message: "File not found" });
+    if (!request.ipfsHash) return res.status(404).json({ message: "File not available" });
 
-    const filePath = path.resolve(request.fileUrl);
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: "File does not exist on server" });
-    }
+    const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${request.ipfsHash}`;
+    const response = await axios.get(ipfsUrl, { responseType: "stream" });
 
-    res.download(filePath);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="request_${id}.pdf"`);
+    response.data.pipe(res);
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }

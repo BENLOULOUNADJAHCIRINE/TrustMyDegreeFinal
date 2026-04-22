@@ -137,17 +137,16 @@ const downloadRequestDocument = async (req, res) => {
 
     const request = await prisma.request.findUnique({ where: { id } });
 
-    if (!request || !request.fileUrl) return res.status(404).json({ message: "Document not found" });
+    if (!request) return res.status(404).json({ message: "Document not found" });
     if (request.studentId !== userId) return res.status(403).json({ message: "Access denied" });
+    if (!request.ipfsHash) return res.status(404).json({ message: "Document not available yet" });
 
-    const fileName = path.basename(request.fileUrl);
-    const filePath = path.join(process.cwd(), "uploads", fileName);
+    const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${request.ipfsHash}`;
+    const response = await axios.get(ipfsUrl, { responseType: "stream" });
 
-    if (fs.existsSync(filePath)) {
-      return res.download(filePath);
-    } else {
-      return res.status(404).json({ message: "File does not exist on server" });
-    }
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="document_${id}.pdf"`);
+    response.data.pipe(res);
   } catch (err) {
     res.status(500).json({ error: "An error occurred on the server" });
   }

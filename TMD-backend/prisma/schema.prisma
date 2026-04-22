@@ -47,6 +47,8 @@ model Request {
   delivery     String
   priority     Priority      @default(NORMAL)
   status       RequestStatus @default(PENDING)
+  ipfsHash     String?
+  blockchainDocId String?
   fileUrl      String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt

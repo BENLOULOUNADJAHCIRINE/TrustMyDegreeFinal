@@ -22,14 +22,21 @@ async function main() {
   const studyAddress = await studyRegistry.getAddress();
   console.log("StudyCertificateRegistry deployed at:", studyAddress);
 
+  const DocumentRegistry = await ethers.getContractFactory("DocumentRegistry");
+  const documentRegistry = await DocumentRegistry.deploy();
+  await documentRegistry.waitForDeployment();
+  const documentAddress = await documentRegistry.getAddress();
+  console.log("DocumentRegistry deployed at:", documentAddress);
+
   console.log(`DIPLOMA_CONTRACT_ADDRESS=${diplomaAddress}`);
   console.log(`INTERNSHIP_CONTRACT_ADDRESS=${internshipAddress}`);
   console.log(`STUDY_CONTRACT_ADDRESS=${studyAddress}`);
+  console.log(`DOCUMENT_CONTRACT_ADDRESS=${documentAddress}`);
 
   await diplomaRegistry.authorizeSchool(deployer.address, "ENSTA");
   await internshipRegistry.authorizeSchool(deployer.address, "ENSTA");
   await studyRegistry.authorizeSchool(deployer.address, "ENSTA");
-  console.log("\nSchool wallet authorized on all 3 contracts.");
+  console.log("\nSchool wallet authorized on all 4 contracts.");
 }
 
 main().catch((err) => {

@@ -2,6 +2,7 @@ const { ethers } = require("ethers");
 const DiplomaABI = require("../config/abis/DiplomaRegistry.json");
 const InternshipABI = require("../config/abis/InternshipRegistry.json");
 const StudyABI = require("../config/abis/StudyCertificateRegistry.json");
+const DocumentABI = require("../config/abis/DocumentRegistry.json");
 
 const provider = new ethers.JsonRpcProvider(process.env.BLOCKCHAIN_RPC_URL);
 const signer = new ethers.Wallet(process.env.SCHOOL_WALLET_PRIVATE_KEY, provider);
@@ -21,6 +22,12 @@ const internshipContract = new ethers.Contract(
 const studyContract = new ethers.Contract(
   process.env.STUDY_CONTRACT_ADDRESS,
   StudyABI.abi,
+  signer
+);
+
+const documentContract = new ethers.Contract(
+  process.env.DOCUMENT_CONTRACT_ADDRESS,
+  DocumentABI.abi,
   signer
 );
 
@@ -192,6 +199,44 @@ const revokeCertificate = async (contractType, blockchainCertId) => {
   return receipt.hash;
 };
 
+const issueDocument = async ({ studentId, studentName, documentType, ipfsHash }) => {
+  const tx = await documentContract.issueDocument(
+    studentId,
+    studentName,
+    documentType,
+    ipfsHash
+  );
+  const receipt = await tx.wait();
+  const event = receipt.logs
+    .map((log) => {
+      try { return documentContract.interface.parseLog(log); } catch { return null; }
+    })
+    .find((e) => e?.name === "DocumentIssued");
+
+  return {
+    blockchainDocId: event.args.docId,
+    txHash: receipt.hash,
+  };
+};
+
+const verifyDocument = async (blockchainDocId) => {
+  return await documentContract.verifyDocument(blockchainDocId);
+};
+
+const getDocumentData = async (blockchainDocId) => {
+  const data = await documentContract.getDocument(blockchainDocId);
+  return {
+    docId: data.docId,
+    studentId: data.studentId,
+    studentName: data.studentName,
+    documentType: data.documentType,
+    ipfsHash: data.ipfsHash,
+    issueDate: data.issueDate.toString(),
+    issuedBy: data.issuedBy,
+    isRevoked: data.isRevoked,
+  };
+};
+
 module.exports = {
   issueDiploma,
   issueInternship,
@@ -199,4 +244,7 @@ module.exports = {
   verifyCertificate,
   getCertificateData,
   revokeCertificate,
+  issueDocument,
+  verifyDocument,
+  getDocumentData,
 };
