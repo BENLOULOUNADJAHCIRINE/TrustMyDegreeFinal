@@ -9,6 +9,7 @@ function RequestStudent() {
   const [doc, setDoc] = useState("");
   const [reason, setReason] = useState("");
   const [delivery, setDelivery] = useState("");
+  const [delivery, setDelivery] = useState("");
   const [priority, setPriority] = useState("");
   const [openMenu, setOpenMenu] = useState(false);
   const [success, setSuccess] = useState("");
@@ -49,6 +50,7 @@ function RequestStudent() {
   function clear() {
     setDoc("");
     setReason("");
+    setDelivery("");
     setDelivery("");
     setPriority("");
     if (editorRef.current) editorRef.current.textContent = "";
@@ -143,38 +145,40 @@ function RequestStudent() {
             ></div>
           </div>
 
-           <div className={styles.option}>
-            <h4>3. Delivery Option</h4>
-            <div>
-              <div className={styles.option1}>
-                <input
-                  type="radio"
-                  name="delivery"
-                  value="digital"
-                  checked={delivery === "digital"}
-                  onChange={(e) => setDelivery(e.target.value)}
-                />
-                <div>
-                  <h4>Digital copy only</h4>
-                  <p>Fast & Free (Blockchain secured)</p>
+          {
+            <div className={styles.option}>
+              <h4>3. Delivery Option</h4>
+              <div>
+                <div className={styles.option1}>
+                  <input
+                    type="radio"
+                    name="delivery"
+                    value="digital"
+                    checked={delivery === "digital"}
+                    onChange={(e) => setDelivery(e.target.value)}
+                  />
+                  <div>
+                    <h4>Digital copy only</h4>
+                    <p>Fast & Free (Blockchain secured)</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className={styles.option1}>
-                <input
-                  type="radio"
-                  name="delivery"
-                  value="physical"
-                  checked={delivery === "physical"}
-                  onChange={(e) => setDelivery(e.target.value)}
-                />
-                <div>
-                  <h4>Official physical copy</h4>
-                  <p>Includes stamp & signature</p>
+                <div className={styles.option1}>
+                  <input
+                    type="radio"
+                    name="delivery"
+                    value="physical"
+                    checked={delivery === "physical"}
+                    onChange={(e) => setDelivery(e.target.value)}
+                  />
+                  <div>
+                    <h4>Official physical copy</h4>
+                    <p>Includes stamp & signature</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div> 
+          }
 
           <div className={styles.priority}>
             <label>4. Priority Level</label>

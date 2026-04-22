@@ -25,21 +25,18 @@ model User {
 }
 
 model Certificate {
-  id             String         @id @default(uuid())
-  studentId      String
-  type           String
-  specialty      String
-  mention        String?
-  faculty        String?
-  sectionNum     String?
-  facultyNum     String?
-  issueDate      DateTime       @default(now())
-  graduationDate String?
-  status         CertStatus     @default(ACTIVE)
-  fileUrl        String?
-  uniqueCode     String         @unique
-  student        User           @relation(fields: [studentId], references: [id])
-  verifications  Verification[]
+  id               String         @id @default(uuid())
+  studentId        String
+  uniqueCode       String         @unique
+  type             String?
+  specialty        String?
+  status           CertStatus     @default(ACTIVE)
+  issueDate        DateTime       @default(now())
+  ipfsHash         String?
+  blockchainCertId String?
+  contractType     String?
+  student          User           @relation(fields: [studentId], references: [id])
+  verifications    Verification[]
 }
 
 model Request {
