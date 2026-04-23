@@ -1,23 +1,28 @@
 import styles from "./Verify.module.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function Verify() {
   const [code, setCode] = useState("");
   const [result, setResult] = useState(null);
   const [status, setStatus] = useState(null);
 
-  function handleVerify(e) {
-    console.log(code);
-    e.preventDefault();
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlCode = params.get("code");
+    if (urlCode) {
+      setCode(urlCode);
+      verifyCode(urlCode);
+    }
+  }, []);
 
+  function verifyCode(codeToVerify) {
     fetch("http://localhost:5000/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code: codeToVerify }),
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         if (data.valid === true) {
           setResult(data.certificate);
           setStatus("found");
@@ -30,6 +35,11 @@ function Verify() {
         }
       })
       .catch((err) => window.alert(err));
+  }
+
+  function handleVerify(e) {
+    e.preventDefault();
+    verifyCode(code);
   }
 
   return (
@@ -78,8 +88,31 @@ function Verify() {
           <p>
             <strong>Place of Birth:</strong> {result.student.placeOfBirth}
           </p>
+          <p>
+            <strong>Certificate Type:</strong> {result.type}
+          </p>
+          <p>
+            <strong>Specialty:</strong> {result.specialty}
+          </p>
+          <p>
+            <strong>Issue Date:</strong> {new Date(result.issueDate).toLocaleDateString("fr-FR")}
+          </p>
+          {result.contractType === "INTERNSHIP" && result.academicData && (
+            <>
+              <p>
+                <strong>Company:</strong> {result.academicData.companyName}
+              </p>
+              <p>
+                <strong>Start Date:</strong> {new Date(Number(result.academicData.startDate) * 1000).toLocaleDateString("fr-FR")}
+              </p>
+              <p>
+                <strong>End Date:</strong> {new Date(Number(result.academicData.endDate) * 1000).toLocaleDateString("fr-FR")}
+              </p>
+            </>
+          )}
         </div>
       )}
+        
 
       {/* REVOKED */}
       {status === "revoked" && (

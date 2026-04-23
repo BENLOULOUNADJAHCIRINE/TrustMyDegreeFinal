@@ -1,20 +1,16 @@
 const prisma = require("../config/prisma");
+const axios = require("axios");
 const bcrypt = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
+const { getCertificateData } = require("../services/blockchain.service");
 
-// Student Dashboard
 const dashboard = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    const student = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    const student = await prisma.user.findUnique({ where: { id: userId } });
+    if (!student) return res.status(404).json({ message: "Student not found" });
 
     const activeCertificates = await prisma.certificate.count({
       where: { studentId: userId, status: "ACTIVE" },
@@ -29,31 +25,72 @@ const dashboard = async (req, res) => {
       orderBy: { issueDate: "desc" },
     });
 
-    const lastIssuedCertificate = await prisma.certificate.findFirst({
-      where: { studentId: userId },
-      orderBy: { issueDate: "desc" },
-    });
+    // fetch academic data from blockchain for each certificate
+    // if blockchain call fails for one cert, we still return it without chainData
+    const certificatesWithChainData = await Promise.all(
+      certificates.map(async (cert) => {
+        try {
+          const chainData = await getCertificateData(cert.contractType, cert.blockchainCertId);
+          const graduationDate = new Date(Number(chainData.issueDate) * 1000).toISOString();
+          return {
+            id: cert.id,
+            uniqueCode: cert.uniqueCode,
+            ipfsHash: cert.ipfsHash,
+            ipfsUrl: `https://gateway.pinata.cloud/ipfs/${cert.ipfsHash}`,
+            status: cert.status,
+            issueDate: cert.issueDate,
+            graduationDate,
+            contractType: cert.contractType,
+            type: cert.type,
+            specialty: cert.specialty,
+            chainData,
+};
+        } catch {
+          return {
+            id: cert.id,
+            uniqueCode: cert.uniqueCode,
+            ipfsHash: cert.ipfsHash,
+            status: cert.status,
+            issueDate: cert.issueDate,
+            graduationDate: cert.issueDate,
+            contractType: cert.contractType,
+            type: cert.type,
+            specialty: cert.specialty,
+            chainData: null,
+          };
+        }
+      })
+    );
 
-    const requests = await prisma.request.findMany({
+    const rawRequests = await prisma.request.findMany({
       where: { studentId: userId },
       orderBy: { createdAt: "desc" },
     });
 
+    const requests = rawRequests.map((req) => ({
+      ...req,
+      fileUrl: req.ipfsHash ? `https://gateway.pinata.cloud/ipfs/${req.ipfsHash}` : req.fileUrl,
+    }));
+
     res.status(200).json({
       fullName: student.fullName,
+      matricule: student.matricule,
+      email: student.email,
+      dateOfBirth: student.dateOfBirth,
+      placeOfBirth: student.placeOfBirth,
       isGraduated: student.isGraduated,
       activeCertificates,
       totalCertificates,
-      certificates,
-      lastIssuedCertificate,
+      certificates: certificatesWithChainData,
+      lastIssuedCertificate: certificatesWithChainData[0] || null,
       requests,
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "an error occurred in the server" });
   }
 };
 
-// Student Create Request
 const requests = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -63,22 +100,11 @@ const requests = async (req, res) => {
       return res.status(400).json({ message: "All informations are required" });
     }
 
-    const student = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    const student = await prisma.user.findUnique({ where: { id: userId } });
+    if (!student) return res.status(404).json({ message: "Student not found" });
 
     await prisma.request.create({
-      data: {
-        studentId: userId,
-        documentType,
-        reason,
-        delivery,
-        priority,
-      },
+      data: { studentId: userId, documentType, reason, delivery, priority },
     });
 
     res.status(200).json({ message: "Request created successfully" });
@@ -87,101 +113,68 @@ const requests = async (req, res) => {
   }
 };
 
-// Student Download Certificate
 const downloadCertificate = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { id } = req.params;
 
-    const certificate = await prisma.certificate.findUnique({
-      where: { id: id },
-    });
+    const certificate = await prisma.certificate.findUnique({ where: { id } });
 
-    if (!certificate) {
-      return res.status(404).json({ message: "Certificate not found" });
-    }
+    if (!certificate) return res.status(404).json({ message: "Certificate not found" });
+    if (certificate.studentId !== userId) return res.status(403).json({ message: "Access denied" });
+    if (!certificate.ipfsHash) return res.status(404).json({ message: "Certificate file not found" });
 
-    if (certificate.studentId !== userId) {
-      return res.status(403).json({ message: "Access denied" });
-    }
+    const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${certificate.ipfsHash}`;
+    const response = await axios.get(ipfsUrl, { responseType: "stream" });
 
-    if (!certificate.fileUrl) {
-      return res.status(404).json({ message: "Certificate file not found" });
-    }
-
-    const filePath = path.resolve(certificate.fileUrl);
-
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: "File does not exist on server" });
-    }
-
-    res.download(filePath);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="certificate_${id}.pdf"`);
+    response.data.pipe(res);
   } catch (err) {
     res.status(500).json({ error: "an error occurred in the server" });
   }
 };
 
-// Student Download Request Document
 const downloadRequestDocument = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { id } = req.params;
 
-    const request = await prisma.request.findUnique({
-      where: { id: id },
-    });
+    const request = await prisma.request.findUnique({ where: { id } });
 
-    if (!request || !request.fileUrl) {
-      return res.status(404).json({ message: "Document not found" });
-    }
+    if (!request) return res.status(404).json({ message: "Document not found" });
+    if (request.studentId !== userId) return res.status(403).json({ message: "Access denied" });
+    if (!request.ipfsHash) return res.status(404).json({ message: "Document not available yet" });
 
-    if (request.studentId !== userId) {
-      return res.status(403).json({ message: "Access denied" });
-    }
+    const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${request.ipfsHash}`;
+    const response = await axios.get(ipfsUrl, { responseType: "stream" });
 
-    const fileName = path.basename(request.fileUrl);
-    const filePath = path.join(process.cwd(), "uploads", fileName);
-
-    if (fs.existsSync(filePath)) {
-      return res.download(filePath);
-    } else {
-      return res.status(404).json({ message: "File does not exist on server" });
-    }
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="document_${id}.pdf"`);
+    response.data.pipe(res);
   } catch (err) {
     res.status(500).json({ error: "An error occurred on the server" });
   }
 };
-// Student Change Password
+
 const changePassword = async (req, res) => {
   try {
     const userId = req.user.userId;
+    const student = await prisma.user.findUnique({ where: { id: userId } });
 
-    const student = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    if (!student) return res.status(404).json({ message: "Student not found" });
 
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: "All fields are required" });
     }
-
     if (newPassword.length < 6) {
-      return res
-        .status(400)
-        .json({ message: "Password must be at least 6 characters" });
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
     const identical = await bcrypt.compare(currentPassword, student.password);
-    if (!identical) {
-      return res
-        .status(400)
-        .json({ message: "Current password is incorrect" });
-    }
+    if (!identical) return res.status(400).json({ message: "Current password is incorrect" });
 
     const newHashedPassword = await bcrypt.hash(newPassword, 10);
     await prisma.user.update({
