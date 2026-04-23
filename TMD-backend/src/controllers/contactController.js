@@ -53,5 +53,3 @@ const submitContact = async (req, res) => {
 };
 
 module.exports = { submitContact };
-
-
