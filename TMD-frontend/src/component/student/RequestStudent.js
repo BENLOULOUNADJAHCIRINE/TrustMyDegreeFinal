@@ -9,7 +9,7 @@ function RequestStudent() {
   const [doc, setDoc] = useState("");
   const [reason, setReason] = useState("");
   const [delivery, setDelivery] = useState("");
-  const [delivery, setDelivery] = useState("");
+
   const [priority, setPriority] = useState("");
   const [openMenu, setOpenMenu] = useState(false);
   const [success, setSuccess] = useState("");
@@ -51,7 +51,7 @@ function RequestStudent() {
     setDoc("");
     setReason("");
     setDelivery("");
-    setDelivery("");
+    
     setPriority("");
     if (editorRef.current) editorRef.current.textContent = "";
   }
