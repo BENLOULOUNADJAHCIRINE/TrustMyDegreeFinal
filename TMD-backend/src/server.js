@@ -68,6 +68,9 @@ app.post("/verify", async (req, res) => {
       certificate.contractType,
       certificate.blockchainCertId
     );
+    console.log("contractType:", certificate.contractType);
+    console.log("blockchainCertId:", certificate.blockchainCertId);
+    console.log("isValidOnChain:", isValidOnChain);
 
     if (!isValidOnChain) {
       return res.status(400).json({ valid: false, message: "Certificate has been revoked" });

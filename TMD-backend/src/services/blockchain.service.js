@@ -207,11 +207,19 @@ const issueDocument = async ({ studentId, studentName, documentType, ipfsHash })
     ipfsHash
   );
   const receipt = await tx.wait();
-  const event = receipt.logs
-    .map((log) => {
-      try { return documentContract.interface.parseLog(log); } catch { return null; }
-    })
-    .find((e) => e?.name === "DocumentIssued");
+
+  // log all events to see what's actually being emitted
+  const parsedLogs = receipt.logs.map((log) => {
+    try { return documentContract.interface.parseLog(log); } catch { return null; }
+  }).filter(Boolean);
+
+  console.log("DocumentRegistry events:", parsedLogs.map(e => e.name));
+
+  const event = parsedLogs.find((e) => e?.name === "DocumentIssued");
+
+  if (!event) {
+    throw new Error(`DocumentIssued event not found. Events found: ${parsedLogs.map(e => e.name).join(", ")}`);
+  }
 
   return {
     blockchainDocId: event.args.docId,

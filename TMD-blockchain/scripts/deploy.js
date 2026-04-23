@@ -36,6 +36,7 @@ async function main() {
   await diplomaRegistry.authorizeSchool(deployer.address, "ENSTA");
   await internshipRegistry.authorizeSchool(deployer.address, "ENSTA");
   await studyRegistry.authorizeSchool(deployer.address, "ENSTA");
+  await documentRegistry.authorizeSchool(deployer.address, "ENSTA");
   console.log("\nSchool wallet authorized on all 4 contracts.");
 }
 

@@ -62,10 +62,15 @@ const dashboard = async (req, res) => {
       })
     );
 
-    const requests = await prisma.request.findMany({
+    const rawRequests = await prisma.request.findMany({
       where: { studentId: userId },
       orderBy: { createdAt: "desc" },
     });
+
+    const requests = rawRequests.map((req) => ({
+      ...req,
+      fileUrl: req.ipfsHash ? `https://gateway.pinata.cloud/ipfs/${req.ipfsHash}` : req.fileUrl,
+    }));
 
     res.status(200).json({
       fullName: student.fullName,
