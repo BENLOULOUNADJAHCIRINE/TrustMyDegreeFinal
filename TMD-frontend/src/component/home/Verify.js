@@ -1,23 +1,28 @@
 import styles from "./Verify.module.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function Verify() {
   const [code, setCode] = useState("");
   const [result, setResult] = useState(null);
   const [status, setStatus] = useState(null);
 
-  function handleVerify(e) {
-    console.log(code);
-    e.preventDefault();
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlCode = params.get("code");
+    if (urlCode) {
+      setCode(urlCode);
+      verifyCode(urlCode);
+    }
+  }, []);
 
+  function verifyCode(codeToVerify) {
     fetch("http://localhost:5000/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code: codeToVerify }),
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         if (data.valid === true) {
           setResult(data.certificate);
           setStatus("found");
@@ -30,6 +35,11 @@ function Verify() {
         }
       })
       .catch((err) => window.alert(err));
+  }
+
+  function handleVerify(e) {
+    e.preventDefault();
+    verifyCode(code);
   }
 
   return (
