@@ -420,28 +420,30 @@ const importDiplomas = async (req, res) => {
         }
 
         //generate PDF using correct template
-        const pdfPath = await generateDiplomaPDF(
-          {
-            fullName: student.fullName,
-            matricule: student.matricule,
-            specialty: row.specialty || "",
-            faculty: row.faculty || "",
-            sectionNum: String(row.sectionNum || ""),
-            facultyNum: String(row.facultyNum || ""),
-            mention: row.mention || "",
-            graduationDate,
-            issueDate: new Date().toISOString().split("T")[0],
-            uniqueCode,
+        const pdfPath = await generateDiplomaPDF({
+          fullName: student.fullName,
+          matricule: student.matricule,
+          specialty: row.specialty || "",
+          faculty: row.faculty || "",
+          sectionNum: String(row.sectionNum || ""),
+          facultyNum: String(row.facultyNum || ""),
+          mention: row.mention || "",
+          graduationDate,
+          issueDate: new Date().toISOString().split("T")[0],
+          uniqueCode,
+          academicYear: row.academicYear || "",
+          year: row.year || "",
+          company: row.company || "",
+          duration: row.duration || "",
+          startDate: row.startDate || "",
+            birthDate: student.dateOfBirth || "",
+            birthPlace: student.placeOfBirth || "",
+            endDate: row.endDate,
+            internshipCity: row.internshipCity || "",
             academicYear: row.academicYear || "",
-            year: row.year || "",
-            company: row.company || "",
-            duration: row.duration || "",
-            startDate: row.startDate || "",
-            endDate: row.endDate || "",
-            internshipCity: row.city || "",
-          },
-          templateType,
-        );
+            level:row.level || "",
+             field:row.field || "",
+        }, templateType);
 
         //upload PDF to IPFS, get back the CID
         const ipfsHash = await uploadPDFtoPinata(pdfPath);

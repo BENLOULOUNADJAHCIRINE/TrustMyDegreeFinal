@@ -8,7 +8,7 @@ function Dashboard() {
   const [stats, setStats] = useState(null);
   const [activities, setActivities] = useState([]);
   const [user, setUser] = useState(null);
-  const [statusMsg, setStatusMsg] = useState(""); // New state for the message
+  const [statusMsg, setStatusMsg] = useState(""); // new state for the message
   const token = localStorage.getItem("token");
 
   // Get user from localStorage

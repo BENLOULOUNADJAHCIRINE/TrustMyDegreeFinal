@@ -1,534 +1,234 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Attestation de Stage — ENSTA</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<title>Attestation de Stage</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
 <style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --green-dark:  #23449f;
+  --green-mid:   #2d5b9b;
+  --gold:        #c9a84c;
+  --gold-light:  #e8d08a;
+  --cream:       #f5f2ea;
+  --ink:         #1a1a18;
+}
+
+@page { size: A4 landscape; margin: 0; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: #c8d0da;
+  font-family: 'Lora', Georgia, serif;
+  background: var(--cream);
+  width: 29.7cm;
+  height: 21cm;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  padding: 30px;
-  font-family: sans-serif;
 }
 
-.diploma {
-  width: 1050px;
-  height: 742px;
-  background: #f7f9ff;
+.page {
+  width: 25.7cm;
+  background: #fff;
+  border: 2.5px solid var(--green-dark);
+  padding: 0 0 1.2cm;
   position: relative;
-  overflow: hidden;
-  box-shadow: 0 24px 70px rgba(0,0,0,0.38);
-  flex-shrink: 0;
+  box-shadow: 0 6px 36px rgba(26,58,42,0.15);
 }
 
-.bg-pattern {
+.page::before {
+  content: '';
   position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(26,52,102,0.022) 15px),
-    repeating-linear-gradient(90deg, transparent, transparent 14px, rgba(26,52,102,0.022) 15px);
+  inset: 8px;
+  border: 1px solid var(--gold);
   pointer-events: none;
 }
 
-.bg-waves {
+.corner {
   position: absolute;
-  inset: 68px;
-  opacity: 0.14;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='20'%3E%3Cpath d='M0 10 Q25 0 50 10 Q75 20 100 10 Q125 0 150 10 Q175 20 200 10' fill='none' stroke='%231a3466' stroke-width='0.5'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  pointer-events: none;
+  width: 24px; height: 24px;
+  border-color: var(--gold);
+  border-style: solid;
+}
+.corner.tl { top: 14px; left: 14px; border-width: 2px 0 0 2px; }
+.corner.tr { top: 14px; right: 14px; border-width: 2px 2px 0 0; }
+.corner.bl { bottom: 14px; left: 14px; border-width: 0 0 2px 2px; }
+.corner.br { bottom: 14px; right: 14px; border-width: 0 2px 2px 0; }
+
+.header-bar {
+  background: var(--green-dark);
+  color: #fff;
+  text-align: center;
+  padding: 14px 40px 12px;
 }
 
-.border-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.content {
-  position: absolute;
-  left: 62px;
-  right: 62px;
-  top: 58px;
-  bottom: 58px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* HEADER */
-.header {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 8px;
-}
-
-.school-header {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.school-name {
-  font-family: 'Cinzel', serif;
-  font-size: 10px;
-  font-weight: 600;
-  color: #1a3466;
-  letter-spacing: 0.1em;
-  text-align: left;
-  line-height: 1.5;
-}
-
-.cert-title {
-  font-family: 'Cinzel', serif;
-  font-size: 30px;
+.republic {
+  font-family: 'Playfair Display', serif;
+  font-size: 11.5pt;
   font-weight: 700;
-  color: #1a3466;
-  letter-spacing: 0.12em;
-  text-align: center;
-  line-height: 1;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.9);
-  margin-top: 4px;
-}
-
-.cert-subtitle {
-  font-family: 'Cinzel', serif;
-  font-size: 12px;
-  font-weight: 600;
-  color: #2a4070;
-  letter-spacing: 0.08em;
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-.ornament {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 6px 0 4px;
-  width: 55%;
-}
-.orn-line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #1a3466 30%, #1a3466 70%, transparent);
-}
-.orn-center {
-  font-size: 14px;
-  color: #1a3466;
-  line-height: 1;
-}
-
-/* BODY */
-.body {
-  width: 100%;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0 4px;
-}
-
-.intro-text {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 14px;
-  color: #2a3a6a;
-  font-style: italic;
-  text-align: center;
-  margin-bottom: 8px;
-}
-
-/* Name row */
-.name-row {
-  display: flex;
-  align-items: baseline;
-  gap: 0;
-  margin-bottom: 10px;
-  border-bottom: 1px solid rgba(26,52,102,0.2);
-  padding-bottom: 6px;
-}
-.exam-label {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 16px;
-  font-style: italic;
-  color: #2a3a6a;
-  letter-spacing: 0.02em;
-  flex-shrink: 0;
-  margin-right: 10px;
-  white-space: nowrap;
-}
-.student-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 42px;
-  font-weight: 400;
-  font-style: italic;
-  color: #1a3466;
-  line-height: 1;
-  letter-spacing: 0.02em;
-}
-
-/* Info grid */
-.info-grid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px 24px;
-  margin-bottom: 8px;
-}
-.info-line {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 14px;
-  color: #1a3466;
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-.info-line .lbl {
-  font-weight: 600;
-  font-style: italic;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.info-line .val {
-  border-bottom: 0.5px solid rgba(26,52,102,0.28);
-  flex: 1;
-  padding-bottom: 1px;
-  min-height: 18px;
-  min-width: 0;
-}
-
-/* Status badge */
-.status-line {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  align-self: flex-start;
-  background: rgba(26,52,102,0.05);
-  border: 0.5px solid rgba(26,52,102,0.22);
-  padding: 3px 12px;
-  border-radius: 2px;
-  margin-bottom: 8px;
-}
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #2e7d32;
-  box-shadow: 0 0 4px rgba(46,125,50,0.5);
-}
-.status-text {
-  font-family: 'Cinzel', serif;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: #1a3466;
-}
-
-/* Jury text */
-.jury-text {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 13px;
-  color: #2a3a6a;
-  line-height: 1.55;
-  margin-bottom: 8px;
-}
-
-/* Bottom row */
-.bottom-row {
-  margin-top: auto;
-  width: 100%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-
-.sig-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  min-width: 140px;
-}
-.sig-line-hr {
-  width: 100%;
-  height: 0.5px;
-  background: rgba(26,52,102,0.4);
-}
-.sig-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 12px;
-  font-style: italic;
-  color: #1a3466;
-}
-.sig-title {
-  font-family: 'Cinzel', serif;
-  font-size: 8.5px;
-  letter-spacing: 0.1em;
-  color: #1a3466;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
-.center-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
+.ministry {
+  font-size: 10.5pt;
+  color: var(--gold-light);
 }
 
-.unique-code {
-  font-family: 'Cinzel', serif;
-  font-size: 8px;
-  letter-spacing: 0.08em;
-  color: #1a3466;
-  opacity: 0.7;
+.rule {
+  height: 3px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+  margin-bottom: 16px;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.title h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 21pt;
+  font-weight: 700;
+  color: var(--green-dark);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.underline {
+  width: 100px;
+  height: 2px;
+  background: var(--gold);
+  margin: 6px auto 0;
+}
+
+/* Main content row: body text + QR side by side */
+.content-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 0 1.8cm;
+  gap: 20px;
+}
+
+.body {
+  flex: 1;
+}
+
+.body p {
+  color: var(--ink);
+  font-size: 11.5pt;
+  line-height: 2.05;
+}
+
+/* QR + HASH BLOCK */
+.verify-block {
+  flex-shrink: 0;
+  text-align: center;
+  width: 110px;
+  padding-top: 4px;
+}
+
+.hash {
+  font-size: 7px;
+  opacity: 0.6;
+  word-break: break-all;
   margin-top: 4px;
 }
 
-.bottom-watermark {
-  position: absolute;
-  bottom: 10px;
-  left: 0;
-  right: 0;
+/* SIGNATURES */
+.signatures {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 1.8cm 0;
+  font-size: 11pt;
+  color: var(--ink);
+}
+
+.sig-col { line-height: 1.65; }
+
+.footer {
+  margin: 14px 1.8cm 0;
+  border-top: 1px solid var(--gold);
+  padding-top: 8px;
+  font-style: italic;
+  font-size: 10pt;
+  color: var(--green-mid);
   text-align: center;
-  font-family: 'Cinzel', serif;
-  font-size: 7px;
-  letter-spacing: 0.18em;
-  color: rgba(26,52,102,0.35);
-  z-index: 3;
 }
 </style>
 </head>
+
 <body>
-<div class="diploma">
-  <div class="bg-pattern"></div>
-  <div class="bg-waves"></div>
 
-  <!-- BORDER SVG -->
-  <svg class="border-svg" viewBox="0 0 1050 742" xmlns="http://www.w3.org/2000/svg">
-    <rect x="8"  y="8"  width="1034" height="726" rx="4" fill="none" stroke="#1a3466" stroke-width="1.2"/>
-    <rect x="14" y="14" width="1022" height="714" rx="3" fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <rect x="40" y="40" width="970"  height="662" rx="2" fill="none" stroke="#1a3466" stroke-width="0.6"/>
-    <rect x="44" y="44" width="962"  height="654" rx="2" fill="none" stroke="#1a3466" stroke-width="0.3"/>
-    <rect x="8" y="8" width="1034" height="46" rx="0" fill="rgba(26,52,102,0.04)"/>
-    <rect x="8" y="688" width="1034" height="46" rx="0" fill="rgba(26,52,102,0.04)"/>
-    <circle cx="28"  cy="28" r="12" fill="none" stroke="#1a3466" stroke-width="0.7"/>
-    <circle cx="28"  cy="28" r="7"  fill="none" stroke="#1a3466" stroke-width="0.4"/>
-    <circle cx="28"  cy="28" r="3"  fill="#1a3466" opacity="0.3"/>
-    <circle cx="65"  cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="100" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="135" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="170" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="205" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="240" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="275" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="310" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="345" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="380" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="415" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="450" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="485" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="520" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="555" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="590" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="625" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="660" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="695" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="730" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="765" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="800" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="835" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="870" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="905" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="940" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="975" cy="28" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="1022" cy="28" r="12" fill="none" stroke="#1a3466" stroke-width="0.7"/>
-    <circle cx="1022" cy="28" r="7"  fill="none" stroke="#1a3466" stroke-width="0.4"/>
-    <circle cx="1022" cy="28" r="3"  fill="#1a3466" opacity="0.3"/>
-    <circle cx="28"  cy="714" r="12" fill="none" stroke="#1a3466" stroke-width="0.7"/>
-    <circle cx="28"  cy="714" r="7"  fill="none" stroke="#1a3466" stroke-width="0.4"/>
-    <circle cx="28"  cy="714" r="3"  fill="#1a3466" opacity="0.3"/>
-    <circle cx="65"  cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="100" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="135" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="170" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="205" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="240" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="275" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="310" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="345" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="380" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="415" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="450" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="485" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="520" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="555" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="590" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="625" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="660" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="695" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="730" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="765" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="800" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="835" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="870" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="905" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="940" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="975" cy="714" r="8"  fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="1022" cy="714" r="12" fill="none" stroke="#1a3466" stroke-width="0.7"/>
-    <circle cx="1022" cy="714" r="7"  fill="none" stroke="#1a3466" stroke-width="0.4"/>
-    <circle cx="1022" cy="714" r="3"  fill="#1a3466" opacity="0.3"/>
-    <circle cx="28"   cy="371" r="16" fill="none" stroke="#1a3466" stroke-width="0.7"/>
-    <circle cx="28"   cy="371" r="10" fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="28"   cy="371" r="4"  fill="#1a3466" opacity="0.3"/>
-    <circle cx="1022" cy="371" r="16" fill="none" stroke="#1a3466" stroke-width="0.7"/>
-    <circle cx="1022" cy="371" r="10" fill="none" stroke="#1a3466" stroke-width="0.5"/>
-    <circle cx="1022" cy="371" r="4"  fill="#1a3466" opacity="0.3"/>
-    <path d="M80 76 Q200 66 320 76 Q440 86 560 76 Q680 66 800 76 Q920 86 970 76"
-          fill="none" stroke="#1a3466" stroke-width="0.6" opacity="0.4"/>
-    <path d="M80 80 Q200 70 320 80 Q440 90 560 80 Q680 70 800 80 Q920 90 970 80"
-          fill="none" stroke="#1a3466" stroke-width="0.4" opacity="0.3"/>
-  </svg>
+<div class="page">
 
-  <!-- CONTENT -->
-  <div class="content">
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
 
-    <!-- SCHOOL HEADER -->
-    <div class="school-header">
-      <div class="school-name">
-        RÉPUBLIQUE ALGÉRIENNE DÉMOCRATIQUE ET POPULAIRE<br>
-        MINISTÈRE DE L'ENSEIGNEMENT SUPÉRIEUR ET DE LA RECHERCHE SCIENTIFIQUE<br>
-        ÉCOLE NATIONALE SUPÉRIEURE DES TECHNOLOGIES AVANCÉES — ENSTA
-      </div>
-    </div>
+  <div class="header-bar">
+    <div class="republic">République Algérienne Démocratique et Populaire</div>
+    <div class="ministry">Ministère de l'Enseignement Supérieur et de la Recherche Scientifique</div>
+  </div>
 
-    <!-- HEADER -->
-    <div class="header">
-      <div class="cert-title">ATTESTATION DE STAGE</div>
-      <div class="ornament">
-        <div class="orn-line"></div>
-        <div class="orn-center">✦❧✦</div>
-        <div class="orn-line"></div>
-      </div>
-      <div class="cert-subtitle">CERTIFICAT D'ACHÈVEMENT DE STAGE</div>
-    </div>
+  <div class="rule"></div>
 
-    <!-- BODY -->
+  <div class="title">
+    <h1>Attestation de Stage</h1>
+    <div class="underline"></div>
+  </div>
+
+  <div class="content-row">
     <div class="body">
+      <p>Je, soussigné(e), atteste</p>
+      <p>Que l'étudiant(e) <b>{{fullName}}</b> né(e) le {{birthDate}} à {{birthPlace}}</p>
+      <p>Inscrit(e) à l'ENSTA.</p>
+      <p>A effectué un stage dans la filière {{specialty}} - {{field}}</p>
+      <p>Entreprise : {{company}}</p>
+      <p>Durant la période du {{startDate}} au {{endDate}}</p>
+      <p>Fait à {{internshipCity}} le {{issueDate}}</p>
+    </div>
 
-      <p class="intro-text">Le Directeur de l'École Nationale Supérieure des Technologies Avancées atteste que :</p>
-
-      <!-- Name row -->
-      <div class="name-row">
-        <span class="exam-label">L'étudiant(e) :</span>
-        <span class="student-name">{{fullName}}</span>
-      </div>
-
-      <!-- Info grid -->
-      <div class="info-grid">
-        <div class="info-line">
-          <span class="lbl">Matricule :</span>
-          <span class="val">{{matricule}}</span>
-        </div>
-        <div class="info-line">
-          <span class="lbl">Spécialité :</span>
-          <span class="val">{{specialty}}</span>
-        </div>
-        <div class="info-line">
-          <span class="lbl">Entreprise d'accueil :</span>
-          <span class="val">{{company}}</span>
-        </div>
-        <div class="info-line">
-          <span class="lbl">Durée du stage :</span>
-          <span class="val">{{duration}}</span>
-        </div>
-        <div class="info-line">
-          <span class="lbl">Date de début :</span>
-          <span class="val">{{startDate}}</span>
-        </div>
-        <div class="info-line">
-          <span class="lbl">Date de fin :</span>
-          <span class="val">{{graduationDate}}</span>
-        </div>
-        <div class="info-line">
-          <span class="lbl">Mention :</span>
-          <span class="val">{{mention}}</span>
-        </div>
-        <div class="info-line">
-          <span class="lbl">Date d'émission :</span>
-          <span class="val">{{issueDate}}</span>
-        </div>
-      </div>
-
-      <!-- Status -->
-      <div class="status-line">
-        <div class="status-dot"></div>
-        <span class="status-text">Statut :&nbsp;&nbsp;·&nbsp;&nbsp;Vérifié</span>
-      </div>
-
-      <!-- Jury text -->
-      <div class="jury-text">
-        A effectué un stage de fin d'études du <strong>{{startDate}}</strong> au <strong>{{graduationDate}}</strong>
-        dans le cadre de sa formation à l'ENSTA.
-        <br>Ce certificat est délivré pour servir et valoir ce que de droit.
-        Il est vérifiable via <em>trustmydegree.io</em> avec le code : <strong>{{uniqueCode}}</strong>.
-      </div>
-
-      <!-- BOTTOM ROW -->
-      <div class="bottom-row">
-        <div class="sig-block">
-          <div class="sig-line-hr"></div>
-          <span class="sig-name"></span>
-          <span class="sig-title">Le Directeur</span>
-        </div>
-
-        <div class="center-block">
-          <svg width="80" height="80" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <radialGradient id="waxGrad2" cx="40%" cy="35%" r="65%">
-                <stop offset="0%"   stop-color="#c0392b"/>
-                <stop offset="40%"  stop-color="#922b21"/>
-                <stop offset="100%" stop-color="#641e16"/>
-              </radialGradient>
-              <radialGradient id="waxShine2" cx="35%" cy="30%" r="50%">
-                <stop offset="0%"   stop-color="rgba(255,255,255,0.3)"/>
-                <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-              </radialGradient>
-            </defs>
-            <g transform="translate(48,48)">
-              <polygon points="0,-44 5,-40 10,-43 13,-38 18,-40 20,-35 25,-36 26,-31 31,-31 31,-26 36,-25 35,-20 40,-18 38,-13 43,-10 40,-5 44,0 40,5 43,10 38,13 40,18 35,20 36,25 31,26 31,31 26,31 25,36 20,35 18,40 13,38 10,43 5,40 0,44 -5,40 -10,43 -13,38 -18,40 -20,35 -25,36 -26,31 -31,31 -31,26 -36,25 -35,20 -40,18 -38,13 -43,10 -40,5 -44,0 -40,-5 -43,-10 -38,-13 -40,-18 -35,-20 -36,-25 -31,-26 -31,-31 -26,-31 -25,-36 -20,-35 -18,-40 -13,-38 -10,-43 -5,-40"
-                fill="url(#waxGrad2)"/>
-              <circle r="36" fill="url(#waxGrad2)"/>
-              <circle r="36" fill="url(#waxShine2)"/>
-              <circle r="32" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
-              <polygon points="0,-12 3,-4 11,-4 5,2 7,10 0,6 -7,10 -5,2 -11,-4 -3,-4"
-                fill="rgba(255,255,255,0.35)"/>
-            </g>
-          </svg>
-          <span class="unique-code">{{uniqueCode}}</span>
-        </div>
-
-        <div class="sig-block">
-          <div class="sig-line-hr"></div>
-          <span class="sig-name"></span>
-          <span class="sig-title">L'Étudiant(e)</span>
-        </div>
-      </div>
+    <div class="verify-block">
+      <div id="qrcode"></div>
+      <div class="hash">{{hash}}</div>
+      <div style="font-size:8px; margin-top:3px;">{{uniqueCode}}</div>
     </div>
   </div>
 
-  <div class="bottom-watermark">ENSTA · ATTESTATION DE STAGE VÉRIFIÉE · trustmydegree.io</div>
+  <div class="signatures">
+    <div class="sig-col">
+      <div>Le Directeur de L'Ecole Nationale Supérieure</div>
+      <div>des Technologies Avancées</div>
+    </div>
+    <div class="sig-col">
+      <div>Le Responsable de l'établissement</div>
+      <div>d'accueil</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Cette attestation est délivrée pour servir et faire valoir ce que de droit
+  </div>
+
 </div>
+
+<script>
+  const verificationURL =
+    "https://trustmydegree.io/verify/{{uniqueCode}}?hash={{hash}}";
+
+  new QRCode(document.getElementById("qrcode"), {
+    text: verificationURL,
+    width: 90,
+    height: 90
+  });
+</script>
+
 </body>
 </html>

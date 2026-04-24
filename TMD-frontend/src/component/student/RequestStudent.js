@@ -9,6 +9,7 @@ function RequestStudent() {
   const [doc, setDoc] = useState("");
   const [reason, setReason] = useState("");
   const [delivery, setDelivery] = useState("");
+
   const [priority, setPriority] = useState("");
   const [openMenu, setOpenMenu] = useState(false);
   const [success, setSuccess] = useState("");
@@ -32,13 +33,13 @@ function RequestStudent() {
       await api.post("/student/requests", {
         documentType: doc,
         reason,
-        delivery: delivery.toUpperCase(),
+         delivery: delivery.toUpperCase(),
         priority: priority.toUpperCase(),
       });
       setSuccess("Request submitted successfully! ✅");
       setDoc("");
       setReason("");
-      setDelivery("");
+       setDelivery("");
       setPriority("");
       if (editorRef.current) editorRef.current.textContent = "";
     } catch (err) {
@@ -50,6 +51,7 @@ function RequestStudent() {
     setDoc("");
     setReason("");
     setDelivery("");
+    
     setPriority("");
     if (editorRef.current) editorRef.current.textContent = "";
   }

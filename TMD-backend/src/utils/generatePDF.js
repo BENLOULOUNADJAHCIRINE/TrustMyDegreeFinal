@@ -5,56 +5,96 @@ const QRCode = require("qrcode");
 
 const generateDiplomaPDF = async (studentData, templateType = "diploma") => {
   let templateName = "certificate.html";
-  if (templateType === "scolarite") templateName = "scolarite.html";
+  if (templateType === "scolarite")  templateName = "scolarite.html";
   if (templateType === "internship") templateName = "internship.html";
 
   const templatePath = path.join(__dirname, "../templates", templateName);
   let html = fs.readFileSync(templatePath, "utf8");
 
-  // generate QR code that points to the verify page with the uniqueCode
   const verifyUrl = `http://localhost:3000/verify?code=${studentData.uniqueCode}`;
   const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, {
     width: 120,
     margin: 1,
-    color: { dark: "#1e1b4b", light: "#ffffff" }
+    color: { dark: "#1a3466", light: "#ffffff" },
   });
 
-  html = html.replace(/{{fullName}}/g, studentData.fullName || "");
-  html = html.replace(/{{matricule}}/g, studentData.matricule || "");
-  html = html.replace(/{{specialty}}/g, studentData.specialty || "");
-  html = html.replace(/{{faculty}}/g, studentData.faculty || "");
-  html = html.replace(/{{mention}}/g, studentData.mention || "");
-  html = html.replace(/{{issueDate}}/g, studentData.issueDate || "");
-  html = html.replace(/{{uniqueCode}}/g, studentData.uniqueCode || "");
-  html = html.replace(/{{graduationDate}}/g, studentData.graduationDate || "");
-  html = html.replace(/{{academicYear}}/g, studentData.academicYear || "");
-  html = html.replace(/{{year}}/g, studentData.year || "");
-  html = html.replace(/{{company}}/g, studentData.company || "");
-  html = html.replace(/{{duration}}/g, studentData.duration || "");
-  html = html.replace(/{{startDate}}/g, studentData.startDate || "");
-  html = html.replace(/{{endDate}}/g, studentData.endDate || "");
-  html = html.replace(/{{internshipCity}}/g, studentData.internshipCity || ""); 
-  html = html.replace(/{{sectionNum}}/g, studentData.sectionNum || "");
-  html = html.replace(/{{facultyNum}}/g, studentData.facultyNum || "");
-  // put QR code as an image
-  html = html.replace(/{{qrCode}}/g, qrCodeDataUrl);
+  html = html.replace(
+    /{{qrCode}}/g,
+    `<img src="${qrCodeDataUrl}" width="44" height="44" style="display:block;" />`
+  );
 
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: "networkidle0" });
+  const replace = (key, value) => {
+    html = html.replace(new RegExp(`{{${key}}}`, "g"), value ?? "");
+  };
 
-  const fileName = `diploma_${studentData.uniqueCode}.pdf`;
-  const filePath = path.join(__dirname, "../../uploads", fileName);
+  replace("fullName",       studentData.fullName);
+  replace("matricule",      studentData.matricule);
+  replace("specialty",      studentData.specialty);
+  replace("faculty",        studentData.faculty);
+  replace("mention",        studentData.mention);
+  replace("issueDate",      studentData.issueDate);
+  replace("graduationDate", studentData.graduationDate);
+  replace("startDate",      studentData.startDate);
+  replace("endDate",        studentData.endDate);
+  replace("academicYear",   studentData.academicYear);
+  replace("year",           studentData.year);
+  replace("sectionNum",     studentData.sectionNum);
+  replace("facultyNum",     studentData.facultyNum);
+  replace("company",        studentData.company);
+  replace("duration",       studentData.duration);
+  replace("field",          studentData.field);
+  replace("level",          studentData.level);
+  replace("internshipCity", studentData.internshipCity);
+  replace("birthDate",      studentData.birthDate);
+  replace("birthPlace",     studentData.birthPlace);
+  replace("hash",           studentData.hash ?? studentData.uniqueCode);
+  replace("uniqueCode",     studentData.uniqueCode);
 
-  await page.pdf({
-    path: filePath,
-    width: "1050px",
-    height: "742px",
-    printBackground: true,
+  const uploadsDir = path.join(__dirname, "../../uploads");
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
-  await browser.close();
-  return `uploads/${fileName}`;
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+
+    await page.addStyleTag({
+      content: `
+        body {
+          padding: 0 !important;
+          margin: 0 !important;
+          background: white !important;
+          display: block !important;
+          min-height: unset !important;
+        }
+        .diploma {
+          box-shadow: none !important;
+          margin: 0 !important;
+        }
+      `
+    });
+
+    const fileName = `diploma_${studentData.uniqueCode}.pdf`;
+    const filePath = path.join(uploadsDir, fileName);
+
+    await page.pdf({
+      path: filePath,
+      width: "1050px",
+      height: "742px",
+      printBackground: true,
+      margin: { top: 0, right: 0, bottom: 0, left: 0 },
+    });
+
+    return `uploads/${fileName}`;
+  } finally {
+    await browser.close();
+  }
 };
 
 module.exports = generateDiplomaPDF;
