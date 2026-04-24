@@ -661,58 +661,6 @@ const downloadRequestFile = async (req, res) => {
   }
 };
 
-const bulkRevokeCertificates = async (req, res) => {
-  try {
-    const { ids } = req.body;
-
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ message: "No certificate IDs provided" });
-    }
-
-    const results = [];
-    const errors = [];
-
-    for (const id of ids) {
-      try {
-        const cert = await prisma.certificate.findUnique({ where: { id } });
-
-        if (!cert) {
-          errors.push({ id, error: "Certificate not found" });
-          continue;
-        }
-
-        if (cert.status === "REVOKED") {
-          errors.push({ id, error: "Already revoked" });
-          continue;
-        }
-
-        await revokeCertificateOnChain(
-          cert.contractType,
-          cert.blockchainCertId,
-        );
-
-        await prisma.certificate.update({
-          where: { id },
-          data: { status: "REVOKED" },
-        });
-
-        results.push({ id, success: true });
-      } catch (err) {
-        errors.push({ id, error: err.message });
-      }
-    }
-
-    res.status(200).json({
-      message: `Revoked ${results.length} certificates`,
-      revoked: results.length,
-      errors,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "An error occurred on the server" });
-  }
-};
-
 const getAuditTrail = async (req, res) => {
   try {
     const certificates = await prisma.certificate.findMany({
@@ -757,6 +705,5 @@ module.exports = {
   downloadCertificate,
   exportCertificates,
   downloadRequestFile,
-  bulkRevokeCertificates,
   getAuditTrail,
 };
