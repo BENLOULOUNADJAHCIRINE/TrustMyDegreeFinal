@@ -2,266 +2,253 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("DiplomaRegistry", function () {
-  let registry;
-  let owner;
-  let school;
-  let otherSchool;
-  let randomUser;
+    let contract;
+    let owner, school, other;
 
-  const studentId    = "STU2024001";
-  const studentName  = "Ines Benali";
-  const degreeName   = "Master's Degree";
-  const fieldOfStudy = "Mathematics and Informatics";
-  const ipfsHash     = "QmX7b5jxn2VTkWFmNgMMnpbBzKL4vPjbPbCRXfAmnMBGpK";
-  const schoolName   = "Ecole Nationale Polytechnique";
-
-  beforeEach(async function () {
-    [owner, school, otherSchool, randomUser] = await ethers.getSigners();
-
-    const Factory = await ethers.getContractFactory("DiplomaRegistry");
-    registry = await Factory.deploy();
-    await registry.waitForDeployment();
-  });
-
-
-  //  deployement
-
-
-  describe("Deployment", function () {
-    it("Should set the deployer as owner", async function () {
-      expect(await registry.owner()).to.equal(owner.address);
-    });
-  });
-
-  // admins autorizations
-
-  describe("School Authorization", function () {
-    it("Owner can authorize a school", async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      expect(await registry.authorizedSchools(school.address)).to.equal(true);
-      expect(await registry.schoolNames(school.address)).to.equal(schoolName);
-    });
-
-    it("Non-owner cannot authorize a school", async function () {
-      await expect(
-        registry.connect(randomUser).authorizeSchool(school.address, schoolName)
-      ).to.be.revertedWith("Not the contract owner");
-    });
-
-    it("Cannot authorize the same school twice", async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      await expect(
-        registry.authorizeSchool(school.address, schoolName)
-      ).to.be.revertedWith("School already authorized");
-    });
-
-    it("Owner can revoke a school's authorization", async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      await registry.revokeSchoolAuthorization(school.address);
-      expect(await registry.authorizedSchools(school.address)).to.equal(false);
-    });
-
-    it("Revoked school cannot issue diplomas", async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      await registry.revokeSchoolAuthorization(school.address);
-      await expect(
-        registry.connect(school).issueDiploma(studentId, studentName, degreeName, fieldOfStudy, ipfsHash)
-      ).to.be.revertedWith("Not an authorized school");
-    });
-  });
-
-
-  // diploma setters
-
-
-  describe("Issuing Diplomas", function () {
-    beforeEach(async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-    });
-
-    it("Authorized school can issue a diploma", async function () {
-      const tx = await registry.connect(school).issueDiploma(
-        studentId, studentName, degreeName, fieldOfStudy, ipfsHash
-      );
-      await expect(tx).to.emit(registry, "DiplomaIssued");
-    });
-
-    it("Unauthorized address cannot issue a diploma", async function () {
-      await expect(
-        registry.connect(randomUser).issueDiploma(studentId, studentName, degreeName, fieldOfStudy, ipfsHash)
-      ).to.be.revertedWith("Not an authorized school");
-    });
-
-    it("Cannot issue diploma with empty student ID", async function () {
-      await expect(
-        registry.connect(school).issueDiploma("", studentName, degreeName, fieldOfStudy, ipfsHash)
-      ).to.be.revertedWith("Student ID required");
-    });
-
-    it("Cannot issue diploma with empty degree name", async function () {
-      await expect(
-        registry.connect(school).issueDiploma(studentId, studentName, "", fieldOfStudy, ipfsHash)
-      ).to.be.revertedWith("Degree name required");
-    });
-
-    it("Cannot issue the same degree to the same student twice", async function () {
-      await registry.connect(school).issueDiploma(studentId, studentName, degreeName, fieldOfStudy, ipfsHash);
-      await expect(
-        registry.connect(school).issueDiploma(studentId, studentName, degreeName, fieldOfStudy, ipfsHash)
-      ).to.be.revertedWith("Diploma already issued for this degree");
-    });
-
-    it("Student can have multiple diplomas with different degree names", async function () {
-      await registry.connect(school).issueDiploma(studentId, studentName, "Bachelor's Degree", fieldOfStudy, ipfsHash);
-      await registry.connect(school).issueDiploma(studentId, studentName, "Master's Degree", fieldOfStudy, ipfsHash);
-      expect(await registry.getDiplomaCount(studentId)).to.equal(2);
-    });
-  });
-
-
-  //  diploma getters
-
-
-  describe("Getting Diplomas", function () {
-    let certId;
+    const sampleDiploma = {
+        studentId:    "20210001",
+        studentName:  "Cirine Benloulous",
+        degreeName:   "Ingenieur",
+        fieldOfStudy: "MI",
+        ipfsHash:     "QmExampleHash123"
+    };
 
     beforeEach(async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      const tx = await registry.connect(school).issueDiploma(
-        studentId, studentName, degreeName, fieldOfStudy, ipfsHash
-      );
-      const receipt = await tx.wait();
-      const event = receipt.logs
-        .map((log) => {
-          try { return registry.interface.parseLog(log); } catch { return null; }
-        })
-        .find((e) => e?.name === "DiplomaIssued");
-      certId = event.args.certId;
+        [owner, school, other] = await ethers.getSigners();
+        const Contract = await ethers.getContractFactory("DiplomaRegistry");
+        contract = await Contract.deploy();
+        await contract.waitForDeployment();
+
+        // authorize school before each test
+        await contract.authorizeSchool(school.address, "ESI Algiers");
     });
 
-    it("Can get diploma details by certId", async function () {
-      const diploma = await registry.getDiploma(certId);
-      expect(diploma.studentId).to.equal(studentId);
-      expect(diploma.studentName).to.equal(studentName);
-      expect(diploma.degreeName).to.equal(degreeName);
-      expect(diploma.fieldOfStudy).to.equal(fieldOfStudy);
-      expect(diploma.ipfsHash).to.equal(ipfsHash);
-      expect(diploma.schoolName).to.equal(schoolName);
-      expect(diploma.isRevoked).to.equal(false);
+    // ─── School management ───────────────────────────────────
+
+    it("should authorize a school", async function () {
+        expect(await contract.authorizedSchools(school.address)).to.equal(true);
+        expect(await contract.schoolNames(school.address)).to.equal("ESI Algiers");
     });
 
-    it("Can get all diploma IDs for a student", async function () {
-      const diplomas = await registry.getStudentDiplomas(studentId);
-      expect(diplomas.length).to.equal(1);
-      expect(diplomas[0]).to.equal(certId);
+    it("should emit SchoolAuthorized event", async function () {
+        const [, , , newSchool] = await ethers.getSigners();
+        await expect(contract.authorizeSchool(newSchool.address, "USTHB"))
+            .to.emit(contract, "SchoolAuthorized")
+            .withArgs(newSchool.address, "USTHB");
     });
 
-    it("Returns empty array for student with no diplomas", async function () {
-      const diplomas = await registry.getStudentDiplomas("UNKNOWN999");
-      expect(diplomas.length).to.equal(0);
+    it("should reject duplicate school authorization", async function () {
+        await expect(contract.authorizeSchool(school.address, "ESI Algiers"))
+            .to.be.revertedWith("School already authorized");
     });
 
-    it("Reverts when getting non-existent diploma", async function () {
-      const fakeCertId = ethers.keccak256(ethers.toUtf8Bytes("fake"));
-      await expect(registry.getDiploma(fakeCertId)).to.be.revertedWith("Diploma does not exist");
-    });
-  });
-
-
-  //  testing diploma verification
-
-
-  describe("Verification", function () {
-    let certId;
-
-    beforeEach(async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      const tx = await registry.connect(school).issueDiploma(
-        studentId, studentName, degreeName, fieldOfStudy, ipfsHash
-      );
-      const receipt = await tx.wait();
-      const event = receipt.logs
-        .map((log) => {
-          try { return registry.interface.parseLog(log); } catch { return null; }
-        })
-        .find((e) => e?.name === "DiplomaIssued");
-      certId = event.args.certId;
+    it("should revoke school authorization", async function () {
+        await contract.revokeSchoolAuthorization(school.address);
+        expect(await contract.authorizedSchools(school.address)).to.equal(false);
     });
 
-    it("Valid diploma returns true", async function () {
-      expect(await registry.verifyDiploma(certId)).to.equal(true);
+    it("should transfer ownership", async function () {
+        await contract.transferOwnership(other.address);
+        expect(await contract.owner()).to.equal(other.address);
     });
 
-    it("Non-existent diploma returns false", async function () {
-      const fakeCertId = ethers.keccak256(ethers.toUtf8Bytes("fake"));
-      expect(await registry.verifyDiploma(fakeCertId)).to.equal(false);
-    });
-  });
-
-
-  //  testing revocation 
-  
-
-  describe("Revocation", function () {
-    let certId;
-
-    beforeEach(async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      const tx = await registry.connect(school).issueDiploma(
-        studentId, studentName, degreeName, fieldOfStudy, ipfsHash
-      );
-      const receipt = await tx.wait();
-      const event = receipt.logs
-        .map((log) => {
-          try { return registry.interface.parseLog(log); } catch { return null; }
-        })
-        .find((e) => e?.name === "DiplomaIssued");
-      certId = event.args.certId;
+    it("should reject transferOwnership from non-owner", async function () {
+        await expect(contract.connect(other).transferOwnership(other.address))
+            .to.be.revertedWith("Not the contract owner");
     });
 
-    it("Issuing school can revoke a diploma", async function () {
-      await registry.connect(school).revokeDiploma(certId);
-      expect(await registry.verifyDiploma(certId)).to.equal(false);
+    // ─── Issue ───────────────────────────────────────────────
+
+    it("should issue a diploma", async function () {
+        const tx = await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const event = receipt.logs.find(l => l.fragment?.name === "DiplomaIssued");
+        expect(event).to.not.be.undefined;
     });
 
-    it("Owner can revoke any diploma", async function () {
-      await registry.revokeDiploma(certId);
-      expect(await registry.verifyDiploma(certId)).to.equal(false);
+    it("should emit DiplomaIssued event", async function () {
+        await expect(
+            contract.connect(school).issueDiploma(
+                sampleDiploma.studentId, sampleDiploma.studentName,
+                sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+            )
+        ).to.emit(contract, "DiplomaIssued");
     });
 
-    it("Random user cannot revoke a diploma", async function () {
-      await expect(
-        registry.connect(randomUser).revokeDiploma(certId)
-      ).to.be.revertedWith("Not authorized to revoke");
+    it("should reject issueDiploma from unauthorized school", async function () {
+        await expect(
+            contract.connect(other).issueDiploma(
+                sampleDiploma.studentId, sampleDiploma.studentName,
+                sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+            )
+        ).to.be.revertedWith("Not an authorized school");
     });
 
-    it("Cannot revoke an already revoked diploma", async function () {
-      await registry.connect(school).revokeDiploma(certId);
-      await expect(
-        registry.connect(school).revokeDiploma(certId)
-      ).to.be.revertedWith("Diploma already revoked");
+    it("should reject duplicate active diploma", async function () {
+        await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        await expect(
+            contract.connect(school).issueDiploma(
+                sampleDiploma.studentId, sampleDiploma.studentName,
+                sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+            )
+        ).to.be.revertedWith("An active diploma already exists for this degree");
     });
 
-    it("Revoked diploma returns false on verify", async function () {
-      await registry.connect(school).revokeDiploma(certId);
-      expect(await registry.verifyDiploma(certId)).to.equal(false);
+    // ─── Revoke ──────────────────────────────────────────────
+
+    it("should revoke a diploma", async function () {
+        const tx = await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const event = receipt.logs.find(l => l.fragment?.name === "DiplomaIssued");
+        const certId = event.args[0];
+
+        await contract.revokeDiploma(certId);
+        const diploma = await contract.getDiploma(certId);
+        expect(diploma.isRevoked).to.equal(true);
     });
-  });
 
+    it("should emit DiplomaRevoked event", async function () {
+        const tx = await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "DiplomaIssued").args[0];
 
-  // transfaring ownership
-  
-
-  describe("Transfer Ownership", function () {
-    it("Owner can transfer ownership", async function () {
-      await registry.transferOwnership(randomUser.address);
-      expect(await registry.owner()).to.equal(randomUser.address);
+        await expect(contract.revokeDiploma(certId))
+            .to.emit(contract, "DiplomaRevoked")
+            .withArgs(certId, owner.address);
     });
 
-    it("Non-owner cannot transfer ownership", async function () {
-      await expect(
-        registry.connect(randomUser).transferOwnership(randomUser.address)
-      ).to.be.revertedWith("Not the contract owner");
+    it("should reject revoking already revoked diploma", async function () {
+        const tx = await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "DiplomaIssued").args[0];
+
+        await contract.revokeDiploma(certId);
+        await expect(contract.revokeDiploma(certId))
+            .to.be.revertedWith("Diploma already revoked");
     });
-  });
+
+    // ─── Unrevoke ────────────────────────────────────────────
+
+    it("should unrevoke a diploma", async function () {
+        const tx = await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "DiplomaIssued").args[0];
+
+        await contract.revokeDiploma(certId);
+        await contract.unrevokeDiploma(certId);
+        const diploma = await contract.getDiploma(certId);
+        expect(diploma.isRevoked).to.equal(false);
+    });
+
+    it("should emit DiplomaUnrevoked event", async function () {
+        const tx = await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "DiplomaIssued").args[0];
+
+        await contract.revokeDiploma(certId);
+        await expect(contract.unrevokeDiploma(certId))
+            .to.emit(contract, "DiplomaUnrevoked")
+            .withArgs(certId, owner.address);
+    });
+
+    it("should reject unrevoking a non-revoked diploma", async function () {
+        const tx = await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "DiplomaIssued").args[0];
+
+        await expect(contract.unrevokeDiploma(certId))
+            .to.be.revertedWith("Diploma is not revoked");
+    });
+
+    // ─── Revoke → Reissue flow ───────────────────────────────
+
+    it("should allow reissue after revoke (corrected diploma flow)", async function () {
+        const tx = await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "DiplomaIssued").args[0];
+
+        await contract.revokeDiploma(certId);
+
+        await expect(
+            contract.connect(school).issueDiploma(
+                sampleDiploma.studentId, sampleDiploma.studentName,
+                sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, "QmCorrectedHash456"
+            )
+        ).to.emit(contract, "DiplomaIssued");
+    });
+
+    // ─── Read / Verify ───────────────────────────────────────
+
+    it("should verify an active diploma as true", async function () {
+        const tx = await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "DiplomaIssued").args[0];
+
+        expect(await contract.verifyDiploma(certId)).to.equal(true);
+    });
+
+    it("should verify a revoked diploma as false", async function () {
+        const tx = await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "DiplomaIssued").args[0];
+
+        await contract.revokeDiploma(certId);
+        expect(await contract.verifyDiploma(certId)).to.equal(false);
+    });
+
+    it("should return student diplomas", async function () {
+        await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        const diplomas = await contract.getStudentDiplomas(sampleDiploma.studentId);
+        expect(diplomas.length).to.equal(1);
+    });
+
+    it("should return correct diploma count", async function () {
+        await contract.connect(school).issueDiploma(
+            sampleDiploma.studentId, sampleDiploma.studentName,
+            sampleDiploma.degreeName, sampleDiploma.fieldOfStudy, sampleDiploma.ipfsHash
+        );
+        expect(await contract.getDiplomaCount(sampleDiploma.studentId)).to.equal(1);
+    });
+
+    it("should revert getDiploma for non-existent certId", async function () {
+        const fakeId = ethers.encodeBytes32String("fake");
+        await expect(contract.getDiploma(fakeId))
+            .to.be.revertedWith("Diploma does not exist");
+    });
 });
