@@ -187,12 +187,10 @@ const handleRequestDocument = async (req, res) => {
        <p>The document you requested (<strong>${findRequest.documentType}</strong>) is ready on your dashboard.</p>`,
     );
 
-    res
-      .status(200)
-      .json({
-        message:
-          "Document uploaded to IPFS and stored on blockchain successfully",
-      });
+    res.status(200).json({
+      message:
+        "Document uploaded to IPFS and stored on blockchain successfully",
+    });
   } catch (err) {
     console.error("Upload Error:", err);
     res.status(500).json({ error: "An error occurred on the server" });
@@ -497,14 +495,12 @@ const importDiplomas = async (req, res) => {
       }
     }
 
-    res
-      .status(200)
-      .json({
-        message: "import completed",
-        created,
-        errors,
-        total: rows.length,
-      });
+    res.status(200).json({
+      message: "import completed",
+      created,
+      errors,
+      total: rows.length,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "an error occurred in the server" });
@@ -520,14 +516,14 @@ const getStatistics = async (req, res) => {
     const totalEngineer = await prisma.certificate.count({
       where: { type: "ENGINEER" },
     });
-    const totalInternship = await prisma.certificate.count({
-      where: { type: "INTERNSHIP" },
+    const totalStage = await prisma.certificate.count({
+      where: { type: "STAGE" },
     });
 
     const DistributionByType = {
       MASTER: totalMaster,
       ENGINEER: totalEngineer,
-      INTERNSHIP: totalInternship,
+      STAGE: totalStage,
     };
 
     const topSpecialties = await prisma.certificate.groupBy({

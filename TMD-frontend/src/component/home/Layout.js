@@ -8,7 +8,9 @@ function Layout() {
     <div className={styles["main-content"]}>
       <nav className={styles.top}>
         <div className={styles.logopic}>
-          <img src="/logoproject.png" alt="logopic" />
+          <Link to="/#home">
+            <img src="/logoproject.png" alt="logopic" />
+          </Link>
           <div className={styles.title}>
             <h3>
               TrustMy<span className={styles.color}>Degree</span>

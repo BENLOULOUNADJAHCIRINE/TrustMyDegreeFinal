@@ -338,9 +338,10 @@
 }
 
 .buttons > button:hover {
-  background-color: cornflowerblue;
-  border: 1px solid cornflowerblue;
+  background-color: navy;
+  border: 1px solid navy;
   box-shadow: 1px 1px 5px;
+  color: white;
 }
 
 /*bottom*/
