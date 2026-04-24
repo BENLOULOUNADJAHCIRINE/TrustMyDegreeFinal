@@ -85,7 +85,7 @@ contract InternshipRegistry {
         string calldata studentName,
         string calldata companyName,
         string calldata internshipRole,
-        string calldata internshipCity
+        string calldata internshipCity,
         string calldata ipfsHash,
         uint256         startDate,
         uint256         endDate
