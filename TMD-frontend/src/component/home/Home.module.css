@@ -12,8 +12,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeLeft {
@@ -54,7 +58,9 @@
 .reveal {
   opacity: 0;
   transform: translateY(30px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease;
 }
 .reveal.visible {
   opacity: 1;
@@ -68,26 +74,35 @@ html {
 
 .top {
   padding: 15px;
+  background-color: #0f172a;
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: space-around;
   animation: fadeIn 0.6s ease both;
 }
 
+.top > a {
+  text-decoration: none;
+}
+.top > a:hover {
+  text-decoration: none;
+}
+
 .logopic {
+  background-color: #ffffff;
   display: flex;
   flex-direction: row;
-  background-color: #f1f5f9;
   border-radius: 20px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin-left: 20px;
-  cursor: default;
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
 }
+
 .logopic:hover {
   transform: scale(1.04);
-  box-shadow: 0 4px 14px rgba(59,130,246,0.2);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.2);
 }
 
 .logopic > img {
@@ -115,14 +130,14 @@ html {
 }
 
 .access {
-  width: 60%;
+  width: 55%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
 
 .access > a {
-  color: #45556c;
+  color: #ffffff;
   font-family: arimo;
   font-size: 17px;
   font-weight: 500;
@@ -133,7 +148,7 @@ html {
 
 /* animated underline on nav links */
 .access > a::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -3px;
   left: 0;
@@ -147,6 +162,7 @@ html {
 .access > a:hover {
   font-weight: bolder;
   color: #3b82f6;
+  text-decoration: none;
 }
 
 .access > a:hover::after {
@@ -164,7 +180,10 @@ html {
   color: white;
   margin-top: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.2s ease;
 }
 
 .top > button:hover {
@@ -186,12 +205,11 @@ html {
 }
 
 .page1 > img {
-  width: 45%;
-  height: auto;
-  margin: auto 60px auto auto;
-  display: block;
-  align-self: center;
-  justify-self: end;
+  width: 60%;
+  height: 60%;
+  margin-left: 140px;
+  margin-top: 100px;
+
   animation: fadeRight 0.9s ease 0.3s both;
 }
 
@@ -261,7 +279,10 @@ html {
   margin-top: 5px;
   cursor: pointer;
   animation: fadeUp 0.7s ease 0.5s both;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.2s ease;
 }
 
 .introd > button:hover {
@@ -323,12 +344,14 @@ html {
   padding: 50px;
   padding-top: 10px;
   margin-top: 40px;
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
 }
 
 .container:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 35px rgba(59,130,246,0.12);
+  box-shadow: 0 12px 35px rgba(59, 130, 246, 0.12);
 }
 
 .container > h3 {
@@ -398,12 +421,15 @@ html {
   background-color: #ffffff0d;
   border-radius: 30px;
   margin-bottom: 20px;
-  transition: background-color 0.3s ease, transform 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    transform 0.3s ease;
 }
 
 .c:hover {
   background-color: #ffffff1a;
   transform: translateX(6px);
+  box-shadow: -1px 1px 7px white;
 }
 
 .c > img {
@@ -485,7 +511,10 @@ html {
   align-items: center;
   justify-content: center;
   flex: 1;
-  transition: box-shadow 0.35s ease, transform 0.35s ease, background-color 0.35s ease;
+  transition:
+    box-shadow 0.35s ease,
+    transform 0.35s ease,
+    background-color 0.35s ease;
 }
 
 .method > .m {
@@ -540,7 +569,7 @@ html {
 }
 
 .page4 > h1::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -8px;
   left: 50%;
@@ -563,20 +592,22 @@ details {
   border-radius: 16px;
   padding: 0;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  transition: box-shadow 0.35s ease, border-color 0.35s ease;
+  transition:
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
 }
 
 details:hover {
   border-color: #3b82f6;
-  box-shadow: 0 4px 20px rgba(59,130,246,0.12);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.12);
 }
 
 details[open] {
   background: #ffffff;
   border-color: #3b82f6;
-  box-shadow: 0 6px 25px rgba(59,130,246,0.15);
+  box-shadow: 0 6px 25px rgba(59, 130, 246, 0.15);
 }
 
 summary {
@@ -588,7 +619,9 @@ summary {
   font-size: 15px;
   padding: 20px 24px;
   color: #1e293b;
-  transition: color 0.25s ease, background 0.25s ease;
+  transition:
+    color 0.25s ease,
+    background 0.25s ease;
   list-style: none;
 }
 
@@ -629,7 +662,9 @@ details p {
   flex-shrink: 0;
   color: #3b82f6;
   font-size: 12px;
-  transition: transform 0.35s ease, background 0.25s ease;
+  transition:
+    transform 0.35s ease,
+    background 0.25s ease;
 }
 
 details[open] .icon {
@@ -652,7 +687,7 @@ details[open] .icon {
   display: grid;
   grid-template-columns: 0.45fr 1fr;
   border-radius: 28px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
   animation: scaleIn 0.7s ease both;
 }
 
@@ -671,11 +706,15 @@ details[open] .icon {
 
 /* decorative glow blob */
 .design::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle, rgba(59,130,246,0.25) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.25) 0%,
+    transparent 70%
+  );
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -693,7 +732,7 @@ details[open] .icon {
 .message > img {
   width: 52px;
   padding: 10px;
-  background: rgba(59,130,246,0.2);
+  background: rgba(59, 130, 246, 0.2);
   border-radius: 50%;
   margin-bottom: 0;
   transition: transform 0.4s ease;
@@ -719,14 +758,16 @@ details[open] .icon {
   align-items: center;
   margin-bottom: 30px;
   padding: 10px 14px;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.07);
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.1);
-  transition: background 0.25s ease, transform 0.25s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
 }
 
 .em:hover {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
   transform: translateX(4px);
 }
 
@@ -790,7 +831,10 @@ details[open] .icon {
   font-size: 14px;
   color: #1e293b;
   cursor: pointer;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.2s ease;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.2s ease;
   width: 100%;
   box-sizing: border-box;
 }
@@ -804,7 +848,7 @@ details[open] .icon {
   outline: none;
   border-color: #3b82f6;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
   cursor: auto;
 }
 
@@ -837,7 +881,10 @@ details[open] .icon {
   font-size: 14px;
   color: #1e293b;
   resize: none;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.2s ease;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.2s ease;
   box-sizing: border-box;
 }
 
@@ -850,7 +897,7 @@ details[open] .icon {
   outline: none;
   border-color: #3b82f6;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
   cursor: auto;
 }
 
@@ -918,15 +965,18 @@ input[type="checkbox"]:hover {
   border: none;
   border-radius: 14px;
   margin-top: 20px;
-  box-shadow: 0 4px 15px rgba(15,23,42,0.3);
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.3);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.3s ease, background 0.3s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
 }
 
 .Frm > input[type="submit"]:hover,
 .Frm > input:last-child:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59,130,246,0.35);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35);
   background: linear-gradient(135deg, #1d4ed8 0%, #0f172a 100%);
 }
 
@@ -1332,7 +1382,9 @@ input[type="checkbox"]:hover {
 
 /* ─── PREFERS REDUCED MOTION ─── */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
