@@ -414,6 +414,13 @@ const importDiplomas = async (req, res) => {
           company: row.company || "",
           duration: row.duration || "",
           startDate: row.startDate || "",
+            birthDate: student.dateOfBirth || "",
+            birthPlace: student.placeOfBirth || "",
+            endDate: row.endDate,
+            internshipCity: row.internshipCity || "",
+            academicYear: row.academicYear || "",
+            level:row.level || "",
+             field:row.field || "",
         }, templateType);
 
         //upload PDF to IPFS, get back the CID
