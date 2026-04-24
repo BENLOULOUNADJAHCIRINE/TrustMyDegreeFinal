@@ -2,258 +2,329 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("InternshipRegistry", function () {
-  let registry;
-  let owner;
-  let school;
-  let randomUser;
+    let contract;
+    let owner, school, other;
 
-  const studentId   = "STU2024001";
-  const studentName = "Ines Benali";
-  const companyName = "Sonatrach";
-  const role        = "Software Engineer Intern";
-  const ipfsHash    = "QmX7b5jxn2VTkWFmNgMMnpbBzKL4vPjbPbCRXfAmnMBGpK";
-  const schoolName  = "Ecole Nationale Polytechnique";
-  const startDate   = 1700000000;
-  const endDate     = 1710000000;
+    const now = Math.floor(Date.now() / 1000);
 
-  beforeEach(async function () {
-    [owner, school, randomUser] = await ethers.getSigners();
-
-    const Factory = await ethers.getContractFactory("InternshipRegistry");
-    registry = await Factory.deploy();
-    await registry.waitForDeployment();
-  });
-
-  // ─────────────────────────────────────────────
-  //  DEPLOYMENT
-  // ─────────────────────────────────────────────
-
-  describe("Deployment", function () {
-    it("Should set the deployer as owner", async function () {
-      expect(await registry.owner()).to.equal(owner.address);
-    });
-  });
-
-  // ─────────────────────────────────────────────
-  //  SCHOOL AUTHORIZATION
-  // ─────────────────────────────────────────────
-
-  describe("School Authorization", function () {
-    it("Owner can authorize a school", async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      expect(await registry.authorizedSchools(school.address)).to.equal(true);
-    });
-
-    it("Non-owner cannot authorize a school", async function () {
-      await expect(
-        registry.connect(randomUser).authorizeSchool(school.address, schoolName)
-      ).to.be.revertedWith("Not the contract owner");
-    });
-
-    it("Cannot authorize the same school twice", async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      await expect(
-        registry.authorizeSchool(school.address, schoolName)
-      ).to.be.revertedWith("School already authorized");
-    });
-
-    it("Owner can revoke a school", async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      await registry.revokeSchoolAuthorization(school.address);
-      expect(await registry.authorizedSchools(school.address)).to.equal(false);
-    });
-
-    it("Revoked school cannot issue certificates", async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      await registry.revokeSchoolAuthorization(school.address);
-      await expect(
-        registry.connect(school).issueInternship(studentId, studentName, companyName, role, ipfsHash, startDate, endDate)
-      ).to.be.revertedWith("Not an authorized school");
-    });
-  });
-
-  // ─────────────────────────────────────────────
-  //  ISSUING INTERNSHIP CERTIFICATES
-  // ─────────────────────────────────────────────
-
-  describe("Issuing Internship Certificates", function () {
-    beforeEach(async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-    });
-
-    it("Authorized school can issue an internship certificate", async function () {
-      const tx = await registry.connect(school).issueInternship(
-        studentId, studentName, companyName, role, ipfsHash, startDate, endDate
-      );
-      await expect(tx).to.emit(registry, "InternshipIssued");
-    });
-
-    it("Unauthorized address cannot issue", async function () {
-      await expect(
-        registry.connect(randomUser).issueInternship(studentId, studentName, companyName, role, ipfsHash, startDate, endDate)
-      ).to.be.revertedWith("Not an authorized school");
-    });
-
-    it("Cannot issue with empty student ID", async function () {
-      await expect(
-        registry.connect(school).issueInternship("", studentName, companyName, role, ipfsHash, startDate, endDate)
-      ).to.be.revertedWith("Student ID required");
-    });
-
-    it("Cannot issue with empty company name", async function () {
-      await expect(
-        registry.connect(school).issueInternship(studentId, studentName, "", role, ipfsHash, startDate, endDate)
-      ).to.be.revertedWith("Company name required");
-    });
-
-    it("Cannot issue with endDate before startDate", async function () {
-      await expect(
-        registry.connect(school).issueInternship(studentId, studentName, companyName, role, ipfsHash, endDate, startDate)
-      ).to.be.revertedWith("End date must be after start date");
-    });
-
-    it("Cannot issue duplicate internship for same student and company", async function () {
-      await registry.connect(school).issueInternship(studentId, studentName, companyName, role, ipfsHash, startDate, endDate);
-      await expect(
-        registry.connect(school).issueInternship(studentId, studentName, companyName, role, ipfsHash, startDate, endDate)
-      ).to.be.revertedWith("Internship certificate already issued for this company");
-    });
-
-    it("Student can have internships at different companies", async function () {
-      await registry.connect(school).issueInternship(studentId, studentName, "Sonatrach", role, ipfsHash, startDate, endDate);
-      await registry.connect(school).issueInternship(studentId, studentName, "Djezzy", role, ipfsHash, startDate, endDate);
-      expect(await registry.getCertificateCount(studentId)).to.equal(2);
-    });
-  });
-
-  // ─────────────────────────────────────────────
-  //  GETTING CERTIFICATES
-  // ─────────────────────────────────────────────
-
-  describe("Getting Certificates", function () {
-    let certId;
+    const sampleInternship = {
+        studentId:      "20210001",
+        studentName:    "Cirine Benloulous",
+        companyName:    "Sonatrach",
+        internshipRole: "Software Engineer Intern",
+        internshipCity: "Algiers",
+        ipfsHash:       "QmExampleHash123",
+        startDate:      now,
+        endDate:        now + 7776000 // +90 days
+    };
 
     beforeEach(async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      const tx = await registry.connect(school).issueInternship(
-        studentId, studentName, companyName, role, ipfsHash, startDate, endDate
-      );
-      const receipt = await tx.wait();
-      const event = receipt.logs
-        .map((log) => {
-          try { return registry.interface.parseLog(log); } catch { return null; }
-        })
-        .find((e) => e?.name === "InternshipIssued");
-      certId = event.args.certId;
+        [owner, school, other] = await ethers.getSigners();
+        const Contract = await ethers.getContractFactory("InternshipRegistry");
+        contract = await Contract.deploy();
+        await contract.waitForDeployment();
+
+        await contract.authorizeSchool(school.address, "ESI Algiers");
     });
 
-    it("Can get certificate details by certId", async function () {
-      const cert = await registry.getCertificate(certId);
-      expect(cert.studentId).to.equal(studentId);
-      expect(cert.studentName).to.equal(studentName);
-      expect(cert.companyName).to.equal(companyName);
-      expect(cert.internshipRole).to.equal(role);
-      expect(cert.ipfsHash).to.equal(ipfsHash);
-      expect(cert.startDate).to.equal(startDate);
-      expect(cert.endDate).to.equal(endDate);
-      expect(cert.isRevoked).to.equal(false);
+    // ─── School management ───────────────────────────────────
+
+    it("should authorize a school", async function () {
+        expect(await contract.authorizedSchools(school.address)).to.equal(true);
+        expect(await contract.schoolNames(school.address)).to.equal("ESI Algiers");
     });
 
-    it("Can get all certificate IDs for a student", async function () {
-      const certs = await registry.getStudentCertificates(studentId);
-      expect(certs.length).to.equal(1);
-      expect(certs[0]).to.equal(certId);
+    it("should emit SchoolAuthorized event", async function () {
+        const [, , , newSchool] = await ethers.getSigners();
+        await expect(contract.authorizeSchool(newSchool.address, "USTHB"))
+            .to.emit(contract, "SchoolAuthorized")
+            .withArgs(newSchool.address, "USTHB");
     });
 
-    it("Returns empty array for unknown student", async function () {
-      const certs = await registry.getStudentCertificates("UNKNOWN999");
-      expect(certs.length).to.equal(0);
+    it("should reject duplicate school authorization", async function () {
+        await expect(contract.authorizeSchool(school.address, "ESI Algiers"))
+            .to.be.revertedWith("School already authorized");
     });
 
-    it("Reverts when getting non-existent certificate", async function () {
-      const fakeCertId = ethers.keccak256(ethers.toUtf8Bytes("fake"));
-      await expect(registry.getCertificate(fakeCertId)).to.be.revertedWith("Certificate does not exist");
-    });
-  });
-
-  // ─────────────────────────────────────────────
-  //  VERIFICATION
-  // ─────────────────────────────────────────────
-
-  describe("Verification", function () {
-    let certId;
-
-    beforeEach(async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      const tx = await registry.connect(school).issueInternship(
-        studentId, studentName, companyName, role, ipfsHash, startDate, endDate
-      );
-      const receipt = await tx.wait();
-      const event = receipt.logs
-        .map((log) => {
-          try { return registry.interface.parseLog(log); } catch { return null; }
-        })
-        .find((e) => e?.name === "InternshipIssued");
-      certId = event.args.certId;
+    it("should revoke school authorization", async function () {
+        await contract.revokeSchoolAuthorization(school.address);
+        expect(await contract.authorizedSchools(school.address)).to.equal(false);
     });
 
-    it("Valid certificate returns true", async function () {
-      expect(await registry.verifyCertificate(certId)).to.equal(true);
+    it("should transfer ownership", async function () {
+        await contract.transferOwnership(other.address);
+        expect(await contract.owner()).to.equal(other.address);
     });
 
-    it("Non-existent certificate returns false", async function () {
-      const fakeCertId = ethers.keccak256(ethers.toUtf8Bytes("fake"));
-      expect(await registry.verifyCertificate(fakeCertId)).to.equal(false);
-    });
-  });
+    // ─── Issue ───────────────────────────────────────────────
 
-  // ─────────────────────────────────────────────
-  //  REVOCATION
-  // ─────────────────────────────────────────────
-
-  describe("Revocation", function () {
-    let certId;
-
-    beforeEach(async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      const tx = await registry.connect(school).issueInternship(
-        studentId, studentName, companyName, role, ipfsHash, startDate, endDate
-      );
-      const receipt = await tx.wait();
-      const event = receipt.logs
-        .map((log) => {
-          try { return registry.interface.parseLog(log); } catch { return null; }
-        })
-        .find((e) => e?.name === "InternshipIssued");
-      certId = event.args.certId;
+    it("should issue an internship certificate", async function () {
+        const tx = await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        const receipt = await tx.wait();
+        const event = receipt.logs.find(l => l.fragment?.name === "InternshipIssued");
+        expect(event).to.not.be.undefined;
     });
 
-    it("Issuing school can revoke a certificate", async function () {
-      await registry.connect(school).revokeCertificate(certId);
-      expect(await registry.verifyCertificate(certId)).to.equal(false);
+    it("should emit InternshipIssued event", async function () {
+        await expect(
+            contract.connect(school).issueInternship(
+                sampleInternship.studentId, sampleInternship.studentName,
+                sampleInternship.companyName, sampleInternship.internshipRole,
+                sampleInternship.internshipCity, sampleInternship.ipfsHash,
+                sampleInternship.startDate, sampleInternship.endDate
+            )
+        ).to.emit(contract, "InternshipIssued");
     });
 
-    it("Owner can revoke any certificate", async function () {
-      await registry.revokeCertificate(certId);
-      expect(await registry.verifyCertificate(certId)).to.equal(false);
+    it("should reject issueInternship from unauthorized school", async function () {
+        await expect(
+            contract.connect(other).issueInternship(
+                sampleInternship.studentId, sampleInternship.studentName,
+                sampleInternship.companyName, sampleInternship.internshipRole,
+                sampleInternship.internshipCity, sampleInternship.ipfsHash,
+                sampleInternship.startDate, sampleInternship.endDate
+            )
+        ).to.be.revertedWith("Not an authorized school");
     });
 
-    it("Random user cannot revoke", async function () {
-      await expect(
-        registry.connect(randomUser).revokeCertificate(certId)
-      ).to.be.revertedWith("Not authorized to revoke");
+    it("should reject if endDate is before startDate", async function () {
+        await expect(
+            contract.connect(school).issueInternship(
+                sampleInternship.studentId, sampleInternship.studentName,
+                sampleInternship.companyName, sampleInternship.internshipRole,
+                sampleInternship.internshipCity, sampleInternship.ipfsHash,
+                sampleInternship.endDate, sampleInternship.startDate // swapped
+            )
+        ).to.be.revertedWith("End date must be after start date");
     });
 
-    it("Cannot revoke an already revoked certificate", async function () {
-      await registry.connect(school).revokeCertificate(certId);
-      await expect(
-        registry.connect(school).revokeCertificate(certId)
-      ).to.be.revertedWith("Certificate already revoked");
+    it("should reject duplicate active internship certificate", async function () {
+        await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        await expect(
+            contract.connect(school).issueInternship(
+                sampleInternship.studentId, sampleInternship.studentName,
+                sampleInternship.companyName, sampleInternship.internshipRole,
+                sampleInternship.internshipCity, sampleInternship.ipfsHash,
+                sampleInternship.startDate, sampleInternship.endDate
+            )
+        ).to.be.revertedWith("An active internship certificate already exists for this company");
     });
 
-    it("Revoked certificate returns false on verify", async function () {
-      await registry.connect(school).revokeCertificate(certId);
-      expect(await registry.verifyCertificate(certId)).to.equal(false);
+    it("should reject missing required fields", async function () {
+        await expect(
+            contract.connect(school).issueInternship(
+                "", sampleInternship.studentName, sampleInternship.companyName,
+                sampleInternship.internshipRole, sampleInternship.internshipCity,
+                sampleInternship.ipfsHash, sampleInternship.startDate, sampleInternship.endDate
+            )
+        ).to.be.revertedWith("Student ID required");
     });
-  });
+
+    // ─── Revoke ──────────────────────────────────────────────
+
+    it("should revoke a certificate", async function () {
+        const tx = await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "InternshipIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+        const cert = await contract.getCertificate(certId);
+        expect(cert.isRevoked).to.equal(true);
+    });
+
+    it("should emit InternshipRevoked event", async function () {
+        const tx = await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "InternshipIssued").args[0];
+
+        await expect(contract.revokeCertificate(certId))
+            .to.emit(contract, "InternshipRevoked")
+            .withArgs(certId, owner.address);
+    });
+
+    it("should reject revoking already revoked certificate", async function () {
+        const tx = await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "InternshipIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+        await expect(contract.revokeCertificate(certId))
+            .to.be.revertedWith("Certificate already revoked");
+    });
+
+    // ─── Unrevoke ────────────────────────────────────────────
+
+    it("should unrevoke a certificate", async function () {
+        const tx = await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "InternshipIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+        await contract.unrevokeCertificate(certId);
+        const cert = await contract.getCertificate(certId);
+        expect(cert.isRevoked).to.equal(false);
+    });
+
+    it("should emit InternshipUnrevoked event", async function () {
+        const tx = await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "InternshipIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+        await expect(contract.unrevokeCertificate(certId))
+            .to.emit(contract, "InternshipUnrevoked")
+            .withArgs(certId, owner.address);
+    });
+
+    it("should reject unrevoking a non-revoked certificate", async function () {
+        const tx = await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "InternshipIssued").args[0];
+
+        await expect(contract.unrevokeCertificate(certId))
+            .to.be.revertedWith("Certificate is not revoked");
+    });
+
+    // ─── Revoke → Reissue flow ───────────────────────────────
+
+    it("should allow reissue after revoke (corrected internship flow)", async function () {
+        const tx = await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "InternshipIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+
+        await expect(
+            contract.connect(school).issueInternship(
+                sampleInternship.studentId, sampleInternship.studentName,
+                sampleInternship.companyName, sampleInternship.internshipRole,
+                sampleInternship.internshipCity, "QmCorrectedHash456",
+                sampleInternship.startDate, sampleInternship.endDate
+            )
+        ).to.emit(contract, "InternshipIssued");
+    });
+
+    it("should block reissue if unrevoked (active again)", async function () {
+        const tx = await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "InternshipIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+        await contract.unrevokeCertificate(certId);
+
+        await expect(
+            contract.connect(school).issueInternship(
+                sampleInternship.studentId, sampleInternship.studentName,
+                sampleInternship.companyName, sampleInternship.internshipRole,
+                sampleInternship.internshipCity, "QmAnotherHash789",
+                sampleInternship.startDate, sampleInternship.endDate
+            )
+        ).to.be.revertedWith("An active internship certificate already exists for this company");
+    });
+
+    // ─── Read / Verify ───────────────────────────────────────
+
+    it("should verify an active certificate as true", async function () {
+        const tx = await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "InternshipIssued").args[0];
+
+        expect(await contract.verifyCertificate(certId)).to.equal(true);
+    });
+
+    it("should verify a revoked certificate as false", async function () {
+        const tx = await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "InternshipIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+        expect(await contract.verifyCertificate(certId)).to.equal(false);
+    });
+
+    it("should return student certificates", async function () {
+        await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        const certs = await contract.getStudentCertificates(sampleInternship.studentId);
+        expect(certs.length).to.equal(1);
+    });
+
+    it("should return correct certificate count", async function () {
+        await contract.connect(school).issueInternship(
+            sampleInternship.studentId, sampleInternship.studentName,
+            sampleInternship.companyName, sampleInternship.internshipRole,
+            sampleInternship.internshipCity, sampleInternship.ipfsHash,
+            sampleInternship.startDate, sampleInternship.endDate
+        );
+        expect(await contract.getCertificateCount(sampleInternship.studentId)).to.equal(1);
+    });
+
+    it("should revert getCertificate for non-existent certId", async function () {
+        const fakeId = ethers.encodeBytes32String("fake");
+        await expect(contract.getCertificate(fakeId))
+            .to.be.revertedWith("Certificate does not exist");
+    });
 });

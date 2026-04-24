@@ -16,16 +16,18 @@ contract DocumentRegistry {
 
     address public owner;
 
-    mapping(bytes32 => Document)   private documents;
-    mapping(string  => bytes32[])  private studentDocuments;
-    mapping(address => bool)       public  authorizedSchools;
-    mapping(address => string)     public  schoolNames;
+    mapping(bytes32 => Document)                        private documents;
+    mapping(string  => bytes32[])                       private studentDocuments;
+    mapping(address => bool)                            public  authorizedSchools;
+    mapping(address => string)                          public  schoolNames;
+    mapping(string  => mapping(string => bool))         private alreadyIssued; 
 
     uint256 private nonce;
 
     event SchoolAuthorized(address indexed school, string name);
     event DocumentIssued(bytes32 indexed docId, string studentId, string documentType);
     event DocumentRevoked(bytes32 indexed docId, address revokedBy);
+    event DocumentUnrevoked(bytes32 indexed docId, address unrevokedBy);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not the contract owner");
@@ -46,6 +48,8 @@ contract DocumentRegistry {
         owner = msg.sender;
     }
 
+    
+
     function authorizeSchool(address school, string calldata name) external onlyOwner {
         require(school != address(0), "Invalid address");
         require(!authorizedSchools[school], "School already authorized");
@@ -53,6 +57,8 @@ contract DocumentRegistry {
         schoolNames[school] = name;
         emit SchoolAuthorized(school, name);
     }
+
+    
 
     function issueDocument(
         string calldata studentId,
@@ -64,6 +70,12 @@ contract DocumentRegistry {
         require(bytes(studentName).length > 0,   "Student name required");
         require(bytes(documentType).length > 0,  "Document type required");
         require(bytes(ipfsHash).length > 0,      "IPFS hash required");
+
+        // Only block if there is an active (non-revoked) document of the same type
+        require(
+            !alreadyIssued[studentId][documentType] || _hasNoActiveDocument(studentId, documentType),
+            "An active document of this type already exists"
+        );
 
         docId = keccak256(abi.encodePacked(studentId, documentType, block.timestamp, nonce));
         nonce++;
@@ -80,16 +92,31 @@ contract DocumentRegistry {
         });
 
         studentDocuments[studentId].push(docId);
+        alreadyIssued[studentId][documentType] = true;
+
         emit DocumentIssued(docId, studentId, documentType);
     }
+
+   
 
     function revokeDocument(bytes32 docId) external docExists(docId) {
         Document storage d = documents[docId];
         require(!d.isRevoked, "Document already revoked");
         require(msg.sender == owner || msg.sender == d.issuedBy, "Not authorized");
         d.isRevoked = true;
+        alreadyIssued[d.studentId][d.documentType] = false; 
         emit DocumentRevoked(docId, msg.sender);
     }
+
+    function unrevokeDocument(bytes32 docId) external docExists(docId) {
+        Document storage d = documents[docId];
+        require(d.isRevoked, "Document is not revoked");
+        require(msg.sender == owner || msg.sender == d.issuedBy, "Not authorized");
+        d.isRevoked = false;
+        alreadyIssued[d.studentId][d.documentType] = true; 
+        emit DocumentUnrevoked(docId, msg.sender);
+    }
+
 
     function getDocument(bytes32 docId) external view docExists(docId) returns (Document memory) {
         return documents[docId];
@@ -103,5 +130,19 @@ contract DocumentRegistry {
         Document storage d = documents[docId];
         if (d.issueDate == 0) return false;
         return !d.isRevoked;
+    }
+
+    function _hasNoActiveDocument(string calldata studentId, string calldata documentType) internal view returns (bool) {
+        bytes32[] storage ids = studentDocuments[studentId];
+        for (uint256 i = 0; i < ids.length; i++) {
+            Document storage d = documents[ids[i]];
+            if (
+                keccak256(bytes(d.documentType)) == keccak256(bytes(documentType)) &&
+                !d.isRevoked
+            ) {
+                return false;
+            }
+        }
+        return true; 
     }
 }
