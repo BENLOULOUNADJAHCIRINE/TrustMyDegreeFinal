@@ -12,7 +12,8 @@ contract InternshipRegistry {
         string  studentName;     
         string  schoolName;      
         string  companyName;     
-        string  internshipRole;  
+        string  internshipRole;
+        string  internshipCity;  
         string  ipfsHash;        
         uint256 startDate;       
         uint256 endDate;         
@@ -84,6 +85,7 @@ contract InternshipRegistry {
         string calldata studentName,
         string calldata companyName,
         string calldata internshipRole,
+        string calldata internshipCity,
         string calldata ipfsHash,
         uint256         startDate,
         uint256         endDate
@@ -92,6 +94,7 @@ contract InternshipRegistry {
         require(bytes(studentName).length > 0,    "Student name required");
         require(bytes(companyName).length > 0,    "Company name required");
         require(bytes(internshipRole).length > 0, "Internship role required");
+        require(bytes(internshipCity).length > 0, "Internship city required");
         require(endDate > startDate,              "End date must be after start date");
         require(!alreadyIssued[studentId][companyName], "Internship certificate already issued for this company");
 
@@ -105,6 +108,7 @@ contract InternshipRegistry {
             schoolName:     schoolNames[msg.sender],
             companyName:    companyName,
             internshipRole: internshipRole,
+            internshipCity: internshipCity,
             ipfsHash:       ipfsHash,
             startDate:      startDate,
             endDate:        endDate,

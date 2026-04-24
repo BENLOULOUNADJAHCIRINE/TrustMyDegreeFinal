@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { protect, isAdmin } = require("../middleware/auth");
+const { protect, isAdmin, isSuperAdmin } = require("../middleware/auth");
 const {
   dashboard,
   getRequests,
@@ -15,6 +15,7 @@ const {
   downloadCertificate,
   exportCertificates,
   downloadRequestFile,
+  getAuditTrail,
 } = require("../controllers/adminController");
 
 router.get("/dashboard", protect, isAdmin, dashboard);
@@ -30,5 +31,6 @@ router.get("/certificates", protect, isAdmin, getAllCertificates);
 router.get("/statistics", protect, isAdmin, getStatistics);
 router.get("/certificates/:id/download", protect, isAdmin, downloadCertificate);
 router.get('/requests/:id/download', protect, isAdmin, downloadRequestFile);
+router.get("/audit-trail", protect, isSuperAdmin, getAuditTrail);
 
 module.exports = router;

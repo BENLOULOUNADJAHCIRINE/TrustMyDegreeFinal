@@ -32,6 +32,8 @@ const generateDiplomaPDF = async (studentData, templateType = "diploma") => {
   html = html.replace(/{{company}}/g, studentData.company || "");
   html = html.replace(/{{duration}}/g, studentData.duration || "");
   html = html.replace(/{{startDate}}/g, studentData.startDate || "");
+  html = html.replace(/{{endDate}}/g, studentData.endDate || "");
+  html = html.replace(/{{internshipCity}}/g, studentData.internshipCity || ""); 
   html = html.replace(/{{sectionNum}}/g, studentData.sectionNum || "");
   html = html.replace(/{{facultyNum}}/g, studentData.facultyNum || "");
   // put QR code as an image

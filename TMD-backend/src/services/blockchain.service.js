@@ -64,7 +64,7 @@ const issueDiploma = async ({ studentId, studentName, degreeName, fieldOfStudy, 
 
 // InternshipCertificate struct fields: certId, studentId, studentName, schoolName,
 // companyName, internshipRole, ipfsHash, startDate, endDate, issueDate, issuedBy, isRevoked
-const issueInternship = async ({ studentId, studentName, companyName, internshipRole, ipfsHash, startDate, endDate }) => {
+const issueInternship = async ({ studentId, studentName, companyName, internshipRole, internshipCity, ipfsHash, startDate, endDate }) => {
   const startTs = Math.floor(new Date(startDate).getTime() / 1000);
   const endTs = Math.floor(new Date(endDate).getTime() / 1000);
 
@@ -77,6 +77,7 @@ const issueInternship = async ({ studentId, studentName, companyName, internship
     studentName,
     companyName,
     internshipRole,
+    internshipCity,  // ← added
     ipfsHash,
     startTs,
     endTs
@@ -152,22 +153,23 @@ const getCertificateData = async (contractType, blockchainCertId) => {
   }
 
   if (contractType === "INTERNSHIP") {
-    const data = await contract.getCertificate(blockchainCertId);
-    return {
-      certId: data.certId,
-      studentId: data.studentId,
-      studentName: data.studentName,
-      schoolName: data.schoolName,
-      companyName: data.companyName,
-      internshipRole: data.internshipRole,
-      ipfsHash: data.ipfsHash,
-      startDate: data.startDate.toString(),
-      endDate: data.endDate.toString(),
-      issueDate: data.issueDate.toString(),
-      issuedBy: data.issuedBy,
-      isRevoked: data.isRevoked,
-    };
-  }
+  const data = await contract.getCertificate(blockchainCertId);
+  return {
+    certId: data.certId,
+    studentId: data.studentId,
+    studentName: data.studentName,
+    schoolName: data.schoolName,
+    companyName: data.companyName,
+    internshipRole: data.internshipRole,
+    internshipCity: data.internshipCity,  // ← added
+    ipfsHash: data.ipfsHash,
+    startDate: data.startDate.toString(),
+    endDate: data.endDate.toString(),
+    issueDate: data.issueDate.toString(),
+    issuedBy: data.issuedBy,
+    isRevoked: data.isRevoked,
+  };
+}
 
   const data = await contract.getCertificate(blockchainCertId);
   return {

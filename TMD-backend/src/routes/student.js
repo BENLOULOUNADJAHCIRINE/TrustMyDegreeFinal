@@ -8,7 +8,7 @@ const { protect, isStudent } = require('../middleware/auth');
 router.get('/dashboard', protect, isStudent, dashboard);
 router.post('/requests', protect, isStudent, requests);
 router.get('/certificates/:id/download', protect, isStudent, downloadCertificate);
-router.get("/request/:id/download", protect, downloadRequestDocument);
+router.get("/requests/:id/download", protect, downloadRequestDocument);
 router.put('/settings', protect, isStudent, changePassword);
 
 module.exports = router;

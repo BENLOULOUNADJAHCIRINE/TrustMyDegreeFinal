@@ -41,10 +41,16 @@ function Navbar() {
           </Link>
 
           {role === "SUPER_ADMIN" && (
-            <Link to="/admin/authorisations">
-              <img src="/superadmine.png" alt="superadmine" />
-              <span className="same">Manage admins</span>
-            </Link>
+            <>
+              <Link to="/admin/authorisations" onClick={() => setIsOpen(false)}>
+                <img src="/superadmine.png" alt="superadmine" />
+                <span className="same">Manage admins</span>
+              </Link>
+              <Link to="/admin/audit" onClick={() => setIsOpen(false)}>
+                <img src="/navlist.png" alt="audit" />
+                <span className="same">Audit Trail</span>
+              </Link>
+            </>
           )}
 
           <Link to="/admin/add" onClick={() => setIsOpen(false)}>
