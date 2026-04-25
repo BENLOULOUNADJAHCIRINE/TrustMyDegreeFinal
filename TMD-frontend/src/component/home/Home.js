@@ -50,30 +50,29 @@ function Home() {
 
   const [name, setName] = useState("");
 
-  const [institution, setInstitution] = useState("");
+  const [instition, setInstition] = useState("");
 
   const [email, setEmail] = useState("");
 
   const [phone, setPhone] = useState("");
 
-  const [message, setMessage] = useState("");
+  const [request, setRequest] = useState("");
 
-  const [agreedToPolicy, setAgreedToPolicy] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [argument, setArgument] = useState(false);
 
   function handleSubmit(e) {
     e.preventDefault();
 
-    fetch("http://localhost:5000/api/contact", {
+    fetch("http://localhost:5000/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
-        institution,
+        instition,
         email,
         phone,
-        message,
-        agreedToPolicy,
+        request,
+        argument,
       }),
     })
       .then((response) => response.json())
@@ -82,20 +81,16 @@ function Home() {
 
         //  clear form
         setName("");
-        setInstitution("");
+        setInstition("");
         setEmail("");
         setPhone("");
-        setMessage("");
-        setAgreedToPolicy(false);
-        setSuccess(true);
+        setRequest("");
+        setArgument(false);
 
         // clear contenteditable manually
         if (editorRef.current) {
           editorRef.current.textContent = "";
         }
-
-        // hide success message after 4 seconds
-        setTimeout(() => setSuccess(false), 4000);
       })
       .catch((err) => console.log(err));
   }
@@ -121,7 +116,7 @@ function Home() {
 
       <section className={styles.page2} id="about">
         <div className={styles.left}>
-          <h3> WHY TRUSTMYDEGREE</h3>
+          <h3> WHY CETICHAIN</h3>
           <h1>
             A Platform Built for{" "}
             <span className={styles.H4}>Absolute Truth</span>{" "}
@@ -185,13 +180,13 @@ function Home() {
 
         <div className={styles.methods}>
           <div className={styles.method}>
-            <img className={styles.m} src="/m1.png" alt="m1" />
+            <img className={styles.m} src="/m1.png " alt="m1" />
             <h3>Manual Search</h3>
             <p>Find certificates by registration number or name.</p>
           </div>
 
           <div className={styles.method}>
-            <img src="/m2.png" alt="m2" />
+            <img src="/m2.png " alt="m2" />
             <h3>QR Scanner</h3>
             <p>Quick scan mobile verification for physical copies.</p>
           </div>
@@ -213,49 +208,51 @@ function Home() {
               How does blockchain verification prevent fraud?
               <span className={styles.icon}>▼</span>
             </summary>
+
             <p>
-              Every certificate is stored as a unique, tamper-proof record on
-              the blockchain. Once issued, it cannot be altered or faked —
-              anyone can verify its authenticity instantly without contacting
-              the institution.
+              {" "}
+              Blockchain verification prevents fraud by storing transactions in
+              a decentralized and immutable ledger.{" "}
             </p>
           </details>
 
           <details>
             <summary>
-              How long does it take to verify a certificate?
+              Is ENSTA compatible with existing HR software?
               <span className={styles.icon}>▼</span>
             </summary>
             <p>
-              Verification is instant. Simply enter the certificate ID or scan
-              the QR code, and the result appears in seconds — no waiting, no
-              back-and-forth with institutions.
+              {" "}
+              Yes, ENSTA integrates with most HR systems through APIs and data
+              synchronization.{" "}
             </p>
           </details>
 
           <details>
             <summary>
-              Do I need an account to verify a credential?
+              What is the 'Student Wallet'?
               <span className={styles.icon}>▼</span>
             </summary>
             <p>
-              No account is needed to verify a certificate. Anyone — employers,
-              institutions, or individuals — can verify credentials directly
-              from our platform without registering.
+              {" "}
+              The Student Wallet is a digital account that allows students to
+              securely store, manage, and use their academic or financial
+              credentials within the platform. It provides quick access to
+              services, transactions, and verified student information.{" "}
             </p>
           </details>
 
           <details>
             <summary>
-              Is student data stored securely and privately?
+              Can old paper certificates be digitized?
               <span className={styles.icon}>▼</span>
             </summary>
             <p>
-              Yes. Student data is encrypted and stored on a decentralized
-              blockchain network, meaning no single party controls it. Only
-              authorized institutions and the student themselves can access
-              personal records — your data is never sold or shared with third
-              parties.
+              {" "}
+              Yes, old paper certificates can be digitized by scanning and
+              converting them into secure digital records. Once digitized, they
+              can be verified, stored safely, and easily shared through the
+              platform.{" "}
             </p>
           </details>
         </div>
@@ -292,8 +289,8 @@ function Home() {
                   <h4>INSTITION</h4>
                   <input
                     type="text"
-                    value={institution}
-                    onChange={(e) => setInstitution(e.target.value)}
+                    value={instition}
+                    onChange={(e) => setInstition(e.target.value)}
                     required
                   />
                 </div>
@@ -324,17 +321,16 @@ function Home() {
                 <h4>REQUIREMENT DETAILS</h4>
                 <div
                   ref={editorRef}
-                  contentEditable="true"
+                  contenteditable="true"
                   className={styles.editor}
-                  onInput={(e) => setMessage(e.currentTarget.textContent)}
+                  onInput={(e) => setRequest(e.currentTarget.textContent)}
                 ></div>
               </div>
-
               <div className={styles.R3}>
                 <input
                   type="checkbox"
-                  checked={agreedToPolicy}
-                  onChange={(e) => setAgreedToPolicy(e.target.checked)}
+                  checked={argument}
+                  onChange={(e) => setArgument(e.target.checked)}
                   required
                 />
                 <h6>
@@ -343,25 +339,6 @@ function Home() {
                   information.
                 </h6>
               </div>
-
-              {success && (
-                <div style={{
-                  marginTop: "16px",
-                  padding: "12px 20px",
-                  backgroundColor: "#dcfce7",
-                  border: "1px solid #86efac",
-                  borderRadius: "12px",
-                  color: "#166534",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  animation: "fadeUp 0.4s ease both",
-                }}>
-                   Your message has been sent successfully! We'll get back to you soon.
-                </div>
-              )}
 
               <input type="submit" value="SEND INFORMATION REQUEST" />
             </form>

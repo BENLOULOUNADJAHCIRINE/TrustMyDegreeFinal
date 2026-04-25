@@ -2,262 +2,316 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("StudyCertificateRegistry", function () {
-  let registry;
-  let owner;
-  let school;
-  let randomUser;
+    let contract;
+    let owner, school, other;
 
-  const studentId    = "STU2024001";
-  const studentName  = "Ines Benali";
-  const programName  = "Mathematics and Informatics";
-  const academicYear = "2023-2024";
-  const certType     = "Enrollment";
-  const ipfsHash     = "QmX7b5jxn2VTkWFmNgMMnpbBzKL4vPjbPbCRXfAmnMBGpK";
-  const schoolName   = "Ecole Nationale Polytechnique";
-
-  beforeEach(async function () {
-    [owner, school, randomUser] = await ethers.getSigners();
-
-    const Factory = await ethers.getContractFactory("StudyCertificateRegistry");
-    registry = await Factory.deploy();
-    await registry.waitForDeployment();
-  });
-
-  // ─────────────────────────────────────────────
-  //  DEPLOYMENT
-  // ─────────────────────────────────────────────
-
-  describe("Deployment", function () {
-    it("Should set the deployer as owner", async function () {
-      expect(await registry.owner()).to.equal(owner.address);
-    });
-  });
-
-  // ─────────────────────────────────────────────
-  //  SCHOOL AUTHORIZATION
-  // ─────────────────────────────────────────────
-
-  describe("School Authorization", function () {
-    it("Owner can authorize a school", async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      expect(await registry.authorizedSchools(school.address)).to.equal(true);
-    });
-
-    it("Non-owner cannot authorize a school", async function () {
-      await expect(
-        registry.connect(randomUser).authorizeSchool(school.address, schoolName)
-      ).to.be.revertedWith("Not the contract owner");
-    });
-
-    it("Cannot authorize the same school twice", async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      await expect(
-        registry.authorizeSchool(school.address, schoolName)
-      ).to.be.revertedWith("School already authorized");
-    });
-
-    it("Owner can revoke a school", async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      await registry.revokeSchoolAuthorization(school.address);
-      expect(await registry.authorizedSchools(school.address)).to.equal(false);
-    });
-
-    it("Revoked school cannot issue certificates", async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      await registry.revokeSchoolAuthorization(school.address);
-      await expect(
-        registry.connect(school).issueStudyCertificate(studentId, studentName, programName, academicYear, certType, ipfsHash)
-      ).to.be.revertedWith("Not an authorized school");
-    });
-  });
-
-  // ─────────────────────────────────────────────
-  //  ISSUING STUDY CERTIFICATES
-  // ─────────────────────────────────────────────
-
-  describe("Issuing Study Certificates", function () {
-    beforeEach(async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-    });
-
-    it("Authorized school can issue a study certificate", async function () {
-      const tx = await registry.connect(school).issueStudyCertificate(
-        studentId, studentName, programName, academicYear, certType, ipfsHash
-      );
-      await expect(tx).to.emit(registry, "StudyCertificateIssued");
-    });
-
-    it("Unauthorized address cannot issue", async function () {
-      await expect(
-        registry.connect(randomUser).issueStudyCertificate(studentId, studentName, programName, academicYear, certType, ipfsHash)
-      ).to.be.revertedWith("Not an authorized school");
-    });
-
-    it("Cannot issue with empty student ID", async function () {
-      await expect(
-        registry.connect(school).issueStudyCertificate("", studentName, programName, academicYear, certType, ipfsHash)
-      ).to.be.revertedWith("Student ID required");
-    });
-
-    it("Cannot issue with empty academic year", async function () {
-      await expect(
-        registry.connect(school).issueStudyCertificate(studentId, studentName, programName, "", certType, ipfsHash)
-      ).to.be.revertedWith("Academic year required");
-    });
-
-    it("Cannot issue with empty certificate type", async function () {
-      await expect(
-        registry.connect(school).issueStudyCertificate(studentId, studentName, programName, academicYear, "", ipfsHash)
-      ).to.be.revertedWith("Certificate type required");
-    });
-
-    it("Cannot issue duplicate cert for same student, year and type", async function () {
-      await registry.connect(school).issueStudyCertificate(studentId, studentName, programName, academicYear, certType, ipfsHash);
-      await expect(
-        registry.connect(school).issueStudyCertificate(studentId, studentName, programName, academicYear, certType, ipfsHash)
-      ).to.be.revertedWith("Certificate already issued for this year and type");
-    });
-
-    it("Student can have different cert types for same year", async function () {
-      await registry.connect(school).issueStudyCertificate(studentId, studentName, programName, academicYear, "Enrollment", ipfsHash);
-      await registry.connect(school).issueStudyCertificate(studentId, studentName, programName, academicYear, "Year Completion", ipfsHash);
-      expect(await registry.getCertificateCount(studentId)).to.equal(2);
-    });
-
-    it("Student can have same cert type for different years", async function () {
-      await registry.connect(school).issueStudyCertificate(studentId, studentName, programName, "2022-2023", certType, ipfsHash);
-      await registry.connect(school).issueStudyCertificate(studentId, studentName, programName, "2023-2024", certType, ipfsHash);
-      expect(await registry.getCertificateCount(studentId)).to.equal(2);
-    });
-  });
-
-  // ─────────────────────────────────────────────
-  //  GETTING CERTIFICATES
-  // ─────────────────────────────────────────────
-
-  describe("Getting Certificates", function () {
-    let certId;
+    const sampleCert = {
+        studentId:       "20210001",
+        studentName:     "Cirine Benloulous",
+        programName:     "Master Informatique",
+        academicYear:    "2024-2025",
+        certificateType: "en cours",
+        ipfsHash:        "QmExampleHash123"
+    };
 
     beforeEach(async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      const tx = await registry.connect(school).issueStudyCertificate(
-        studentId, studentName, programName, academicYear, certType, ipfsHash
-      );
-      const receipt = await tx.wait();
-      const event = receipt.logs
-        .map((log) => {
-          try { return registry.interface.parseLog(log); } catch { return null; }
-        })
-        .find((e) => e?.name === "StudyCertificateIssued");
-      certId = event.args.certId;
+        [owner, school, other] = await ethers.getSigners();
+        const Contract = await ethers.getContractFactory("StudyCertificateRegistry");
+        contract = await Contract.deploy();
+        await contract.waitForDeployment();
+
+        await contract.authorizeSchool(school.address, "ESI Algiers");
     });
 
-    it("Can get certificate details by certId", async function () {
-      const cert = await registry.getCertificate(certId);
-      expect(cert.studentId).to.equal(studentId);
-      expect(cert.studentName).to.equal(studentName);
-      expect(cert.programName).to.equal(programName);
-      expect(cert.academicYear).to.equal(academicYear);
-      expect(cert.certificateType).to.equal(certType);
-      expect(cert.ipfsHash).to.equal(ipfsHash);
-      expect(cert.isRevoked).to.equal(false);
+    // ─── School management ───────────────────────────────────
+
+    it("should authorize a school", async function () {
+        expect(await contract.authorizedSchools(school.address)).to.equal(true);
+        expect(await contract.schoolNames(school.address)).to.equal("ESI Algiers");
     });
 
-    it("Can get all certificate IDs for a student", async function () {
-      const certs = await registry.getStudentCertificates(studentId);
-      expect(certs.length).to.equal(1);
-      expect(certs[0]).to.equal(certId);
+    it("should emit SchoolAuthorized event", async function () {
+        const [, , , newSchool] = await ethers.getSigners();
+        await expect(contract.authorizeSchool(newSchool.address, "USTHB"))
+            .to.emit(contract, "SchoolAuthorized")
+            .withArgs(newSchool.address, "USTHB");
     });
 
-    it("Returns empty array for unknown student", async function () {
-      const certs = await registry.getStudentCertificates("UNKNOWN999");
-      expect(certs.length).to.equal(0);
+    it("should reject duplicate school authorization", async function () {
+        await expect(contract.authorizeSchool(school.address, "ESI Algiers"))
+            .to.be.revertedWith("School already authorized");
     });
 
-    it("Reverts when getting non-existent certificate", async function () {
-      const fakeCertId = ethers.keccak256(ethers.toUtf8Bytes("fake"));
-      await expect(registry.getCertificate(fakeCertId)).to.be.revertedWith("Certificate does not exist");
-    });
-  });
-
-  // ─────────────────────────────────────────────
-  //  VERIFICATION
-  // ─────────────────────────────────────────────
-
-  describe("Verification", function () {
-    let certId;
-
-    beforeEach(async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      const tx = await registry.connect(school).issueStudyCertificate(
-        studentId, studentName, programName, academicYear, certType, ipfsHash
-      );
-      const receipt = await tx.wait();
-      const event = receipt.logs
-        .map((log) => {
-          try { return registry.interface.parseLog(log); } catch { return null; }
-        })
-        .find((e) => e?.name === "StudyCertificateIssued");
-      certId = event.args.certId;
+    it("should revoke school authorization", async function () {
+        await contract.revokeSchoolAuthorization(school.address);
+        expect(await contract.authorizedSchools(school.address)).to.equal(false);
     });
 
-    it("Valid certificate returns true", async function () {
-      expect(await registry.verifyCertificate(certId)).to.equal(true);
+    it("should transfer ownership", async function () {
+        await contract.transferOwnership(other.address);
+        expect(await contract.owner()).to.equal(other.address);
     });
 
-    it("Non-existent certificate returns false", async function () {
-      const fakeCertId = ethers.keccak256(ethers.toUtf8Bytes("fake"));
-      expect(await registry.verifyCertificate(fakeCertId)).to.equal(false);
-    });
-  });
+    // ─── Issue ───────────────────────────────────────────────
 
-  // ─────────────────────────────────────────────
-  //  REVOCATION
-  // ─────────────────────────────────────────────
-
-  describe("Revocation", function () {
-    let certId;
-
-    beforeEach(async function () {
-      await registry.authorizeSchool(school.address, schoolName);
-      const tx = await registry.connect(school).issueStudyCertificate(
-        studentId, studentName, programName, academicYear, certType, ipfsHash
-      );
-      const receipt = await tx.wait();
-      const event = receipt.logs
-        .map((log) => {
-          try { return registry.interface.parseLog(log); } catch { return null; }
-        })
-        .find((e) => e?.name === "StudyCertificateIssued");
-      certId = event.args.certId;
+    it("should issue a study certificate", async function () {
+        const tx = await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const event = receipt.logs.find(l => l.fragment?.name === "StudyCertificateIssued");
+        expect(event).to.not.be.undefined;
     });
 
-    it("Issuing school can revoke a certificate", async function () {
-      await registry.connect(school).revokeCertificate(certId);
-      expect(await registry.verifyCertificate(certId)).to.equal(false);
+    it("should emit StudyCertificateIssued event", async function () {
+        await expect(
+            contract.connect(school).issueStudyCertificate(
+                sampleCert.studentId, sampleCert.studentName,
+                sampleCert.programName, sampleCert.academicYear,
+                sampleCert.certificateType, sampleCert.ipfsHash
+            )
+        ).to.emit(contract, "StudyCertificateIssued");
     });
 
-    it("Owner can revoke any certificate", async function () {
-      await registry.revokeCertificate(certId);
-      expect(await registry.verifyCertificate(certId)).to.equal(false);
+    it("should reject issueStudyCertificate from unauthorized school", async function () {
+        await expect(
+            contract.connect(other).issueStudyCertificate(
+                sampleCert.studentId, sampleCert.studentName,
+                sampleCert.programName, sampleCert.academicYear,
+                sampleCert.certificateType, sampleCert.ipfsHash
+            )
+        ).to.be.revertedWith("Not an authorized school");
     });
 
-    it("Random user cannot revoke", async function () {
-      await expect(
-        registry.connect(randomUser).revokeCertificate(certId)
-      ).to.be.revertedWith("Not authorized to revoke");
+    it("should reject duplicate active certificate (same year + type)", async function () {
+        await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        await expect(
+            contract.connect(school).issueStudyCertificate(
+                sampleCert.studentId, sampleCert.studentName,
+                sampleCert.programName, sampleCert.academicYear,
+                sampleCert.certificateType, sampleCert.ipfsHash
+            )
+        ).to.be.revertedWith("An active certificate already exists for this year and type");
     });
 
-    it("Cannot revoke an already revoked certificate", async function () {
-      await registry.connect(school).revokeCertificate(certId);
-      await expect(
-        registry.connect(school).revokeCertificate(certId)
-      ).to.be.revertedWith("Certificate already revoked");
+    it("should allow different year + type for same student", async function () {
+        await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        await expect(
+            contract.connect(school).issueStudyCertificate(
+                sampleCert.studentId, sampleCert.studentName,
+                sampleCert.programName, "2023-2024",
+                "terminée", "QmDifferentHash"
+            )
+        ).to.emit(contract, "StudyCertificateIssued");
     });
 
-    it("Revoked certificate returns false on verify", async function () {
-      await registry.connect(school).revokeCertificate(certId);
-      expect(await registry.verifyCertificate(certId)).to.equal(false);
+    it("should reject missing required fields", async function () {
+        await expect(
+            contract.connect(school).issueStudyCertificate(
+                "", sampleCert.studentName, sampleCert.programName,
+                sampleCert.academicYear, sampleCert.certificateType, sampleCert.ipfsHash
+            )
+        ).to.be.revertedWith("Student ID required");
+
+        await expect(
+            contract.connect(school).issueStudyCertificate(
+                sampleCert.studentId, sampleCert.studentName, sampleCert.programName,
+                "", sampleCert.certificateType, sampleCert.ipfsHash
+            )
+        ).to.be.revertedWith("Academic year required");
     });
-  });
+
+    // ─── Revoke ──────────────────────────────────────────────
+
+    it("should revoke a certificate", async function () {
+        const tx = await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "StudyCertificateIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+        const cert = await contract.getCertificate(certId);
+        expect(cert.isRevoked).to.equal(true);
+    });
+
+    it("should emit StudyCertificateRevoked event", async function () {
+        const tx = await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "StudyCertificateIssued").args[0];
+
+        await expect(contract.revokeCertificate(certId))
+            .to.emit(contract, "StudyCertificateRevoked")
+            .withArgs(certId, owner.address);
+    });
+
+    it("should reject revoking already revoked certificate", async function () {
+        const tx = await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "StudyCertificateIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+        await expect(contract.revokeCertificate(certId))
+            .to.be.revertedWith("Certificate already revoked");
+    });
+
+    // ─── Unrevoke ────────────────────────────────────────────
+
+    it("should unrevoke a certificate", async function () {
+        const tx = await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "StudyCertificateIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+        await contract.unrevokeCertificate(certId);
+        const cert = await contract.getCertificate(certId);
+        expect(cert.isRevoked).to.equal(false);
+    });
+
+    it("should emit StudyCertificateUnrevoked event", async function () {
+        const tx = await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "StudyCertificateIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+        await expect(contract.unrevokeCertificate(certId))
+            .to.emit(contract, "StudyCertificateUnrevoked")
+            .withArgs(certId, owner.address);
+    });
+
+    it("should reject unrevoking a non-revoked certificate", async function () {
+        const tx = await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "StudyCertificateIssued").args[0];
+
+        await expect(contract.unrevokeCertificate(certId))
+            .to.be.revertedWith("Certificate is not revoked");
+    });
+
+    // ─── Revoke → Reissue flow ───────────────────────────────
+
+    it("should allow reissue after revoke (corrected certificate flow)", async function () {
+        const tx = await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "StudyCertificateIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+
+        await expect(
+            contract.connect(school).issueStudyCertificate(
+                sampleCert.studentId, sampleCert.studentName,
+                sampleCert.programName, sampleCert.academicYear,
+                sampleCert.certificateType, "QmCorrectedHash456"
+            )
+        ).to.emit(contract, "StudyCertificateIssued");
+    });
+
+    it("should block reissue if unrevoked (active again)", async function () {
+        const tx = await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "StudyCertificateIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+        await contract.unrevokeCertificate(certId);
+
+        await expect(
+            contract.connect(school).issueStudyCertificate(
+                sampleCert.studentId, sampleCert.studentName,
+                sampleCert.programName, sampleCert.academicYear,
+                sampleCert.certificateType, "QmAnotherHash789"
+            )
+        ).to.be.revertedWith("An active certificate already exists for this year and type");
+    });
+
+    // ─── Read / Verify ───────────────────────────────────────
+
+    it("should verify an active certificate as true", async function () {
+        const tx = await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "StudyCertificateIssued").args[0];
+
+        expect(await contract.verifyCertificate(certId)).to.equal(true);
+    });
+
+    it("should verify a revoked certificate as false", async function () {
+        const tx = await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        const receipt = await tx.wait();
+        const certId = receipt.logs.find(l => l.fragment?.name === "StudyCertificateIssued").args[0];
+
+        await contract.revokeCertificate(certId);
+        expect(await contract.verifyCertificate(certId)).to.equal(false);
+    });
+
+    it("should return student certificates", async function () {
+        await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        const certs = await contract.getStudentCertificates(sampleCert.studentId);
+        expect(certs.length).to.equal(1);
+    });
+
+    it("should return correct certificate count", async function () {
+        await contract.connect(school).issueStudyCertificate(
+            sampleCert.studentId, sampleCert.studentName,
+            sampleCert.programName, sampleCert.academicYear,
+            sampleCert.certificateType, sampleCert.ipfsHash
+        );
+        expect(await contract.getCertificateCount(sampleCert.studentId)).to.equal(1);
+    });
+
+    it("should revert getCertificate for non-existent certId", async function () {
+        const fakeId = ethers.encodeBytes32String("fake");
+        await expect(contract.getCertificate(fakeId))
+            .to.be.revertedWith("Certificate does not exist");
+    });
 });

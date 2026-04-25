@@ -6,8 +6,15 @@ const axios = require("axios");
 const generateDiplomaPDF = require("../utils/generatePDF");
 const universityDB = require("../config/universityDB");
 const { uploadPDFtoPinata } = require("../services/pinata.service");
-const { issueDiploma, issueInternship, issueStudyCertificate, issueDocument } = require("../services/blockchain.service");
-const { revokeCertificate: revokeCertificateOnChain } = require("../services/blockchain.service");
+const {
+  issueDiploma,
+  issueInternship,
+  issueStudyCertificate,
+  issueDocument,
+} = require("../services/blockchain.service");
+const {
+  revokeCertificate: revokeCertificateOnChain,
+} = require("../services/blockchain.service");
 const path = require("path");
 const fs = require("fs");
 
@@ -143,7 +150,8 @@ const handleRequestDocument = async (req, res) => {
       include: { student: true },
     });
 
-    if (!findRequest) return res.status(400).json({ message: "Request not found" });
+    if (!findRequest)
+      return res.status(400).json({ message: "Request not found" });
 
     const fileName = `${Date.now()}_${file.name}`;
     const uploadPath = path.join(__dirname, "../../uploads", fileName);
@@ -176,10 +184,15 @@ const handleRequestDocument = async (req, res) => {
       findRequest.student.email,
       "Document Ready for Download",
       `<h2>Hello ${findRequest.student.fullName}</h2>
-       <p>The document you requested (<strong>${findRequest.documentType}</strong>) is ready on your dashboard.</p>`
+       <p>The document you requested (<strong>${findRequest.documentType}</strong>) is ready on your dashboard.</p>`,
     );
 
-    res.status(200).json({ message: "Document uploaded to IPFS and stored on blockchain successfully" });
+    res
+      .status(200)
+      .json({
+        message:
+          "Document uploaded to IPFS and stored on blockchain successfully",
+      });
   } catch (err) {
     console.error("Upload Error:", err);
     res.status(500).json({ error: "An error occurred on the server" });
@@ -193,8 +206,10 @@ const revokeCertificate = async (req, res) => {
 
     const exist = await prisma.certificate.findUnique({ where: { id } });
 
-    if (!exist) return res.status(400).json({ message: "certificate not found" });
-    if (exist.status === "REVOKED") return res.status(400).json({ message: "certificate already revoked" });
+    if (!exist)
+      return res.status(400).json({ message: "certificate not found" });
+    if (exist.status === "REVOKED")
+      return res.status(400).json({ message: "certificate already revoked" });
 
     // blockchain first
     await revokeCertificateOnChain(exist.contractType, exist.blockchainCertId);
@@ -316,19 +331,25 @@ const importDiplomas = async (req, res) => {
     const file = req.files.excel;
 
     if (!file) return res.status(400).json({ message: "no file uploaded" });
-    if (!graduationDate) return res.status(400).json({ message: "graduationDate is required" });
-    if (!templateType) return res.status(400).json({ message: "templateType is required" });
+    if (!graduationDate)
+      return res.status(400).json({ message: "graduationDate is required" });
+    if (!templateType)
+      return res.status(400).json({ message: "templateType is required" });
 
     const workbook = XLSX.read(file.data);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
 
-    if (rows.length === 0) return res.status(400).json({ message: "excel file is empty" });
+    if (rows.length === 0)
+      return res.status(400).json({ message: "excel file is empty" });
 
     // map templateType coming from frontend to the contract name
     const contractType =
-      templateType === "internship" ? "INTERNSHIP" :
-      templateType === "scolarite"  ? "STUDY" : "DIPLOMA";
+      templateType === "internship"
+        ? "INTERNSHIP"
+        : templateType === "scolarite"
+          ? "STUDY"
+          : "DIPLOMA";
 
     let created = 0;
     const errors = [];
@@ -350,7 +371,10 @@ const importDiplomas = async (req, res) => {
         });
 
         if (existingCert) {
-          errors.push({ matricule: row.matricule, error: "certificate already exists" });
+          errors.push({
+            matricule: row.matricule,
+            error: "certificate already exists",
+          });
           continue;
         }
 
@@ -368,11 +392,9 @@ const importDiplomas = async (req, res) => {
             fieldOfStudy: row.specialty || "",
             ipfsHash: "pending",
           });
-
         } else if (contractType === "INTERNSHIP") {
           const start = new Date(row.startDate || graduationDate);
           const end = new Date(row.endDate || graduationDate);
-          // contract requires end strictly after start
           if (end <= start) end.setDate(end.getDate() + 1);
 
           blockchainResult = await issueInternship({
@@ -380,11 +402,11 @@ const importDiplomas = async (req, res) => {
             studentName: student.fullName,
             companyName: row.company || "ENSTA",
             internshipRole: row.specialty || "",
+            internshipCity: row.city || "", // ← added
             ipfsHash: "pending",
             startDate: start.toISOString(),
             endDate: end.toISOString(),
           });
-
         } else {
           // STUDY / scolarite
           blockchainResult = await issueStudyCertificate({
@@ -414,6 +436,13 @@ const importDiplomas = async (req, res) => {
           company: row.company || "",
           duration: row.duration || "",
           startDate: row.startDate || "",
+            birthDate: student.dateOfBirth || "",
+            birthPlace: student.placeOfBirth || "",
+            endDate: row.endDate,
+            internshipCity: row.internshipCity || "",
+            academicYear: row.academicYear || "",
+            level:row.level || "",
+             field:row.field || "",
         }, templateType);
 
         //upload PDF to IPFS, get back the CID
@@ -439,7 +468,7 @@ const importDiplomas = async (req, res) => {
           data: { isGraduated: true },
         });
 
-        // notify student by email 
+        // notify student by email
         await sendEmail(
           student.email,
           "Your Certificate is Ready 🎓",
@@ -460,7 +489,7 @@ const importDiplomas = async (req, res) => {
           </a>
           <p style="color: #888; font-size: 12px; margin-top: 16px;">
             If the button doesn't work, copy this link: http://localhost:3000/login
-          </p>`
+          </p>`,
         );
 
         created++;
@@ -470,7 +499,14 @@ const importDiplomas = async (req, res) => {
       }
     }
 
-    res.status(200).json({ message: "import completed", created, errors, total: rows.length });
+    res
+      .status(200)
+      .json({
+        message: "import completed",
+        created,
+        errors,
+        total: rows.length,
+      });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "an error occurred in the server" });
@@ -480,14 +516,20 @@ const importDiplomas = async (req, res) => {
 // get statistics
 const getStatistics = async (req, res) => {
   try {
-    const totalMaster = await prisma.certificate.count({ where: { type: "MASTER" } });
-    const totalEngineer = await prisma.certificate.count({ where: { type: "ENGINEER" } });
-    const totalStage = await prisma.certificate.count({ where: { type: "STAGE" } });
+    const totalMaster = await prisma.certificate.count({
+      where: { type: "MASTER" },
+    });
+    const totalEngineer = await prisma.certificate.count({
+      where: { type: "ENGINEER" },
+    });
+    const totalInternship = await prisma.certificate.count({
+      where: { type: "INTERNSHIP" },
+    });
 
     const DistributionByType = {
       MASTER: totalMaster,
       ENGINEER: totalEngineer,
-      STAGE: totalStage,
+      INTERNSHIP: totalInternship,
     };
 
     const topSpecialties = await prisma.certificate.groupBy({
@@ -500,7 +542,9 @@ const getStatistics = async (req, res) => {
     const certificates = await prisma.certificate.findMany();
     const monthlyIssuance = {};
     certificates.forEach((cert) => {
-      const month = new Date(cert.issueDate).toLocaleString("fr-FR", { month: "short" });
+      const month = new Date(cert.issueDate).toLocaleString("fr-FR", {
+        month: "short",
+      });
       monthlyIssuance[month] = (monthlyIssuance[month] || 0) + 1;
     });
 
@@ -535,14 +579,19 @@ const downloadCertificate = async (req, res) => {
     const id = req.params.id;
     const certificate = await prisma.certificate.findUnique({ where: { id } });
 
-    if (!certificate) return res.status(404).json({ message: "Certificate not found" });
-    if (!certificate.ipfsHash) return res.status(404).json({ message: "Certificate file not found" });
+    if (!certificate)
+      return res.status(404).json({ message: "Certificate not found" });
+    if (!certificate.ipfsHash)
+      return res.status(404).json({ message: "Certificate file not found" });
 
     const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${certificate.ipfsHash}`;
     const response = await axios.get(ipfsUrl, { responseType: "stream" });
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="certificate_${id}.pdf"`);
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="certificate_${id}.pdf"`,
+    );
     response.data.pipe(res);
   } catch (err) {
     console.error(err);
@@ -559,14 +608,14 @@ const exportCertificates = async (req, res) => {
 
     const rows = certificates.map((cert) => ({
       "Student Name": cert.student?.fullName || "",
-      "Matricule": cert.student?.matricule || "",
-      "Type": cert.type || "",
-      "Specialty": cert.specialty || "",
+      Matricule: cert.student?.matricule || "",
+      Type: cert.type || "",
+      Specialty: cert.specialty || "",
       "Contract Type": cert.contractType || "",
       "IPFS Hash": cert.ipfsHash || "",
       "Blockchain Cert ID": cert.blockchainCertId || "",
       "Issue Date": new Date(cert.issueDate).toLocaleDateString("fr-FR"),
-      "Status": cert.status || "",
+      Status: cert.status || "",
       "Unique Code": cert.uniqueCode || "",
     }));
 
@@ -576,8 +625,14 @@ const exportCertificates = async (req, res) => {
 
     const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
-    res.setHeader("Content-Disposition", "attachment; filename=certificates.xlsx");
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=certificates.xlsx",
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
     res.send(buffer);
   } catch (err) {
     console.error(err);
@@ -591,16 +646,51 @@ const downloadRequestFile = async (req, res) => {
     const request = await prisma.request.findUnique({ where: { id } });
 
     if (!request) return res.status(404).json({ message: "File not found" });
-    if (!request.ipfsHash) return res.status(404).json({ message: "File not available" });
+    if (!request.ipfsHash)
+      return res.status(404).json({ message: "File not available" });
 
     const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${request.ipfsHash}`;
     const response = await axios.get(ipfsUrl, { responseType: "stream" });
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="request_${id}.pdf"`);
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="request_${id}.pdf"`,
+    );
     response.data.pipe(res);
   } catch (err) {
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+const getAuditTrail = async (req, res) => {
+  try {
+    const certificates = await prisma.certificate.findMany({
+      include: { student: true },
+      orderBy: { issueDate: "desc" },
+    });
+
+    const trail = certificates.map((cert) => ({
+      id: cert.id,
+      uniqueCode: cert.uniqueCode,
+      studentName: cert.student?.fullName || "Unknown",
+      matricule: cert.student?.matricule || "",
+      type: cert.type || "",
+      specialty: cert.specialty || "",
+      contractType: cert.contractType || "",
+      blockchainCertId: cert.blockchainCertId || "",
+      ipfsHash: cert.ipfsHash || "",
+      ipfsUrl: cert.ipfsHash
+        ? `https://gateway.pinata.cloud/ipfs/${cert.ipfsHash}`
+        : null,
+      status: cert.status,
+      issueDate: cert.issueDate,
+    }));
+
+    res.status(200).json({ trail });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "an error occurred in the server" });
   }
 };
 module.exports = {
@@ -617,4 +707,5 @@ module.exports = {
   downloadCertificate,
   exportCertificates,
   downloadRequestFile,
+  getAuditTrail,
 };

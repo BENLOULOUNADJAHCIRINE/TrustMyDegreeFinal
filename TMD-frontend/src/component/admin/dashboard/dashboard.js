@@ -109,15 +109,17 @@ function Dashboard() {
                   <div className={styles.leftside}>
                     <img src="/stdicon.jpg" alt="stdicon" />
                     <div className={styles.codename}>
-                      <h5>{act.studentName}</h5>
+                      <h5>{act.student?.fullName || "Student"}</h5>
                       <p>{act.uniqueCode}</p>
                     </div>
                   </div>
                   <div className={styles.rightside}>
                     <p>
-                      {new Date(act.date)
-                        .toLocaleDateString("fr-FR")
-                        .replaceAll("/", "-")}
+                      {act.issueDate
+                        ? new Date(act.issueDate)
+                            .toLocaleDateString("fr-FR")
+                            .replaceAll("/", "-")
+                        : "Invalid Date"}
                     </p>
                     <span
                       className={`${styles.status} ${  act.type === "STAGE"? styles.internship: act.type === "MASTER"? styles.master: act.type === "ENGINEER" ? styles.engineer: ""}`} >

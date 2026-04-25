@@ -15,6 +15,7 @@ import List from "./component/admin/list/List";
 import Static from "./component/admin/static/Static";
 import Parameters from "./component/admin/param/Param";
 import Request from "./component/admin/request/Request";
+import AuditTrail from "./component/admin/audit/AuditTrail";
 
 import DashboardStudent from "./component/student/DashboardStudent";
 import Settings from "./component/student/Settings";
@@ -40,6 +41,7 @@ function App() {
             <Route path="stat" element={<Static />} />
             <Route path="req" element={<Request />} />
             <Route path="para" element={<Parameters />} />
+            <Route path="audit" element={<AuditTrail />} />
           </Route>
 
           <Route path="/student/*" element={<Student />} >

@@ -56,13 +56,13 @@
         z-index: 1;
       }
 
-      /* ✅ FIXED: tighter content area */
+      
       .content {
         position: absolute;
         left: 62px;
         right: 62px;
-        top: 58px;  /* ✅ reduced from 72px */
-        bottom: 44px;
+        top: 58px; 
+        bottom: 58px;
         z-index: 2;
         display: flex;
         flex-direction: column;
@@ -74,12 +74,12 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding-top: 4px; /* ✅ reduced from 6px */
+        padding-top: 4px; 
       }
 
       .cert-title {
         font-family: 'Cinzel', serif;
-        font-size: 34px; /* ✅ reduced from 38px */
+        font-size: 34px; 
         font-weight: 700;
         color: #1a3466;
         letter-spacing: 0.12em;
@@ -92,7 +92,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        margin: 5px 0 3px; /* ✅ reduced margins */
+        margin: 5px 0 3px; 
         width: 55%;
       }
       .orn-line {
@@ -101,18 +101,18 @@
         background: linear-gradient(90deg, transparent, #1a3466 30%, #1a3466 70%, transparent);
       }
       .orn-center {
-        font-size: 15px; /* ✅ reduced from 17px */
+        font-size: 15px; 
         color: #1a3466;
         line-height: 1;
       }
 
       .cert-subtitle {
         font-family: 'Cormorant Garamond', serif;
-        font-size: 14px; /* ✅ reduced from 16px */
+        font-size: 14px; 
         font-style: italic;
         color: #2a4070;
         letter-spacing: 0.04em;
-        margin-bottom: 2px; /* ✅ reduced from 4px */
+        margin-bottom: 2px; 
       }
 
       .body {
@@ -125,13 +125,13 @@
 
       .specialty-tag {
         font-family: 'Cinzel', serif;
-        font-size: 11px; /* ✅ reduced from 12.5px */
+        font-size: 11px; 
         font-weight: 600;
         letter-spacing: 0.14em;
         color: #1a3466;
         border-bottom: 1px solid rgba(26,52,102,0.35);
         padding-bottom: 2px;
-        margin-bottom: 5px; /* ✅ reduced from 7px */
+        margin-bottom: 5px; 
         align-self: flex-start;
       }
 
@@ -139,11 +139,11 @@
         display: flex;
         align-items: baseline;
         gap: 0;
-        margin-bottom: 6px; /* ✅ reduced from 9px */
+        margin-bottom: 6px; 
       }
       .exam-label {
         font-family: 'Cormorant Garamond', serif;
-        font-size: 16px; /* ✅ reduced from 18px */
+        font-size: 16px; 
         font-style: italic;
         color: #2a3a6a;
         letter-spacing: 0.02em;
@@ -153,7 +153,7 @@
       }
       .student-name {
         font-family: 'Cormorant Garamond', serif;
-        font-size: 44px; /* ✅ reduced from 50px */
+        font-size: 44px; 
         font-weight: 400;
         font-style: italic;
         color: #1a3466;
@@ -169,12 +169,12 @@
         width: 100%;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 4px 24px; /* ✅ reduced from 6px */
-        margin-bottom: 6px; /* ✅ reduced from 8px */
+        gap: 4px 24px; 
+        margin-bottom: 6px; 
       }
       .info-line {
         font-family: 'Cormorant Garamond', serif;
-        font-size: 14px; /* ✅ reduced from 15.5px */
+        font-size: 14px; 
         color: #1a3466;
         display: flex;
         align-items: baseline;
@@ -190,7 +190,7 @@
         border-bottom: 0.5px solid rgba(26,52,102,0.28);
         flex: 1;
         padding-bottom: 1px;
-        min-height: 18px; /* ✅ reduced from 20px */
+        min-height: 18px; 
         min-width: 0;
       }
 
@@ -203,7 +203,7 @@
         border: 0.5px solid rgba(26,52,102,0.22);
         padding: 3px 12px;
         border-radius: 2px;
-        margin-bottom: 5px; /* ✅ reduced from 7px */
+        margin-bottom: 5px; 
       }
       .status-dot {
         width: 6px;
@@ -221,9 +221,9 @@
 
       .jury-text {
         font-family: 'Cormorant Garamond', serif;
-        font-size: 13px; /* ✅ reduced from 14.5px */
+        font-size: 13px; 
         color: #1a3466;
-        line-height: 1.5; /* ✅ reduced from 1.58 */
+        line-height: 1.5; 
         width: 100%;
       }
       .jury-text strong { font-weight: 700; }
@@ -235,7 +235,7 @@
         align-items: flex-end;
         justify-content: space-between;
         margin-top: auto;
-        padding-top: 4px; /* ✅ reduced from 6px */
+        padding-top: 4px; 
       }
 
       .sig-block {
@@ -269,7 +269,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px; /* ✅ reduced from 5px */
+        gap: 4px; 
       }
 
       .qr-block {
@@ -279,7 +279,7 @@
         gap: 2px;
       }
       .qr-wrap {
-        width: 50px; /* ✅ reduced from 54px */
+        width: 50px; 
         height: 50px;
         border: 1px solid rgba(26,52,102,0.38);
         background: white;
@@ -295,13 +295,15 @@
         color: #2a4080;
         text-transform: uppercase;
       }
-      .qr-code {
-        font-family: 'Cormorant Garamond', serif;
-        font-size: 9px;
-        color: #1a3466;
-        letter-spacing: 0.1em;
-      }
-
+     .qr-code {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 9px;
+  color: #1a3466;
+  letter-spacing: 0.05em; 
+  max-width: 160px;        
+  text-align: center;
+  word-break: break-all;   
+}
       .bottom-watermark {
         position: absolute;
         bottom: 16px;
@@ -466,90 +468,15 @@
             </div>
 
             <div class="center-block">
-              <!-- Wax seal -->
-              <svg width="80" height="80" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <radialGradient id="waxGrad" cx="40%" cy="35%" r="65%">
-                    <stop offset="0%"   stop-color="#c0392b"/>
-                    <stop offset="40%"  stop-color="#922b21"/>
-                    <stop offset="100%" stop-color="#641e16"/>
-                  </radialGradient>
-                  <radialGradient id="waxShine" cx="35%" cy="30%" r="50%">
-                    <stop offset="0%"   stop-color="rgba(255,255,255,0.3)"/>
-                    <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-                  </radialGradient>
-                </defs>
-                <g transform="translate(48,48)">
-                  <polygon points="0,-44 5,-40 10,-43 13,-38 18,-40 20,-35 25,-36 26,-31 31,-31 31,-26 36,-25 35,-20 40,-18 38,-13 43,-10 40,-5 44,0 40,5 43,10 38,13 40,18 35,20 36,25 31,26 31,31 26,31 25,36 20,35 18,40 13,38 10,43 5,40 0,44 -5,40 -10,43 -13,38 -18,40 -20,35 -25,36 -26,31 -31,31 -31,26 -36,25 -35,20 -40,18 -38,13 -43,10 -40,5 -44,0 -40,-5 -43,-10 -38,-13 -40,-18 -35,-20 -36,-25 -31,-26 -31,-31 -26,-31 -25,-36 -20,-35 -18,-40 -13,-38 -10,-43 -5,-40" fill="url(#waxGrad)"/>
-                  <circle r="36" fill="url(#waxGrad)"/>
-                  <circle r="36" fill="url(#waxShine)"/>
-                  <circle r="32" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
-                  <circle r="28" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
-                  <g opacity="0.6" stroke="rgba(255,255,255,0.7)" stroke-width="0.5" fill="none">
-                    <ellipse rx="5" ry="2.5" cx="-20" cy="-8"  transform="rotate(-30,-20,-8)"/>
-                    <ellipse rx="5" ry="2.5" cx="-22" cy="-1"  transform="rotate(-15,-22,-1)"/>
-                    <ellipse rx="5" ry="2.5" cx="-22" cy="6"   transform="rotate(0,-22,6)"/>
-                    <ellipse rx="5" ry="2.5" cx="-20" cy="13"  transform="rotate(15,-20,13)"/>
-                    <ellipse rx="5" ry="2.5" cx="20"  cy="-8"  transform="rotate(30,20,-8)"/>
-                    <ellipse rx="5" ry="2.5" cx="22"  cy="-1"  transform="rotate(15,22,-1)"/>
-                    <ellipse rx="5" ry="2.5" cx="22"  cy="6"   transform="rotate(0,22,6)"/>
-                    <ellipse rx="5" ry="2.5" cx="20"  cy="13"  transform="rotate(-15,20,13)"/>
-                  </g>
-                  <polygon points="0,-12 3,-4 11,-4 5,2 7,10 0,6 -7,10 -5,2 -11,-4 -3,-4" fill="rgba(255,255,255,0.35)"/>
-                </g>
-              </svg>
+             
               <!-- QR -->
               <div class="qr-block">
-                <div class="qr-wrap">
-                  <svg width="44" height="44" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="0"    y="0"    width="16" height="16" rx="1"   fill="#1a3466"/>
-                    <rect x="2.5"  y="2.5"  width="11" height="11" rx="0.5" fill="white"/>
-                    <rect x="5"    y="5"    width="6"  height="6"  rx="0.3" fill="#1a3466"/>
-                    <rect x="34"   y="0"    width="16" height="16" rx="1"   fill="#1a3466"/>
-                    <rect x="36.5" y="2.5"  width="11" height="11" rx="0.5" fill="white"/>
-                    <rect x="39"   y="5"    width="6"  height="6"  rx="0.3" fill="#1a3466"/>
-                    <rect x="0"    y="34"   width="16" height="16" rx="1"   fill="#1a3466"/>
-                    <rect x="2.5"  y="36.5" width="11" height="11" rx="0.5" fill="white"/>
-                    <rect x="5"    y="39"   width="6"  height="6"  rx="0.3" fill="#1a3466"/>
-                    <rect x="19" y="0"  width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="25" y="0"  width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="19" y="6"  width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="28" y="3"  width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="19" y="11" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="25" y="8"  width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="31" y="11" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="0"  y="19" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="6"  y="22" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="11" y="19" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="0"  y="25" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="8"  y="28" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="3"  y="31" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="19" y="19" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="25" y="22" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="31" y="19" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="19" y="28" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="28" y="25" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="22" y="31" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="34" y="19" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="40" y="22" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="47" y="19" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="37" y="28" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="44" y="28" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="19" y="37" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="25" y="40" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="31" y="37" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="19" y="46" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="28" y="44" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="34" y="34" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="40" y="40" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="44" y="34" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                    <rect x="47" y="44" width="3" height="3" rx="0.3" fill="#1a3466"/>
-                  </svg>
-                </div>
-                <span class="qr-label">Vérifier · trustmydegree.io</span>
-                <span class="qr-code">{{uniqueCode}}</span>
-              </div>
-            </div>
+  <div class="qr-wrap">
+    {{qrCode}}
+  </div>
+  <span class="qr-label">Vérifier · trustmydegree.io</span>
+  <span class="qr-code">{{uniqueCode}}</span>
+</div>
 
             <div class="sig-block">
               <div class="sig-line-hr"></div>

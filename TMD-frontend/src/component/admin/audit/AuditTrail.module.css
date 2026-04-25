@@ -1,0 +1,226 @@
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.main-content {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto auto 1fr;
+  grid-template-areas: "login" "stats" "search" "table";
+  animation: fadeIn 0.4s ease;
+  background-color: #f9fafb;
+}
+
+.login {
+  grid-area: login;
+  display: flex;
+  justify-content: space-between;
+  background-color: white;
+  padding: 10px;
+  height: 50px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  animation: fadeInDown 0.4s ease;
+}
+
+.page > h4 { position: relative; left: 15px; bottom: 10px; }
+
+.info {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  right: 20px;
+  align-items: center;
+  gap: 8px;
+  background-color: #f9fafb;
+  padding: 5px 10px;
+  border-radius: 20px;
+}
+
+.subinfo h4 { font-size: 12px; position: relative; right: 10px; bottom: 10px; margin: 0; }
+.subinfo p { color: #6a7282; font-size: 10px; position: relative; bottom: 25px; right: 10px; margin: 0; }
+.info img { width: 35px; height: 35px; border-radius: 50%; }
+
+.statsBar {
+  grid-area: stats;
+  display: flex;
+  gap: 16px;
+  padding: 20px 40px;
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  animation: fadeInDown 0.5s ease;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 20px;
+  min-width: 90px;
+  transition: box-shadow 0.2s ease;
+}
+
+.stat:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+.statNumber { font-size: 24px; font-weight: 700; color: #1e1b4b; }
+.statLabel { font-size: 11px; color: #6a7282; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+.green { color: #059669; }
+.red { color: #dc2626; }
+.blue { color: #155dfc; }
+.purple { color: #7c3aed; }
+.orange { color: #d97706; }
+
+.search {
+  grid-area: search;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 40px;
+  gap: 16px;
+  flex-wrap: wrap;
+  animation: fadeInDown 0.5s ease;
+}
+
+.searchNav { position: relative; }
+.searchNav > img { position: absolute; left: 8px; top: 9px; }
+
+.look {
+  padding: 10px 10px 10px 32px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  outline: none;
+  font-size: 14px;
+  width: 300px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.look:focus { border-color: #155dfc; box-shadow: 0 0 0 3px rgba(21,93,252,0.1); }
+
+.filters { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.filterBtn {
+  padding: 6px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: white;
+  color: #6a7282;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterBtn:hover { background-color: #dbeafe; border-color: #155dfc; color: #155dfc; }
+.filterActive { background-color: #155dfc; border-color: #155dfc; color: white; }
+
+.main {
+  background-color: #f9fafb;
+  grid-area: table;
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 10px;
+  animation: fadeInUp 0.6s ease;
+}
+
+.countainer { display: flex; justify-content: center; overflow-x: auto; }
+
+.table {
+  border-collapse: collapse;
+  width: 90%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.row, .colu, .column { border: 1px solid #e5e7eb; padding: 12px; text-align: left; }
+
+thead > tr > th {
+  background-color: #f3f4f6;
+  font-size: 13px;
+  color: #99a1af;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 14px 12px;
+}
+
+.column { font-size: 13px; background-color: #ffffff; color: #6a7282; transition: background-color 0.2s ease; }
+tbody tr { animation: slideIn 0.3s ease; }
+tbody tr:hover .column { background-color: #f0f7ff; }
+
+.column > img { width: 27px; height: 27px; border: 1px solid #e5e7eb; border-radius: 50%; }
+
+.student { position: relative; bottom: 8px; left: 10px; font-size: 15px; font-weight: 700; color: #111827; }
+
+.type { background-color: #f3f4f6; font-size: 13px; font-weight: 500; color: #364153; border-radius: 30px; padding: 3px 10px; }
+
+.specialty { font-size: 13px; font-weight: 700; color: #111827; }
+
+.contract { font-size: 12px; font-weight: 600; border-radius: 20px; padding: 3px 10px; }
+.diploma { background-color: #dbeafe; color: #1447e6; }
+.internship { background-color: #ede9fe; color: #7c3aed; }
+.study { background-color: #fef3c7; color: #d97706; }
+
+.hash {
+  font-family: monospace;
+  font-size: 12px;
+  color: #6366f1;
+  cursor: help;
+  background-color: #f5f3ff;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.ipfsLink {
+  color: #155dfc;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 3px 10px;
+  border: 1px solid #155dfc;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.ipfsLink:hover { background-color: #155dfc; color: white; }
+
+.status { font-size: 13px; font-weight: 600; border-radius: 30px; padding: 4px 12px; }
+.active { color: #059669; background-color: #d1fae5; border: 1px solid #059669; }
+.revoked { color: #dc2626; background-color: #fee2e2; border: 1px solid #dc2626; }
+
+tbody td[colspan] { padding: 60px; text-align: center; font-size: 15px; color: #6a7282; }
+
+.arr { padding-right: 60px; margin-top: 10px; }
+.pagination { display: flex; justify-content: end; }
+
+.page-link, .change {
+  color: #4a5565;
+  font-weight: 500;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 7px 12px;
+  margin: 0 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-link:hover, .change:hover { background-color: #dbeafe; border-color: #155dfc; color: #155dfc; }
+.pageActive .page-link { color: white; background-color: #155dfc; border: 1px solid #155dfc; }
+.change:disabled { opacity: 0.4; cursor: not-allowed; }
