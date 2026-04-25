@@ -190,6 +190,9 @@ html {
     -1px 1px 5px #3b82f6;
 }
 
+.access > a:hover::after {
+  width: 100%;
+}
 /*section 1 */
 
 .page1 {

@@ -12,7 +12,7 @@ function Request() {
     key: null,
     direction: "asc",
   });
-
+  const [selectedIds, setSelectedIds] = useState([]);
   /*each column be sorted*/
   function handleSort(key) {
     let direction = "asc";
@@ -90,6 +90,13 @@ function Request() {
     if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
     return 0;
   });
+
+  function resetTable() {
+    setSearch("");
+    setSortConfig({ key: null, direction: "asc" });
+    setcurentPage(1);
+    setSelectedIds([]);
+  }
 
   // Handle Export
   function downloadExcel() {
@@ -290,6 +297,9 @@ function Request() {
       </div>
 
       <div className={styles.main}>
+        <button className={styles.reset} onClick={resetTable}>
+          Reset
+        </button>
         <div className={styles.countainer}>
           <table className={styles.table}>
             <thead>
