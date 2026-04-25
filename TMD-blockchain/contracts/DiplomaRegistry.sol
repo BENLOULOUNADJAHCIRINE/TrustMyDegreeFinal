@@ -89,7 +89,7 @@ contract DiplomaRegistry {
         require(bytes(studentId).length > 0,   "Student ID required");
         require(bytes(studentName).length > 0, "Student name required");
         require(bytes(degreeName).length > 0,  "Degree name required");
-        require(!alreadyIssued[studentId][degreeName], "Diploma already issued for this degree");
+        require(!alreadyIssued[studentId][degreeName] || _isRevoked(studentId, degreeName), "An active diploma already exists for this degree");
 
         certId = keccak256(abi.encodePacked(studentId, msg.sender, block.timestamp, nonce));
         nonce++;
@@ -112,15 +112,33 @@ contract DiplomaRegistry {
 
         emit DiplomaIssued(certId, studentId, msg.sender, degreeName);
     }
-
+ function _isRevoked(string calldata studentId, string calldata degreeName) internal view returns (bool) {
+    bytes32[] storage ids = studentDiplomas[studentId];
+    for (uint256 i = 0; i < ids.length; i++) {
+        Diploma storage d = diplomas[ids[i]];
+        if (keccak256(bytes(d.degreeName)) == keccak256(bytes(degreeName)) && !d.isRevoked) {
+            return false; // found an active one → not revoked
+        }
+    }
+    return true; // all existing ones are revoked → allow reissue
+}
     function revokeDiploma(bytes32 certId) external diplomaExists(certId) {
         Diploma storage d = diplomas[certId];
         require(!d.isRevoked, "Diploma already revoked");
         require(msg.sender == owner || msg.sender == d.issuedBy, "Not authorized to revoke");
         d.isRevoked = true;
+        alreadyIssued[d.studentId][d.degreeName] = false;
         emit DiplomaRevoked(certId, msg.sender);
     }
+ event DiplomaUnrevoked(bytes32 indexed certId, address unrevokedBy);
 
+ function unrevokeDiploma(bytes32 certId) external diplomaExists(certId) {
+    Diploma storage d = diplomas[certId];
+    require(d.isRevoked, "Diploma is not revoked");
+    require(msg.sender == owner || msg.sender == d.issuedBy, "Not authorized to unrevoke");
+    d.isRevoked = false;
+    emit DiplomaUnrevoked(certId, msg.sender);
+}
     function getDiploma(bytes32 certId) external view diplomaExists(certId) returns (Diploma memory) {
         return diplomas[certId];
     }

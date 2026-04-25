@@ -40,17 +40,17 @@ function Login() {
   return (
     <div className={styles.loginBody}>
       <div className={styles.left}>
-        <div className={styles.toplogo1}>
-          <Link to="/#home">
+        <Link to="/#home">
+          <div className={styles.toplogo1}>
             <img src="/logoproject.png" alt="CertiChain logo" />
-          </Link>
-          <div>
-            <h2>
-              TrustMy<span className={styles.span}>Degree</span>
-            </h2>
-            <p>Verified Education</p>
+            <div>
+              <h2>
+                TrustMy<span className={styles.span}>Dgree</span>
+              </h2>
+              <p>Verified Education</p>
+            </div>
           </div>
-        </div>
+        </Link>
         <h1>
           Ensuring the <span className={styles.span}>Integrity</span> of
           Academic Excellence.
@@ -83,16 +83,17 @@ function Login() {
 
       <div className={styles.right}>
         <form className={styles.send} onSubmit={handleSubmit}>
-          <div className={styles.toplogo2}>
-            <img src="/logoproject.png" alt="cert" />
-            <div>
-              <h3 className={styles.iff}>
-                TrustMy<span className={styles.span}>Degree</span>
-              </h3>
-              <p>Verified Education</p>
+          <Link to="/#home">
+            <div className={styles.toplogo2}>
+              <img src="/logoproject.png" alt="cert" />
+              <div>
+                <h3 className={styles.iff}>
+                  TrustMy<span className={styles.span}>Dgree</span>
+                </h3>
+                <p>Verified Education</p>
+              </div>
             </div>
-          </div>
-
+          </Link>
           <h2>Welcome Back</h2>
           <p className={styles.small}>
             Enter your credentials to access the verification portal.

@@ -7,17 +7,17 @@ function Layout() {
   return (
     <div className={styles["main-content"]}>
       <nav className={styles.top}>
-        <div className={styles.logopic}>
-          <Link to="/#home">
+        <Link to="/#home">
+          <div className={styles.logopic}>
             <img src="/logoproject.png" alt="logopic" />
-          </Link>
-          <div className={styles.title}>
-            <h3>
-              TrustMy<span className={styles.color}>Degree</span>
-            </h3>
-            <p>Verified Education</p>
+            <div className={styles.title}>
+              <h3>
+                TrustMy<span className={styles.color}>Degree</span>
+              </h3>
+              <p>Verified Education</p>
+            </div>
           </div>
-        </div>
+        </Link>
 
         <ul className={styles.access}>
           <Link to="/#home">Home</Link>

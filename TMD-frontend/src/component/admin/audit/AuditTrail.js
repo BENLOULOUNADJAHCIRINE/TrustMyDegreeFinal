@@ -16,7 +16,8 @@ function AuditTrail() {
   }, []);
 
   useEffect(() => {
-    api.get("/admin/audit-trail")
+    api
+      .get("/admin/audit-trail")
       .then((res) => setTrail(res.data.trail || []))
       .catch((err) => console.log(err));
   }, []);
@@ -51,17 +52,15 @@ function AuditTrail() {
 
   return (
     <div className={styles["main-content"]}>
-
       <div className={styles.login}>
-        <div className={styles.page}>
-          <h4>Audit Trail</h4>
-        </div>
+        <h4>Audit Trail</h4>
+
         <div className={styles.info}>
           <div className={styles.subinfo}>
             <h4>{user ? user.fullName : "guest"}</h4>
-            <p>super@ensta.edu.dz</p>
+            <p>{user ? user.email : "super@ensta.edu.dz"}</p>
           </div>
-          <img src="/totalcertaficates.png" alt="avatar" />
+          <img src={user?.avatar || "/totalcertaficates.png"} alt="avat" />
         </div>
       </div>
 
@@ -114,15 +113,17 @@ function AuditTrail() {
           />
         </div>
         <div className={styles.filters}>
-          {["ALL", "ACTIVE", "REVOKED", "DIPLOMA", "INTERNSHIP", "STUDY"].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`${styles.filterBtn} ${filter === f ? styles.filterActive : ""}`}
-            >
-              {f}
-            </button>
-          ))}
+          {["ALL", "ACTIVE", "REVOKED", "DIPLOMA", "INTERNSHIP", "STUDY"].map(
+            (f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`${styles.filterBtn} ${filter === f ? styles.filterActive : ""}`}
+              >
+                {f}
+              </button>
+            ),
+          )}
         </div>
       </div>
 
@@ -161,24 +162,38 @@ function AuditTrail() {
                       <span className={styles.specialty}>{item.specialty}</span>
                     </td>
                     <td className={styles.column}>
-                      <span className={`${styles.contract} ${styles[item.contractType?.toLowerCase()]}`}>
+                      <span
+                        className={`${styles.contract} ${styles[item.contractType?.toLowerCase()]}`}
+                      >
                         {item.contractType}
                       </span>
                     </td>
                     <td className={styles.column}>
-                      <span className={styles.hash} title={item.blockchainCertId}>
+                      <span
+                        className={styles.hash}
+                        title={item.blockchainCertId}
+                      >
                         {shortHash(item.blockchainCertId)}
                       </span>
                     </td>
                     <td className={styles.column}>
                       {item.ipfsUrl ? (
-                        <a href={item.ipfsUrl} target="_blank" rel="noreferrer" className={styles.ipfsLink}>
+                        <a
+                          href={item.ipfsUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={styles.ipfsLink}
+                        >
                           View PDF
                         </a>
-                      ) : "—"}
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className={styles.column}>
-                      <span className={`${styles.status} ${item.status === "ACTIVE" ? styles.active : styles.revoked}`}>
+                      <span
+                        className={`${styles.status} ${item.status === "ACTIVE" ? styles.active : styles.revoked}`}
+                      >
                         {item.status}
                       </span>
                     </td>
@@ -203,8 +218,14 @@ function AuditTrail() {
               prev
             </button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-              <div key={n} className={`${styles["page-item"]} ${currentPage === n ? styles.pageActive : ""}`}>
-                <button className={styles["page-link"]} onClick={() => setCurrentPage(n)}>
+              <div
+                key={n}
+                className={`${styles["page-item"]} ${currentPage === n ? styles.pageActive : ""}`}
+              >
+                <button
+                  className={styles["page-link"]}
+                  onClick={() => setCurrentPage(n)}
+                >
                   {n}
                 </button>
               </div>

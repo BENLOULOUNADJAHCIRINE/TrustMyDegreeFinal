@@ -317,9 +317,9 @@
   color: white;
   padding: 10px;
   background-color: #155dfc;
-  border: 1px solid navy;
+  border: none;
   border-radius: 10px;
-  box-shadow: 1px 1px 4px navy;
+  box-shadow: none;
 }
 .buttons > button {
   width: 40%;

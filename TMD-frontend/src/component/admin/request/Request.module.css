@@ -64,7 +64,7 @@
   justify-content: space-between;
   background-color: #ffffff;
   padding: 10px;
-  height: 50px;
+  height: 40px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   animation: fadeInDown 0.4s ease;
 }
@@ -332,18 +332,67 @@
   animation: fadeInUp 0.7s ease;
 }
 
+.reset {
+  width: 10%;
+  margin-left: 59px;
+  padding: 8px;
+  border: 1px solid #155dfc;
+  border-radius: 12px;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(21, 93, 252, 0.15);
+  color: #155dfc;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.reset:hover {
+  background-color: #155dfc;
+  color: white;
+  transform: scale(1.03);
+  box-shadow: 0 5px 15px rgba(21, 93, 252, 0.3);
+}
+
 .countainer {
-  display: flex;
-  justify-content: center;
   min-height: 350px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
 }
 
 .table {
   border-collapse: collapse;
+  width: 95%;
   min-height: 300px;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  table-layout: fixed;
+}
+
+.colu:nth-child(1) {
+  width: 100px;
+} /* Request ID */
+.colu:nth-child(2) {
+  width: 130px;
+} /* Student */
+.colu:nth-child(3) {
+  width: 110px;
+} /* Document Type */
+.colu:nth-child(4) {
+  width: 80px;
+} /* Priority */
+.colu:nth-child(5) {
+  width: 90px;
+} /* Submitted */
+.colu:nth-child(6) {
+  width: 90px;
+} /* Status */
+.colu:nth-child(7) {
+  width: 80px;
+} /* Upload */
+.colu:nth-child(8) {
+  width: 70px;
 }
 
 .line {
@@ -353,21 +402,27 @@
 .line,
 .colu,
 .column {
-  padding: 16px 20px;
+  padding: 6px 8px;
+}
+
+.colu {
+  cursor: pointer;
+  background-color: #89cff0;
+  color: black;
 }
 
 thead > tr > th {
   color: #90a1b9;
   font-family: Inter;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   background-color: #f3f4f6;
   letter-spacing: 1px;
-  padding: 14px 20px;
+  padding: 8px;
 }
 
 .column {
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 600;
   background-color: white;
   color: #0f172b;
@@ -433,7 +488,7 @@ tbody tr:hover .column {
   font-weight: 400;
 }
 
-.upload, 
+.upload,
 .uploadcontainer > button {
   color: #155dfc;
   font-weight: 600;
@@ -555,9 +610,6 @@ tbody td[colspan] {
   border: 1px solid #155dfc;
   box-shadow: 0 3px 10px rgba(21, 93, 252, 0.3);
 }
-
-
-
 
 /*respoonsive*/
 

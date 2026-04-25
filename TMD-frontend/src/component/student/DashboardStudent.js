@@ -14,7 +14,6 @@ function DashboardStudent() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Single fetch to get everything (User, Certs, and Requests)
     api
       .get("/student/dashboard")
       .then((res) => {
@@ -29,7 +28,6 @@ function DashboardStudent() {
 
         setCertificates(data.certificates || []);
 
-        // Filter approved requests that have a file attached
         const approvedDocs = (data.requests || []).filter(
           (req) => req.status === "APPROVED" && req.fileUrl,
         );
@@ -38,7 +36,6 @@ function DashboardStudent() {
       .catch((err) => console.log("Dashboard fetch error:", err));
   }, []);
 
-  // Filter both lists based on search bar
   const filteredCertificates = certificates.filter(
     (cert) =>
       cert.specialty?.toLowerCase().includes(search.toLowerCase()) ||
@@ -50,7 +47,6 @@ function DashboardStudent() {
     req.documentType?.toLowerCase().includes(search.toLowerCase()),
   );
 
-  // Unified download function
   function downloadFile(id, type = "CERT") {
     const token = localStorage.getItem("token");
     const endpoint =
@@ -79,9 +75,9 @@ function DashboardStudent() {
   }
 
   function openBadgeModal(cert) {
-  setBadgeModal({ ...cert, studentFullName: user?.name });
-  setTimeout(() => drawBadge({ ...cert, studentFullName: user?.name }), 100);
-}
+    setBadgeModal({ ...cert, studentFullName: user?.name });
+    setTimeout(() => drawBadge({ ...cert, studentFullName: user?.name }), 100);
+  }
 
   function closeBadgeModal() {
     setBadgeModal(null);
@@ -271,7 +267,7 @@ function DashboardStudent() {
           </div>
 
           <div className={styles.diplomes}>
-            {/* 1. Map Certificates */}
+            {/* 1. Certificates */}
             {filteredCertificates.map((cert) => (
               <div key={cert.id} className={styles["diplome-div"]}>
                 <div className={styles.type}>
@@ -280,23 +276,22 @@ function DashboardStudent() {
                     <p>{cert.type}</p>
                   </div>
                 </div>
+
                 <div className={styles.date}>
                   <div className={styles.calander}>
                     <img src="/calander.png" alt="cal" />
-                    <h5>
-                      {new Date(cert.graduationDate).toLocaleDateString()}
-                    </h5>
+                    <h5>{new Date(cert.graduationDate).toLocaleDateString()}</h5>
                   </div>
                   <div className={styles.chain}>
                     <img src="/chain.png" alt="chain" />
                     <p>{cert.uniqueCode}</p>
                   </div>
                   <span className={`${styles.state} ${styles.verified}`}>
-                    verified on the Blockchain
+                    ✓ verified on the Blockchain
                   </span>
                 </div>
+
                 <div className={styles.button}>
-                  <img src="/downloadsign.png" alt="dwnld" />
                   <button
                     type="button"
                     onClick={() => downloadFile(cert.id, "CERT")}
@@ -307,15 +302,23 @@ function DashboardStudent() {
                     type="button"
                     onClick={() => openBadgeModal(cert)}
                     style={{
-                      marginLeft: "8px",
+                      flex: 1,
                       backgroundColor: "#0077b5",
                       color: "white",
                       border: "none",
                       borderRadius: "8px",
-                      padding: "8px 14px",
+                      padding: "9px",
                       cursor: "pointer",
-                      fontWeight: "bold",
+                      fontWeight: "500",
+                      fontSize: "13px",
+                      transition: "background-color 0.2s ease",
                     }}
+                    onMouseEnter={(e) =>
+                      (e.target.style.backgroundColor = "#005f8e")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.backgroundColor = "#0077b5")
+                    }
                   >
                     Share
                   </button>
@@ -323,7 +326,7 @@ function DashboardStudent() {
               </div>
             ))}
 
-            {/* 2. Map Approved Document Requests */}
+            {/* 2. Approved Document Requests */}
             {filteredRequests.map((req) => (
               <div key={req.id} className={styles["diplome-div"]}>
                 <div className={styles.type}>
@@ -332,17 +335,18 @@ function DashboardStudent() {
                     <p>OFFICIAL DOCUMENT</p>
                   </div>
                 </div>
+
                 <div className={styles.date}>
                   <div className={styles.calander}>
                     <img src="/calander.png" alt="cal" />
                     <h5>{new Date(req.updatedAt).toLocaleDateString()}</h5>
                   </div>
                   <span className={`${styles.state} ${styles.verified}`}>
-                    verified on the Blockchain
+                    ✓ verified on the Blockchain
                   </span>
                 </div>
+
                 <div className={styles.button}>
-                  <img src="/downloadsign.png" alt="dwnld" />
                   <button
                     type="button"
                     onClick={() => downloadFile(req.id, "REQ")}
@@ -419,6 +423,8 @@ function DashboardStudent() {
           />
         </div>
       </div>
+
+      {/* Badge Modal */}
       {badgeModal && (
         <div
           style={{

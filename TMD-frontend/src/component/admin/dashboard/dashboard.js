@@ -1,14 +1,14 @@
 import styles from "./dashboard.module.css";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
+import { toast } from "react-hot-toast";
 const BASE_URL = "http://localhost:5000";
 
 function Dashboard() {
   const [stats, setStats] = useState(null);
   const [activities, setActivities] = useState([]);
-  const [user, setUser] = useState(null);
-  const [statusMsg, setStatusMsg] = useState(""); // new state for the message
+  const [user, setUser] = useState([]);
+
   const token = localStorage.getItem("token");
 
   // Get user from localStorage
@@ -44,16 +44,15 @@ function Dashboard() {
       .then((res) => res.json())
       .then((data) => {
         console.log("SYNC DONE:", data);
+        // setStatusMsg(`Students created: ${ data.created } , skipped: ${data.skipped}`);
         // Set on-page message instead of alert
-        setStatusMsg(`Sync complete! Created: ${data.created}, Skipped: ${data.skipped}`);
-        
-        // Auto-hide after 4 seconds
-        setTimeout(() => setStatusMsg(""), 4000);
+        toast.success(
+          `Students created: ${data.created} , skipped: ${data.skipped}`,
+        );
       })
       .catch((err) => {
         console.log(err);
-        setStatusMsg("Sync failed");
-        setTimeout(() => setStatusMsg(""), 4000);
+        toast.error("Failed to sync students");
       });
   }
 
@@ -63,19 +62,12 @@ function Dashboard() {
         <h4>Dashboard</h4>
         <div className={styles.info}>
           <div className={styles.subinfo}>
-            <h4>{user ? user.fullName : "guest"}</h4>
+            <h4>{user ? user.name : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
           <img src={user?.avatar || "/totalcertaficates.png"} alt="ava" />
         </div>
       </div>
-
-      {/* SUCCESS/ERROR MESSAGE BANNER */}
-      {statusMsg && (
-        <div className={styles.successBanner}>
-          {statusMsg}
-        </div>
-      )}
 
       {/* Dashboard Row */}
       <div className={styles.row}>
@@ -130,15 +122,8 @@ function Dashboard() {
                         : "Invalid Date"}
                     </p>
                     <span
-                      className={`${styles.status} ${
-                        act.status === "ACTIVE"
-                          ? styles.issued
-                          : act.status === "REVOKED"
-                          ? styles.revoked
-                          : ""
-                      }`}
-                    >
-                      {act.status}
+                      className={`${styles.status} ${  act.type === "STAGE"? styles.internship: act.type === "MASTER"? styles.master: act.type === "ENGINEER" ? styles.engineer: ""}`} >
+                      {act.type}
                     </span>
                   </div>
                 </div>
@@ -151,9 +136,30 @@ function Dashboard() {
       </div>
 
       <div className={styles["quick-actions"]}>
-        <div className={styles.sync}>
+        {/* <div className={styles.sync}>
           <button onClick={handleSync}>Sync students</button>
+        </div> */}
+
+        {/* SUCCESS/ERROR MESSAGE BANNER */}
+        {/* {statusMsg && <div className={styles.successBanner}>{statusMsg}</div>} */}
+
+        <div>
+          <h5>sync students</h5>
+          <div className={styles.actions}>
+            <div className={styles.ho}>
+              <img
+                src="/add.png"
+                alt="sync"
+                onClick={handleSync}
+                className={styles.add}
+              />
+
+              <h3>Sync students</h3>
+            </div>
+            <img src="/chapeau.png" alt="chapeau" className={styles.chap} />
+          </div>
         </div>
+
         <div>
           <h5>Quick Actions</h5>
           <div className={styles.actions}>

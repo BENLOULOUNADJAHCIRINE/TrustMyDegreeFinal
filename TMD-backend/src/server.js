@@ -28,7 +28,10 @@ app.use("/api/student", require("./routes/student"));
 app.use("/api/verify", require("./routes/verify"));
 app.use("/api/contact", require("./routes/contact"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+app.get("/logo/ensta", (req, res) => {
+  res.sendFile(path.resolve("src/utils/logoensta.png"));
+});
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -43,9 +46,6 @@ app.post("/verify", async (req, res) => {
   if (!code) return res.status(400).json({ valid: false, message: "Code is required" });
 
   try {
-    const { verifyCertificate } = require("./services/blockchain.service");
-    const prisma = require("./config/prisma");
-
     const certificate = await prisma.certificate.findUnique({
       where: { uniqueCode: code },
       include: {
@@ -68,9 +68,6 @@ app.post("/verify", async (req, res) => {
       certificate.contractType,
       certificate.blockchainCertId
     );
-    console.log("contractType:", certificate.contractType);
-    console.log("blockchainCertId:", certificate.blockchainCertId);
-    console.log("isValidOnChain:", isValidOnChain);
 
     if (!isValidOnChain) {
       return res.status(400).json({ valid: false, message: "Certificate has been revoked" });
@@ -81,44 +78,44 @@ app.post("/verify", async (req, res) => {
     });
 
     const chainData = await getCertificateData(
-    certificate.contractType,
-    certificate.blockchainCertId
-  );
+      certificate.contractType,
+      certificate.blockchainCertId
+    );
 
-  const academicData = {
-    studentName: chainData.studentName,
-    schoolName: chainData.schoolName,
-    issueDate: chainData.issueDate,
-  };
+    const academicData = {
+      studentName: chainData.studentName,
+      schoolName: chainData.schoolName,
+      issueDate: chainData.issueDate,
+    };
 
-  if (certificate.contractType === "INTERNSHIP") {
-    academicData.companyName = chainData.companyName;
-    academicData.internshipRole = chainData.internshipRole;
-    academicData.startDate = chainData.startDate;
-    academicData.endDate = chainData.endDate;
-  } else if (certificate.contractType === "STUDY") {
-    academicData.programName = chainData.programName;
-    academicData.academicYear = chainData.academicYear;
-    academicData.certificateType = chainData.certificateType;
-  } else {
-    academicData.degreeName = chainData.degreeName;
-    academicData.fieldOfStudy = chainData.fieldOfStudy;
-  }
+    if (certificate.contractType === "INTERNSHIP") {
+      academicData.companyName = chainData.companyName;
+      academicData.internshipRole = chainData.internshipRole;
+      academicData.startDate = chainData.startDate;
+      academicData.endDate = chainData.endDate;
+    } else if (certificate.contractType === "STUDY") {
+      academicData.programName = chainData.programName;
+      academicData.academicYear = chainData.academicYear;
+      academicData.certificateType = chainData.certificateType;
+    } else {
+      academicData.degreeName = chainData.degreeName;
+      academicData.fieldOfStudy = chainData.fieldOfStudy;
+    }
 
-  res.json({
-    valid: true,
-    message: "Certificate is valid",
-    certificate: {
-      uniqueCode: certificate.uniqueCode,
-      type: certificate.type,
-      specialty: certificate.specialty,
-      status: certificate.status,
-      issueDate: certificate.issueDate,
-      contractType: certificate.contractType,
-      academicData,
-      student: certificate.student,
-    },
-  });
+    res.json({
+      valid: true,
+      message: "Certificate is valid",
+      certificate: {
+        uniqueCode: certificate.uniqueCode,
+        type: certificate.type,
+        specialty: certificate.specialty,
+        status: certificate.status,
+        issueDate: certificate.issueDate,
+        contractType: certificate.contractType,
+        academicData,
+        student: certificate.student,
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ valid: false, message: "Something went wrong" });

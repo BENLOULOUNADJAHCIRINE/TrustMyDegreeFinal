@@ -1,13 +1,28 @@
 import styles from "./Request.module.css";
 import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 
 function Request() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState(null);
   const [request, setRequest] = useState([]);
   const [search, setSearch] = useState("");
-  const [statusMsg, setStatusMsg] = useState(""); 
   const [openMenu, setOpenMenu] = useState(null);
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: "asc",
+  });
+  const [selectedIds, setSelectedIds] = useState([]);
+  /*each column be sorted*/
+  function handleSort(key) {
+    let direction = "asc";
+
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+
+    setSortConfig({ key, direction });
+  }
 
   // Pagination State
   const [currentPage, setcurentPage] = useState(1);
@@ -47,8 +62,41 @@ function Request() {
       req.student?.matricule?.toLowerCase().includes(search.toLowerCase()) ||
       req.documentType?.toLowerCase().includes(search.toLowerCase()) ||
       req.priority?.toLowerCase().includes(search.toLowerCase()) ||
-      req.createdAt?.toLowerCase().includes(search.toLowerCase())
+      req.createdAt?.toLowerCase().includes(search.toLowerCase()),
   );
+
+  const sortedRequests = [...filteredRequests].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+
+    let aValue;
+    let bValue;
+
+    switch (sortConfig.key) {
+      case "student":
+        aValue = a.student?.fullName || "";
+        bValue = b.student?.fullName || "";
+        break;
+      case "createdAt":
+        aValue = new Date(a.createdAt);
+        bValue = new Date(b.createdAt);
+        break;
+
+      default:
+        aValue = a[sortConfig.key];
+        bValue = b[sortConfig.key];
+    }
+
+    if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  function resetTable() {
+    setSearch("");
+    setSortConfig({ key: null, direction: "asc" });
+    setcurentPage(1);
+    setSelectedIds([]);
+  }
 
   // Handle Export
   function downloadExcel() {
@@ -70,27 +118,27 @@ function Request() {
       .catch((err) => console.log(err));
   }
 
- 
+  function viewDocument(id) {
+    const token = localStorage.getItem("token");
 
- function viewDocument(id) {
-  const token = localStorage.getItem("token");
-  
-  fetch(`http://localhost:5000/api/admin/requests/${id}/download`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error("File not found");
-      return res.blob();
+    fetch(`http://localhost:5000/api/admin/requests/${id}/download`, {
+      headers: { Authorization: `Bearer ${token}` },
     })
-    .then((blob) => {
-      const url = window.URL.createObjectURL(blob);
-      window.open(url, "_blank");
-    })
-    .catch((err) => {
-      console.error(err);
-      alert("Could not open document. Ensure it was uploaded correctly.");
-    });
-}
+      .then((res) => {
+        if (!res.ok) throw new Error("File not found");
+        return res.blob();
+      })
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, "_blank");
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error(
+          "Could not open document. Ensure it was uploaded correctly.",
+        );
+      });
+  }
 
   function uploadDocument(id) {
     const input = document.createElement("input");
@@ -115,14 +163,13 @@ function Request() {
           if (data.request) {
             // Update local state with the returned object
             const updated = request.map((r) =>
-              r.id === id ? data.request : r
+              r.id === id ? data.request : r,
             );
             setRequest(updated);
-            setStatusMsg("Document uploaded and approved successfully!");
-            setTimeout(() => setStatusMsg(""), 4000);
+            toast.success("Document uploaded and approved successfully!");
           }
         })
-        .catch((err) => console.log(err));
+        .catch((err) => console.log(err), toast.error("Upload failed"));
     };
     input.click();
   }
@@ -139,14 +186,13 @@ function Request() {
       .then((res) => res.json())
       .then(() => {
         const updated = request.map((c) =>
-          c.id === id ? { ...c, status: newStatus } : c
+          c.id === id ? { ...c, status: newStatus } : c,
         );
         setRequest(updated);
         setOpenMenu(null);
-        setStatusMsg(`Request ${newStatus.toLowerCase()} successfully.`);
-        setTimeout(() => setStatusMsg(""), 3000);
+        toast.success(`Request ${newStatus.toLowerCase()} successfully.`);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => console.log(err), toast.error("Update failed"));
   }
 
   // --- PAGINATION LOGIC ---
@@ -156,7 +202,7 @@ function Request() {
 
   const Lastindex = currentPage * perPage;
   const Firstindex = Lastindex - perPage;
-  const records = filteredRequests.slice(Firstindex, Lastindex);
+  const records = sortedRequests.slice(Firstindex, Lastindex);
   const numberofpages = Math.ceil(filteredRequests.length / perPage);
   const currentGroup = Math.ceil(currentPage / pagesPerGroup);
   const startPage = (currentGroup - 1) * pagesPerGroup + 1;
@@ -165,9 +211,15 @@ function Request() {
   const numbers = [];
   for (let i = startPage; i <= endPage; i++) numbers.push(i);
 
-  function prevPage() { if (startPage > 1) setcurentPage(startPage - pagesPerGroup); }
-  function nextPage() { if (endPage < numberofpages) setcurentPage(endPage + 1); }
-  function changeCurrentPage(id) { setcurentPage(id); }
+  function prevPage() {
+    if (startPage > 1) setcurentPage(startPage - pagesPerGroup);
+  }
+  function nextPage() {
+    if (endPage < numberofpages) setcurentPage(endPage + 1);
+  }
+  function changeCurrentPage(id) {
+    setcurentPage(id);
+  }
 
   return (
     <div className={styles["main-content"]}>
@@ -182,11 +234,7 @@ function Request() {
         </div>
       </div>
 
-      {statusMsg && (
-        <div className={styles.successBanner}>
-          {statusMsg}
-        </div>
-      )}
+      {/* {statusMsg && <div className={styles.successBanner}>{statusMsg}</div>} */}
 
       <div className={styles.search}>
         <div className={styles.title}>
@@ -215,38 +263,111 @@ function Request() {
 
       <div className={styles.row}>
         <div className={styles["Total-Requests"]}>
-          <div><img src="/TotalRequests.png" alt="TR" /><p>{stats?.TotalRequests.percentage}</p></div>
+          <div>
+            <img src="/TotalRequests.png" alt="TR" />
+            <p>{stats?.TotalRequests.percentage}</p>
+          </div>
           <h5>Total Requests</h5>
           <h2>{stats?.TotalRequests.number || "0"}</h2>
         </div>
         <div className={styles["Pending-Approval"]}>
-          <div><img src="/PendingApproval.png" alt="PA" /><p>{stats?.pendingApproval.percentage}</p></div>
+          <div>
+            <img src="/PendingApproval.png" alt="PA" />
+            <p>{stats?.pendingApproval.percentage}</p>
+          </div>
           <h5>Pending Approval</h5>
           <h2>{stats?.pendingApproval.number || "0"}</h2>
         </div>
         <div className={styles["Approved"]}>
-          <div><img src="/Approved.png" alt="AP" /><p>{stats?.Approved.percentage}</p></div>
+          <div>
+            <img src="/Approved.png" alt="AP" />
+            <p>{stats?.Approved.percentage}</p>
+          </div>
           <h5>Approved</h5>
           <h2>{stats?.Approved.number || "0"}</h2>
         </div>
         <div className={styles["Rejected"]}>
-          <div><img src="/Rejected.png" alt="RE" /><p>{stats?.Rejected.percentage}</p></div>
+          <div>
+            <img src="/Rejected.png" alt="RE" />
+            <p>{stats?.Rejected.percentage}</p>
+          </div>
           <h5>Rejected</h5>
           <h2>{stats?.Rejected.number || "0"}</h2>
         </div>
       </div>
 
       <div className={styles.main}>
+        <button className={styles.reset} onClick={resetTable}>
+          Reset
+        </button>
         <div className={styles.countainer}>
           <table className={styles.table}>
             <thead>
               <tr className={styles.line}>
-                <th className={styles.colu}>Request ID</th>
-                <th className={styles.colu}>Student</th>
-                <th className={styles.colu}>Document Type</th>
-                <th className={styles.colu}>Priority</th>
-                <th className={styles.colu}>Submitted</th>
-                <th className={styles.colu}>Status</th>
+                <th className={styles.colu} onClick={() => handleSort("id")}>
+                  Request ID{" "}
+                  {sortConfig.key === "id"
+                    ? sortConfig.direction === "asc"
+                      ? "↑"
+                      : "↓"
+                    : ""}
+                </th>
+                <th
+                  className={styles.colu}
+                  onClick={() => handleSort("student")}
+                >
+                  {" "}
+                  Student{" "}
+                  {sortConfig.key === "student"
+                    ? sortConfig.direction === "asc"
+                      ? "↑"
+                      : "↓"
+                    : ""}
+                </th>
+                <th
+                  className={styles.colu}
+                  onClick={() => handleSort("documentType")}
+                >
+                  Document Type
+                  {sortConfig.key === "documentType"
+                    ? sortConfig.direction === "asc"
+                      ? "↑"
+                      : "↓"
+                    : ""}
+                </th>
+                <th
+                  className={styles.colu}
+                  onClick={() => handleSort("priority")}
+                >
+                  Priority
+                  {sortConfig.key === "priority"
+                    ? sortConfig.direction === "asc"
+                      ? "↑"
+                      : "↓"
+                    : ""}
+                </th>
+                <th
+                  className={styles.colu}
+                  onClick={() => handleSort("createdAt")}
+                >
+                  Submitted
+                  {sortConfig.key === "createdAt"
+                    ? sortConfig.direction === "asc"
+                      ? "↑"
+                      : "↓"
+                    : ""}
+                </th>
+                <th
+                  className={styles.colu}
+                  onClick={() => handleSort("status")}
+                >
+                  Status
+                  {sortConfig.key === "status"
+                    ? sortConfig.direction === "asc"
+                      ? "↑"
+                      : "↓"
+                    : ""}
+                </th>
                 <th className={styles.colu}>Upload</th>
                 <th className={styles.colu}>Actions</th>
               </tr>
@@ -255,16 +376,24 @@ function Request() {
               {records.length > 0 ? (
                 records.map((req) => (
                   <tr className={styles.line} key={req.id}>
-                    <td className={styles.column}>{req.id.substring(0, 8)}...</td>
+                    <td className={styles.column}>
+                      {req.id.substring(0, 8)}...
+                    </td>
                     <td className={styles.column}>
                       <div className={styles.leftside}>
-                        <span className={styles.student}>{req.student?.fullName}</span>
-                        <span className={styles.email}>{req.student?.matricule}</span>
+                        <span className={styles.student}>
+                          {req.student?.fullName}
+                        </span>
+                        <span className={styles.email}>
+                          {req.student?.matricule}
+                        </span>
                       </div>
                     </td>
                     <td className={styles.column}>{req.documentType}</td>
                     <td className={styles.column}>
-                      <span className={`${styles.priority} ${req.priority?.toLowerCase() === "normal" ? styles.normal : styles.urgent}`}>
+                      <span
+                        className={`${styles.priority} ${req.priority?.toLowerCase() === "normal" ? styles.normal : styles.urgent}`}
+                      >
                         {req.priority}
                       </span>
                     </td>
@@ -272,35 +401,53 @@ function Request() {
                       {new Date(req.createdAt).toLocaleDateString("fr-FR")}
                     </td>
                     <td className={styles.column}>
-                      <span className={`${styles.status} ${styles[req.status?.toLowerCase() || 'pending']}`}>
+                      <span
+                        className={`${styles.status} ${styles[req.status?.toLowerCase() || "pending"]}`}
+                      >
                         {req.status || "PENDING"}
                       </span>
                     </td>
                     <td className={styles.column}>
-                      <button 
-  className={styles.upload} 
-  onClick={() => uploadDocument(req.id)}
->
-  &#10515; upload
-</button>
+                      <button
+                        className={styles.upload}
+                        onClick={() => uploadDocument(req.id)}
+                      >
+                        &#10515; upload
+                      </button>
                     </td>
                     <td className={styles.column}>
                       <div className={styles.actions}>
-                        <span className={styles.dots} onClick={() => setOpenMenu(openMenu === req.id ? null : req.id)}>
+                        <span
+                          className={styles.dots}
+                          onClick={() =>
+                            setOpenMenu(openMenu === req.id ? null : req.id)
+                          }
+                        >
                           ⋮
                         </span>
                         {openMenu === req.id && (
                           <div className={styles.menu}>
                             {req.fileUrl && (
-                              <button 
-                                className={styles.viewBtn} 
-                                onClick={() => { viewDocument(req.id); setOpenMenu(null); }}
+                              <button
+                                className={styles.viewBtn}
+                                onClick={() => {
+                                  viewDocument(req.id);
+                                  setOpenMenu(null);
+                                }}
                               >
                                 View Doc
                               </button>
                             )}
-                            <button onClick={() => updateStatus(req.id, "APPROVED")}>approve</button>
-                            <button onClick={() => updateStatus(req.id, "REJECTED")}>reject</button>
+                            <button
+                              onClick={() => updateStatus(req.id, "APPROVED")}
+                            >
+                              approve
+                            </button>
+                            <button
+                              onClick={() => updateStatus(req.id, "REJECTED")}
+                            >
+                              reject
+                            </button>
                           </div>
                         )}
                       </div>
@@ -308,7 +455,14 @@ function Request() {
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan="8" style={{textAlign: 'center', padding: '20px'}}>No data found</td></tr>
+                <tr>
+                  <td
+                    colSpan="8"
+                    style={{ textAlign: "center", padding: "20px" }}
+                  >
+                    No data found
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -316,13 +470,25 @@ function Request() {
 
         <nav className={styles.arr}>
           <div className={styles.pagination}>
-            <button className={styles.change} onClick={prevPage}>prev</button>
+            <button className={styles.change} onClick={prevPage}>
+              prev
+            </button>
             {numbers.map((n) => (
-              <div className={`${styles["page-item"]} ${currentPage === n ? styles.pageActive : ""}`} key={n}>
-                <button className={styles["page-link"]} onClick={() => changeCurrentPage(n)}>{n}</button>
+              <div
+                className={`${styles["page-item"]} ${currentPage === n ? styles.pageActive : ""}`}
+                key={n}
+              >
+                <button
+                  className={styles["page-link"]}
+                  onClick={() => changeCurrentPage(n)}
+                >
+                  {n}
+                </button>
               </div>
             ))}
-            <button className={styles.change} onClick={nextPage}>next</button>
+            <button className={styles.change} onClick={nextPage}>
+              next
+            </button>
           </div>
         </nav>
       </div>
