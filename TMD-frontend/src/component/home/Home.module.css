@@ -89,7 +89,7 @@ html {
 }
 
 .logopic {
-  background-color: #ffffff;
+  background-color: #0f172a;;
   display: flex;
   flex-direction: row;
   border-radius: 20px;
@@ -114,7 +114,7 @@ html {
 .title > h3 {
   margin-top: 0px;
   margin-bottom: 0px;
-  color: navy;
+  color:#ffffff ;
 }
 .color {
   color: #3b82f6;
@@ -123,7 +123,7 @@ html {
 .title > p {
   margin-top: 0px;
   margin-bottom: 0px;
-  color: #3b82f6;
+  color: #93c5fd;
   font-size: 10px;
   text-align: start;
 }
@@ -202,7 +202,7 @@ html {
 .page1 > img {
   width: 60%;
   height: 60%;
-  margin-left: 140px;
+  margin-left: 240px;
   margin-top: 100px;
 
   animation: fadeRight 0.9s ease 0.3s both;
@@ -467,7 +467,7 @@ html {
 
 .page3 > h1:hover {
   transform: scale(1.05);
-  box-shadow: -1px 1px 40px white;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
 }
 
 .methods {
@@ -741,7 +741,7 @@ details[open] .icon {
 .info {
   border-top-right-radius: 30px;
   border-bottom-right-radius: 30px;
-  border: 1px solid black;
+  border: none;
 }
 
 .Frm {
@@ -767,6 +767,9 @@ details[open] .icon {
   margin-left: 10px;
 }
 
+.match {
+  width: 45%;  
+}
 .match > input {
   padding: 10px;
   border-radius: 20px;
@@ -798,6 +801,7 @@ details[open] .icon {
   margin-top: 40px;
   margin-left: 30px;
   text-align: left;
+  width: 90%;
 }
 
 .R2 > h4 {
@@ -810,7 +814,7 @@ details[open] .icon {
 
 .editor {
   height: 100px;
-  width: 380px;
+    width: 100%;  
   border-radius: 20px;
   border: 1px solid #0000001a;
   background-color: #e5e7eb4d;
