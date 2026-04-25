@@ -18,6 +18,13 @@ body {
   padding: 40px;
 }
 
+.left > a {
+  text-decoration: none;
+}
+.left > a:hover {
+  text-decoration: none;
+}
+
 .toplogo1 {
   width: 45%;
   background-color: #f8fafc;
@@ -127,7 +134,7 @@ body {
 
 .send {
   width: 65%;
-  height: 70%;
+  height: 80%;
   padding: 40px;
   border-radius: 30px;
   background-color: #07122b;
@@ -135,8 +142,15 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: start;
-  position: relative;
-  bottom: 20px;
+  margin-top: 20px;
+  border: 1px solid white;
+  margin-bottom: 20px;
+}
+.send > a {
+  text-decoration: none;
+}
+.send > a:hover {
+  text-decoration: none;
 }
 
 .toplogo2 {
@@ -145,6 +159,7 @@ body {
   flex-direction: row;
   justify-content: start;
   align-items: center;
+  margin-bottom: 20px;
 }
 
 .toplogo2 img {

@@ -1,4 +1,5 @@
 import "./App.css";
+import { Toaster } from "react-hot-toast";
 import Layout from "./component/home/Layout";
 import Home from "./component/home/Home";
 import Login from "./component/login/login";
@@ -23,6 +24,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="App">
+        <Toaster position="top-right" />
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
@@ -30,7 +32,6 @@ function App() {
           </Route>
 
           <Route path="/login" element={<Login />} />
-
           <Route path="/admin/*" element={<Admin />}>
             <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />

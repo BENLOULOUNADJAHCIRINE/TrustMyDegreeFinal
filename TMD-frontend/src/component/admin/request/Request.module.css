@@ -333,9 +333,10 @@
 }
 
 .countainer {
-  display: flex;
-  justify-content: center;
   min-height: 350px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
 }
 
 .table {
@@ -354,6 +355,12 @@
 .colu,
 .column {
   padding: 16px 20px;
+}
+
+.colu {
+  cursor: pointer;
+  background-color: #89cff0;
+  color: black;
 }
 
 thead > tr > th {
@@ -433,7 +440,7 @@ tbody tr:hover .column {
   font-weight: 400;
 }
 
-.upload, 
+.upload,
 .uploadcontainer > button {
   color: #155dfc;
   font-weight: 600;
@@ -555,9 +562,6 @@ tbody td[colspan] {
   border: 1px solid #155dfc;
   box-shadow: 0 3px 10px rgba(21, 93, 252, 0.3);
 }
-
-
-
 
 /*respoonsive*/
 

@@ -1,15 +1,14 @@
 import styles from "./Param.module.css";
 import { useState, useEffect } from "react";
-
+import { toast } from "react-hot-toast";
 function Parameters() {
   const [user, setUser] = useState(null);
   const [name, setName] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  
+
   // NEW: State for on-page messages
-  const [statusMsg, setStatusMsg] = useState({ text: "", type: "" });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -26,10 +25,9 @@ function Parameters() {
   async function handleSubmit(e) {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    setStatusMsg({ text: "", type: "" }); // Reset message
 
     if (newPassword && newPassword !== confirmPassword) {
-      setStatusMsg({ text: "Passwords do not match", type: "error" });
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -46,16 +44,16 @@ function Parameters() {
       const data = await response.json();
 
       if (response.ok) {
-        setStatusMsg({ text: "Profile updated successfully!", type: "success" });
+        toast.success("Profile updated successfully!");
         setUser({ ...user, fullName: name });
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
       } else {
-        setStatusMsg({ text: data.message || "Update failed", type: "error" });
+        toast.error(data.message || "Update failed");
       }
     } catch (err) {
-      setStatusMsg({ text: "Server connection error", type: "error" });
+      toast.error("Server connection error");
     }
   }
 
@@ -74,11 +72,11 @@ function Parameters() {
 
       <form className={styles.form} onSubmit={handleSubmit}>
         {/* ON-PAGE MESSAGE RENDERING */}
-        {statusMsg.text && (
+        {/* {statusMsg.text && (
           <div className={`${styles.message} ${styles[statusMsg.type]}`}>
             {statusMsg.text}
           </div>
-        )}
+        )} */}
 
         <div className={styles.platform}>
           <div className={styles.titles}>
@@ -86,39 +84,68 @@ function Parameters() {
             <p>Configure your dashboard and personal details.</p>
           </div>
           <div className={styles.buttons}>
-            <button type="button" className={styles.b1} onClick={() => setName(user.fullName)}>Discard</button>
-            <button type="submit" className={styles.b2}>Save Changes</button>
+            <button
+              type="button"
+              className={styles.b1}
+              onClick={() => {
+                setName(user.fullName || "");
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+              }}
+            >
+              Discard
+            </button>
+            <button type="submit" className={styles.b2}>
+              Save Changes
+            </button>
           </div>
         </div>
 
         <div className={styles.settings}>
           <div className={styles.container}>
             <div className={styles.name}>
-              <div><label>Full Name</label></div>
-              <input 
-                type="text" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
+              <div>
+                <label>Full Name</label>
+              </div>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Enter full name"
               />
             </div>
 
             <hr className={styles.hr} />
 
-            <div className={styles.psw}><h4>Change Password</h4></div>
+            <div className={styles.psw}>
+              <h4>Change Password</h4>
+            </div>
             <div className={styles.password}>
               <label>Current Password</label>
-              <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
             </div>
 
             <div className={styles.change}>
               <div className={styles.new}>
                 <label>New Password</label>
-                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
               </div>
               <div className={styles.confirm}>
                 <label>Confirm Password</label>
-                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
               </div>
             </div>
           </div>

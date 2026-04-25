@@ -2,17 +2,22 @@ import styles from "./issue.module.css";
 import { useState } from "react";
 import { useEffect } from "react";
 import api from "../../../api";
-
+import { toast } from "react-hot-toast";
 function Issue() {
   const [user, setUser] = useState(null);
-const [formData, setFormData] = useState({ date: "", file: null, templateType: "diploma" });
+  const [formData, setFormData] = useState({
+    date: "",
+    file: null,
+    templateType: "diploma",
+  });
   const [fileKey, setFileKey] = useState(0);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     // get user info from dashboard instead
-    api.get("/admin/dashboard")
+    api
+      .get("/admin/dashboard")
       .then((res) => {
         setUser({ name: "Admin", email: localStorage.getItem("email") || "" });
       })
@@ -41,11 +46,11 @@ const [formData, setFormData] = useState({ date: "", file: null, templateType: "
     setError("");
 
     if (!formData.file) {
-      setError("Please upload an Excel file");
+      toast.error("Please upload an Excel file");
       return;
     }
     if (!formData.date) {
-      setError("Please select a graduation date");
+      toast.rror("Please select a graduation date");
       return;
     }
 
@@ -59,20 +64,19 @@ const [formData, setFormData] = useState({ date: "", file: null, templateType: "
         headers: { "Content-Type": "multipart/form-data" },
       });
       console.log("RESPONSE:", res.data);
-      setSuccess(`✅ ${res.data.created} certificates issued successfully!`);
+      toast.success(` ${res.data.created} certificates issued successfully!`);
       handleReset();
     } catch (err) {
       console.log("ERROR:", err.response?.data);
-      setError(err.response?.data?.message || "Something went wrong");
+      toast.error(err.response?.data?.message || "Something went wrong");
     }
   }
 
   return (
     <div className={styles["main-content"]}>
       <div className={styles.login}>
-        <div className={styles.page}>
-          <h4>Issue Certificate</h4>
-        </div>
+        <h4>Issue Documents</h4>
+
         <div className={styles.info}>
           <div className={styles.subinfo}>
             <h4>{user ? user.name : "guest"}</h4>
@@ -87,14 +91,13 @@ const [formData, setFormData] = useState({ date: "", file: null, templateType: "
           <div className={styles.top}>
             <img className={styles.a} src="/greenissue.png" alt="green" />
             <div className={styles.hp}>
-              <h3>ISSUE A NEW CERTIFICATE</h3>
+              <h3>ISSUE A NEW DOCUMENT</h3>
               <p>CertiChain Academic Authentication Platform</p>
             </div>
             <img className={styles.f} src="/vector.png" alt="vect" />
           </div>
 
           <form className={styles.send} onSubmit={handleSubmit}>
-
             {/* Template selector — moved inside the white form */}
             <div className={styles.slach}>
               <img src="/slach.png" alt="slash" />
@@ -102,37 +105,64 @@ const [formData, setFormData] = useState({ date: "", file: null, templateType: "
             </div>
 
             <div className={styles.date}>
-              <label>Certificate Type</label>
+              <label>Document Type</label>
               <div style={{ display: "flex", gap: "15px", marginTop: "10px" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    cursor: "pointer",
+                  }}
+                >
                   <input
                     type="radio"
                     name="templateType"
                     value="diploma"
                     checked={formData.templateType === "diploma"}
-                    onChange={(e) => setFormData({ ...formData, templateType: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, templateType: e.target.value })
+                    }
                   />
-                   Diplôme de Réussite
+                  Certificate of Achievement
                 </label>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    cursor: "pointer",
+                  }}
+                >
                   <input
                     type="radio"
                     name="templateType"
                     value="scolarite"
                     checked={formData.templateType === "scolarite"}
-                    onChange={(e) => setFormData({ ...formData, templateType: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, templateType: e.target.value })
+                    }
                   />
-                   Certificat de Scolarité
+                  School Certificate
                 </label>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    cursor: "pointer",
+                  }}
+                >
                   <input
                     type="radio"
                     name="templateType"
                     value="internship"
                     checked={formData.templateType === "internship"}
-                    onChange={(e) => setFormData({ ...formData, templateType: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, templateType: e.target.value })
+                    }
                   />
-                   Attestation de Stage
+                  Internship Certificate
                 </label>
               </div>
             </div>
@@ -160,17 +190,27 @@ const [formData, setFormData] = useState({ date: "", file: null, templateType: "
             </div>
 
             <div className={styles.sndrow}>
-              <div className={`${styles.upload} ${formData.file ? styles.uploadReady : ""}`}>
+              <div
+                className={`${styles.upload} ${formData.file ? styles.uploadReady : ""}`}
+              >
                 <div className={styles.uploadIcon}>
                   {formData.file ? "✅" : ""}
                 </div>
                 <label className={styles.lab}>
-                  {formData.file ? formData.file.name : "Drag & drop .xlsx file here"}
+                  {formData.file
+                    ? formData.file.name
+                    : "Drag & drop .xlsx file here"}
                 </label>
-                {formData.file
-                  ? <span className={styles.fileSize}>{(formData.file.size / 1024).toFixed(1)} KB · Click to replace</span>
-                  : <span className={styles.fileSize}>or click to browse your files</span>
-                }
+                {formData.file ? (
+                  <span className={styles.fileSize}>
+                    {(formData.file.size / 1024).toFixed(1)} KB · Click to
+                    replace
+                  </span>
+                ) : (
+                  <span className={styles.fileSize}>
+                    or click to browse your files
+                  </span>
+                )}
                 <input
                   className={styles.file}
                   type="file"
@@ -201,10 +241,18 @@ const [formData, setFormData] = useState({ date: "", file: null, templateType: "
             )}
 
             <div className={styles.buts}>
-              <button className={styles.cancle} type="button" onClick={handleReset}>
+              <button
+                className={styles.cancle}
+                type="button"
+                onClick={handleReset}
+              >
                 Cancel
               </button>
-              <input className={styles.issue} type="submit" value="ISSUE CERTIFICATE" />
+              <input
+                className={styles.issue}
+                type="submit"
+                value="ISSUE CERTIFICATE"
+              />
             </div>
           </form>
         </div>

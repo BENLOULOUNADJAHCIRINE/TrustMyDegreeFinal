@@ -1,6 +1,6 @@
 import styles from "./login.module.css";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../../api";
 
 function Login() {
@@ -8,8 +8,6 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
- 
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -42,19 +40,25 @@ function Login() {
   return (
     <div className={styles.loginBody}>
       <div className={styles.left}>
-        <div className={styles.toplogo1}>
-          <img src="/logoproject.png" alt="CertiChain logo" />
-          <div>
-            <h2>TrustMy<span className={styles.span}>Dgree</span></h2>
-            <p>Verified Education</p>
+        <Link to="/#home">
+          <div className={styles.toplogo1}>
+            <img src="/logoproject.png" alt="CertiChain logo" />
+            <div>
+              <h2>
+                TrustMy<span className={styles.span}>Dgree</span>
+              </h2>
+              <p>Verified Education</p>
+            </div>
           </div>
-        </div>
+        </Link>
         <h1>
-          Ensuring the <span className={styles.span}>Integrity</span> of Academic Excellence.
+          Ensuring the <span className={styles.span}>Integrity</span> of
+          Academic Excellence.
         </h1>
         <p className={styles.description}>
           The world's most trusted platform for secure, instant diploma
-          verification and credential management for over 500+ universities worldwide.
+          verification and credential management for over 500+ universities
+          worldwide.
         </p>
         <div className={styles.container}>
           <div className={styles.verification}>
@@ -72,23 +76,32 @@ function Login() {
             </div>
           </div>
         </div>
-        <p className={styles.copyright}>© 2026 CertiVerify System. All rights reserved.</p>
+        <p className={styles.copyright}>
+          © 2026 CertiVerify System. All rights reserved.
+        </p>
       </div>
 
       <div className={styles.right}>
         <form className={styles.send} onSubmit={handleSubmit}>
-          <div className={styles.toplogo2}>
-            <img src="/logoproject.png" alt="cert" />
-            <div>
-              <h3 className={styles.iff}>TrustMy<span className={styles.span}>Dgree</span></h3>
-              <p>Verified Education</p>
+          <Link to="/#home">
+            <div className={styles.toplogo2}>
+              <img src="/logoproject.png" alt="cert" />
+              <div>
+                <h3 className={styles.iff}>
+                  TrustMy<span className={styles.span}>Dgree</span>
+                </h3>
+                <p>Verified Education</p>
+              </div>
             </div>
-          </div>
-
+          </Link>
           <h2>Welcome Back</h2>
-          <p className={styles.small}>Enter your credentials to access the verification portal.</p>
+          <p className={styles.small}>
+            Enter your credentials to access the verification portal.
+          </p>
 
-          {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
+          {error && (
+            <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>
+          )}
 
           <div className={styles.email}>
             <label className={styles.lab}>Email or Matricule</label>
@@ -114,12 +127,15 @@ function Login() {
             <img src="/lock.png" alt="lock" className={styles.icon1} />
           </div>
 
-          <button className={styles.sign} type="submit">Sign in</button>
+          <button className={styles.sign} type="submit">
+            Sign in
+          </button>
 
           <hr className={styles.hr} />
 
           <p className={styles.last}>
-            Need to verify a diploma quickly? <a href="/verify">Guest Verification</a>
+            Need to verify a diploma quickly?{" "}
+            <a href="/verify">Guest Verification</a>
           </p>
         </form>
       </div>
