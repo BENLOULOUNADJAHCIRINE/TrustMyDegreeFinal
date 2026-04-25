@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>شهادة مدرسية</title>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
 <style>
 
 @page {
@@ -45,6 +47,7 @@ body {
     font-size: 26px;
     margin: 25px 0;
     font-weight: bold;
+    color: #23449f;
 }
 
 .content {
@@ -153,7 +156,7 @@ body {
     </div>
 
     <div class="verify-box">
-        <div id="qrcode">{{qrCode}}</div>
+        <div id="qrcode"></div>
         <div class="hash">{{hash}}</div>
         <div style="font-size:10px; margin-top:4px;">{{uniqueCode}}</div>
     </div>
@@ -163,6 +166,17 @@ body {
     </div>
 
 </div>
+
+<script>
+  const verificationURL =
+    "https://trustmydegree.io/verify/{{uniqueCode}}?hash={{hash}}";
+
+  new QRCode(document.getElementById("qrcode"), {
+    text: verificationURL,
+    width: 110,
+    height: 110
+  });
+</script>
 
 </body>
 </html>
