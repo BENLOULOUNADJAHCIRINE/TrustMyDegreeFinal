@@ -116,7 +116,7 @@ function Home() {
 
       <section className={styles.page2} id="about">
         <div className={styles.left}>
-          <h3> WHY CETICHAIN</h3>
+          <h3> WHY TRUSTMYDEGREE</h3>
           <h1>
             A Platform Built for{" "}
             <span className={styles.H4}>Absolute Truth</span>{" "}

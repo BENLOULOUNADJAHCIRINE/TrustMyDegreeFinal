@@ -29,7 +29,7 @@ function Navbar() {
             <img src="/logoproject.png" alt="navlogo" />
             <div className="logo-text">
               <h1>
-                TrustMy<span className="span">Dgree</span>
+                TrustMy<span className="span">Degree</span>
               </h1>
               <p>Verified Education</p>
             </div>

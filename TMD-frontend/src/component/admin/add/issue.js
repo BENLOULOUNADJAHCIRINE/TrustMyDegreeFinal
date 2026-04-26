@@ -18,7 +18,7 @@ function Issue() {
   const [fileKey, setFileKey] = useState(0);
 
   useEffect(() => {
-    
+    // get user info from dashboard instead
     api
       .get("/admin/dashboard")
       .then((res) => {
@@ -26,9 +26,6 @@ function Issue() {
       })
       .catch((err) => console.log(err));
   }, []);
-
-
- 
 
   function handleChange(e) {
     const { name, value, files } = e.target;

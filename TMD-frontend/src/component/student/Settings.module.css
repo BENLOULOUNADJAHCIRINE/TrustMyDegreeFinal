@@ -24,10 +24,10 @@
     "form"
     "textline";
   cursor: default;
+  background-color: #e5e7eb;
 }
 
-/*top profile*/
-
+/* ─── TOP BAR ─── */
 .login {
   grid-area: login;
   display: flex;
@@ -56,14 +56,15 @@
   transform: rotate(180deg);
 }
 
+/* ─── DROPDOWN MENU ─── */
 .menu {
   position: absolute;
-  top: 30px;
+  top: 34px;
   left: 0;
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   padding: 6px 0;
   animation: dropdownFade 0.25s ease;
   transform-origin: top;
@@ -89,15 +90,17 @@
 }
 
 .list > li {
-  padding: 8px 10px;
+  padding: 10px 16px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s ease;
+  border-radius: 8px;
+  margin: 2px 6px;
 }
 
 .list li:hover {
-  background-color: #e0f2fe;
+  background-color: #eff6ff;
 }
 
 .list a {
@@ -111,47 +114,64 @@
   color: #2563eb;
 }
 
+/* ─── PROFILE CHIP ─── */
 .info {
   width: fit-content;
   display: flex;
   flex-direction: row;
   align-items: center;
-  background-color: #f9fafb;
-  border-radius: 20px;
-  padding: 5px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 6px 12px 6px 6px;
   margin-right: 20px;
+  transition: box-shadow 0.2s ease;
+}
+
+.info:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
 .subinfo {
   margin-left: 10px;
-  margin-right: 10px;
+  margin-right: 12px;
 }
 
 .subinfo h4 {
-  font-size: 12px;
-  margin: 0px;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  color: #1e293b;
 }
+
 .subinfo p {
-  color: #6a7282;
-  font-size: 10px;
-  margin: 0px;
+  color: #94a3b8;
+  font-size: 11px;
+  margin: 0;
 }
 
 .student {
-  width: 35px;
-  height: 35px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
+  object-fit: cover;
 }
 
 .exit {
   width: 15px;
   height: 15px;
   cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
 }
 
+.exit:hover {
+  opacity: 1;
+}
+
+/* ─── BREADCRUMB ─── */
 .backto {
   grid-area: backto;
-
   display: flex;
   align-items: center;
 
@@ -163,11 +183,20 @@
 
 .backto a {
   text-decoration: none;
-  color: #62748e;
+  color: #64748b;
   font-weight: 500;
-  margin-top: 30px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
 }
 
+.backto a:hover {
+  color: #2563eb;
+}
+
+/* ─── FORM AREA ─── */
 .form {
   grid-area: form;
   padding: 30px 20px;
@@ -175,23 +204,22 @@
   animation: fadeSlideUp 1s ease;
 }
 
-/*platform*/
-
+/* ─── PAGE HEADER + BUTTONS ─── */
 .platform {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 0px 10px 0px 10px;
-  margin: 15px 0px 10px 40px;
+  padding: 0 10px;
+  margin: 8px 0 16px 40px;
 }
 
 .titles {
   text-align: start;
-  margin-bottom: 0px;
   margin-left: 40px;
   animation: fadeSlideUp 0.8s ease;
 }
+
 .titles > h3 {
   font-size: 30px;
   font-weight: 700;
@@ -208,19 +236,28 @@
 }
 .titles > p {
   width: 80%;
-  color: #737373;
+  color: #64748b;
   font-weight: 400;
-  margin-top: 0px;
-  margin-bottom: 0px;
+  font-size: 14px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .buttons {
   width: 40%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
+
 .buttons > button {
-  padding: 15px;
-  border-radius: 15px;
+  padding: 10px 22px;
+  border-radius: 12px;
   cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  transition: all 0.2s ease;
 }
 
 .b1 {
@@ -257,10 +294,14 @@
   transform: scale(0.96);
 }
 
-/*settings*/
+.b2:hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+  transform: translateY(-1px);
+}
 
+/* ─── SETTINGS CARD ─── */
 .settings {
-  grid-area: settings;
   width: 80%;
   background-color: #ffffff;
   border: 1px solid navy;
@@ -283,6 +324,7 @@
     0 25px 70px rgba(21, 93, 252, 0.25);
 }
 
+/* ─── SECTION HEADER ─── */
 .top > h3 {
   font-weight: 700;
 
@@ -293,35 +335,42 @@
 }
 
 .top > p {
-  color: #737373;
-  font-family: Inter;
+  color: #94a3b8;
+  font-size: 13px;
   font-weight: 400;
-  margin-top: 1px;
+  margin-top: 0;
 }
 
+/* ─── FIELD GROUPS ─── */
 .container {
-  margin: 20px 0px 30px 0px;
+  margin: 20px 0 28px 0;
 }
+
 .name {
   display: flex;
   flex-direction: column;
 }
+
 .name > div {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: start;
-  margin-left: 7px;
+  margin-left: 4px;
+  margin-bottom: 4px;
 }
+
 .name > div > img {
-  width: 17px;
-  height: 17px;
-  margin-right: 5px;
+  width: 15px;
+  height: 15px;
+  margin-right: 6px;
+  opacity: 0.6;
 }
 
 .name > div > label {
-  font-family: Inter;
-  font-weight: 400;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
 }
 
 .name > input,
@@ -349,38 +398,49 @@
   box-shadow: 1px 1px 10px grey;
 } */
 
+/* ─── DIVIDER ─── */
 .hr {
-  width: 97%;
-  margin: 13px 5px 0px 0px;
-  color: #f5f5f5;
+  width: 100%;
+  margin: 16px 0;
+  border: none;
+  border-top: 1px solid #f1f5f9;
 }
 
+/* ─── PASSWORD SECTION ─── */
 .psw {
   display: flex;
   flex-direction: row;
   justify-content: start;
   align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
 }
+
 .psw > img {
   width: 15px;
   height: 15px;
-  margin-right: 5px;
+  opacity: 0.6;
 }
+
 .psw > h4 {
-  font-family: Arial;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
 }
 
 .password {
   display: flex;
   flex-direction: column;
-  margin-top: 0px;
+  margin-top: 0;
 }
 
 .password > label {
-  font-family: Inter;
-  font-weight: 400;
-  margin-left: 9px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-left: 4px;
+  margin-bottom: 4px;
 }
 
 /* .password > input {
@@ -401,16 +461,14 @@
   margin-top: 10px;
 }
 
-.new {
-  display: flex;
-  flex-direction: column;
+.password > input:hover {
+  border-color: #93c5fd;
 }
 
-.new > label {
-  font-family: Inter;
-  font-size: 14px;
-  font-weight: 400;
-  margin-left: 9px;
+.password > input:focus {
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* .new > input {
@@ -421,16 +479,20 @@
   box-shadow: 1px 1px 10px grey;
 } */
 
+.new,
 .confirm {
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
+.new > label,
 .confirm > label {
-  font-family: Inter;
-  font-size: 14px;
-  font-weight: 400;
-  margin-left: 9px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-left: 4px;
+  margin-bottom: 4px;
 }
 
 /* .confirm > input {
@@ -462,7 +524,7 @@
     0 6px 15px rgba(37, 99, 235, 0.1);
 }
 
-/* buttom*/
+/* ─── FOOTER BAR ─── */
 .bottom {
   color: #c7d2fe;
   background-color: #14213d;
@@ -479,12 +541,10 @@
     0 0 24px rgba(37, 99, 235, 0.2);
 }
 
-/* responive section*/
-
-/* ─── TABLET (max 1024px) ─── */
+/* ─── RESPONSIVE: TABLET ─── */
 @media (max-width: 1024px) {
   .platform {
-    margin: 15px 0px 10px 10px;
+    margin: 8px 0 16px 10px;
   }
 
   .titles {
@@ -492,27 +552,27 @@
   }
 
   .settings {
-    width: 90%;
-    margin: 20px 0px 0px 20px;
+    width: 92%;
+    margin: 0 0 0 20px;
   }
 
   .name > input {
-    width: 35%;
+    width: 40%;
   }
 
   .password > input {
-    width: 35%;
+    width: 40%;
   }
 
   .change {
-    width: 80%;
+    width: 85%;
   }
 }
 
-/* ─── MOBILE (max 768px) ─── */
+/* ─── RESPONSIVE: MOBILE ─── */
 @media (max-width: 768px) {
   .login {
-    padding: 8px 15px;
+    padding: 0 15px;
   }
 
   .image {
@@ -520,22 +580,22 @@
   }
 
   .backto {
-    padding: 10px 20px;
+    padding: 12px 20px;
   }
 
   .form {
-    padding: 15px;
+    padding: 16px;
   }
 
   .platform {
     flex-direction: column;
     align-items: flex-start;
-    gap: 15px;
-    margin: 10px 0px 10px 0px;
+    gap: 16px;
+    margin: 10px 0;
   }
 
   .titles {
-    margin-left: 0px;
+    margin-left: 0;
   }
 
   .titles > h3 {
@@ -544,21 +604,19 @@
 
   .buttons {
     width: 100%;
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
+    justify-content: flex-start;
   }
 
   .buttons > button {
     flex: 1;
-    padding: 12px;
+    padding: 10px;
   }
 
   .settings {
     width: 100%;
-    margin: 20px 0px 0px 0px;
-    padding: 15px;
-    box-sizing: border-box;
+    margin: 0;
+    padding: 20px 16px;
+    border-radius: 16px;
   }
 
   .name > input {
@@ -572,16 +630,16 @@
   .change {
     width: 100%;
     flex-direction: column;
-    gap: 15px;
-    align-items: start;
+    gap: 16px;
+    align-items: stretch;
   }
 
   .new > input,
   .confirm > input {
-    width: 90%;
+    width: 100%;
   }
 
   .bottom {
-    padding: 15px 20px;
+    padding: 16px 20px;
   }
 }

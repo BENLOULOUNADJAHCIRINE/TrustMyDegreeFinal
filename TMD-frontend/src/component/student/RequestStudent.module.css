@@ -434,7 +434,7 @@
   color: white;
   padding: 10px;
   background-color: #155dfc;
-  border: 1px solid navy;
+  border: none;
   border-radius: 10px;
   box-shadow: 1px 1px 4px navy;
   transition:
@@ -463,8 +463,8 @@
 }
 
 .buttons > button:hover {
-  background-color: cornflowerblue;
-  border: 1px solid cornflowerblue;
+  background-color: navy;
+  border: 1px solid navy;
   box-shadow: 1px 1px 5px;
   transform: translateY(-2px);
 }

@@ -15,7 +15,10 @@ function Dashboard() {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsed = JSON.parse(storedUser);
+      parsed.role === "ADMIN"
+        ? setUser({ name: "Admin", email: parsed.email })
+        : setUser({ name: "Super Admin", email: "" });
     }
   }, []);
 
