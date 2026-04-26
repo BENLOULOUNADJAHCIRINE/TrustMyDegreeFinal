@@ -42,9 +42,20 @@
   }
 }
 
+@keyframes smoothFade {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .main-content {
   min-height: 100vh;
-  background-color: #f9fafb;
+  background: linear-gradient(135deg, #eef5ff, #e0ecff);
   display: grid;
   grid-template-columns: 2fr 1fr;
   grid-template-rows: auto 1fr auto auto;
@@ -53,7 +64,6 @@
     "nav ."
     "dashboard dashboard"
     "policy policy";
-  animation: fadeIn 0.5s ease;
 }
 
 .hello {
@@ -61,7 +71,8 @@
   display: flex;
   flex-direction: column;
   align-items: start;
-  padding: 50px 0px 20px 30px;
+  padding: 30px;
+  /* slides down when page loads */
   animation: fadeInDown 0.6s ease;
 }
 
@@ -92,18 +103,20 @@
 
 .inf {
   width: 25%;
-  background-color: #ffffff;
-  border: 3px solid #f3f4f6;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.08);
   border-radius: 15px;
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
   align-items: center;
   padding: 10px;
+
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
-  animation: fadeInUp 0.7s ease;
+  animation: smoothFade 0.6s ease;
 }
 
 .inf:hover {
@@ -139,7 +152,7 @@
   grid-template-columns: 1.2fr 1fr;
   grid-template-rows: auto;
   grid-template-areas: "left right";
-  margin-top: 70px;
+  margin-top: 30px;
 }
 
 .left {
@@ -171,10 +184,13 @@
 .search > div > input {
   width: 100%;
   padding: 10px 10px 10px 30px;
-  background-color: #ffffff;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  padding: 12px 12px 12px 35px;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   outline: none;
+
   transition:
     border-color 0.3s ease,
     box-shadow 0.3s ease;
@@ -218,19 +234,21 @@
 .diplome-div {
   margin-bottom: 12px;
   background-color: #ffffff;
-  padding: 16px 20px;
-  border: 0.5px solid #e5e7eb;
-  border-left: 3px solid #155dfc;
-  border-radius: 12px;
+  padding: 10px;
+  border: 2px solid #f3f4f6;
+  border-radius: 10px;
+
   transition:
     transform 0.3s ease,
-    box-shadow 0.3s ease;
-  animation: fadeInUp 0.5s ease;
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+  animation: smoothFade 0.5s ease;
 }
 
 .diplome-div:hover {
-  transform: translateX(5px);
-  box-shadow: 0 8px 20px rgba(21, 93, 252, 0.08);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.12);
+  border-color: #155dfc;
 }
 
 .type {
@@ -312,12 +330,9 @@
 
 /* ── UPDATED STATUS BADGE ── */
 .date > span {
-  font-size: 11px;
-  font-weight: 500;
-  background: #E1F5EE;
-  color: #085041;
-  padding: 3px 10px;
-  border-radius: 20px;
+  font-size: 15px;
+
+  font-weight: 600;
 }
 
 .verified {
@@ -343,17 +358,17 @@
 .button > button:first-of-type {
   flex: 1;
   color: white;
-  padding: 9px;
-  border: none;
-  border-radius: 8px;
-  background-color: #155dfc;
+  width: 500px;
+  padding: 10px;
+  border-radius: 10px;
+
   cursor: pointer;
-  font-weight: 500;
-  font-size: 13px;
+
   transition:
     background-color 0.3s ease,
     transform 0.2s ease;
-  animation: pulse 2s infinite;
+  background: linear-gradient(135deg, #2563eb, #1e3a8a);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
 }
 
 .button > button:first-of-type:hover {
@@ -373,7 +388,6 @@
 }
 
 .request {
-  background: linear-gradient(to top, #193cb8, #02083e);
   width: 260px;
   height: 250px;
   border-radius: 15px;
@@ -382,9 +396,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-evenly;
+  background: linear-gradient(135deg, #2563eb, #1e3a8a);
+  box-shadow: 0 15px 40px rgba(37, 99, 235, 0.25);
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
+  animation: smoothFade 0.8s ease;
 }
 
 .request:hover {
@@ -438,10 +455,11 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  background-color: #ffffff;
-  padding: 10px;
-  height: 55px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 12px 30px;
+  height: 70px;
+
+  background: linear-gradient(135deg, #f8fbff, #eef5ff);
+  border-bottom: 1px solid #dbeafe;
   animation: fadeInDown 0.4s ease;
 }
 

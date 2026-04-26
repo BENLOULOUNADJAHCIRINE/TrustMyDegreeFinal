@@ -1,6 +1,8 @@
 import styles from "./Settings.module.css";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import api from "../../api";
+import { toast } from "react-hot-toast";
 
 function Settings() {
   const [user, setUser] = useState(null);
@@ -11,13 +13,11 @@ function Settings() {
   const [openMenu, setOpenMenu] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/student/dashboard", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => setUser(data))
+    api
+      .get("/student/dashboard")
+      .then((res) => {
+        setUser({ name: res.data.fullName, isGraduated: res.data.isGraduated });
+      })
       .catch((err) => console.log(err));
   }, []);
 
@@ -26,12 +26,12 @@ function Settings() {
     console.log("sumbit called");
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      alert("Please fill all password fields");
+      toast.error("Please fill all password fields");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -46,7 +46,7 @@ function Settings() {
       .then((reponse) => reponse.json())
       .then((data) => {
         console.log(data);
-        alert("Password updated successfully!");
+        toast.success("Password updated successfully!");
 
         // Clear passwords
         setName("");
@@ -100,11 +100,11 @@ function Settings() {
             className={styles.student}
           />
           <div className={styles.subinfo}>
-            <h4>{user ? user.name : "guest"}</h4>{" "}
-            <p>{user ? user.id : "fake id"}</p>
+            <h4>{user ? user.name : "guest"}</h4>
+            <p>{user?.isGraduated ? "Graduated ✅" : "Not graduated yet"}</p>
           </div>
           <img
-            src="/exit.png"
+            src={user?.avatar || "/exit.png"}
             alt="exit"
             onClick={handleLogout}
             className={styles.exit}

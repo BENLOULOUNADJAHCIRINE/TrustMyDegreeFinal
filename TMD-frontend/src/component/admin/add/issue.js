@@ -3,16 +3,19 @@ import { useState } from "react";
 import { useEffect } from "react";
 import api from "../../../api";
 import { toast } from "react-hot-toast";
+
 function Issue() {
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     date: "",
     file: null,
     templateType: "diploma",
+
+    class: "",
+    speciality: "",
+    branch: "",
   });
   const [fileKey, setFileKey] = useState(0);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
 
   // Get user from localStorage
   useEffect(() => {
@@ -29,6 +32,19 @@ function Issue() {
     const { name, value, files } = e.target;
     if (name === "file") {
       setFormData({ ...formData, file: files[0] });
+    } else if (name === "branch") {
+      setFormData({
+        ...formData,
+        branch: value,
+        speciality: "",
+        class: "",
+      });
+    } else if (name === "speciality") {
+      setFormData({
+        ...formData,
+        speciality: value,
+        class: "",
+      });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -37,21 +53,17 @@ function Issue() {
   function handleReset() {
     setFormData({ date: "", file: null });
     setFileKey((k) => k + 1);
-    setSuccess("");
-    setError("");
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setSuccess("");
-    setError("");
 
     if (!formData.file) {
       toast.error("Please upload an Excel file");
       return;
     }
     if (!formData.date) {
-      toast.rror("Please select a graduation date");
+      toast.error("Please select a graduation date");
       return;
     }
 
@@ -59,6 +71,9 @@ function Issue() {
     form.append("graduationDate", formData.date);
     form.append("excel", formData.file);
     form.append("templateType", formData.templateType);
+    form.append("class", formData.class);
+    form.append("speciality", formData.speciality);
+    form.append("branch", formData.branch);
 
     try {
       const res = await api.post("/admin/import", form, {
@@ -107,7 +122,7 @@ function Issue() {
 
             <div className={styles.date}>
               <label>Document Type</label>
-              <div style={{ display: "flex", gap: "15px", marginTop: "10px" }}>
+              <div style={{ display: "flex", gap: "20px", marginTop: "10px" }}>
                 <label
                   style={{
                     display: "flex",
@@ -116,6 +131,7 @@ function Issue() {
                     cursor: "pointer",
                   }}
                 >
+                  {" "}
                   <input
                     type="radio"
                     name="templateType"
@@ -124,8 +140,8 @@ function Issue() {
                     onChange={(e) =>
                       setFormData({ ...formData, templateType: e.target.value })
                     }
-                  />
-                  Certificate of Achievement
+                  />{" "}
+                  Diploma{" "}
                 </label>
                 <label
                   style={{
@@ -135,6 +151,7 @@ function Issue() {
                     cursor: "pointer",
                   }}
                 >
+                  {" "}
                   <input
                     type="radio"
                     name="templateType"
@@ -143,8 +160,8 @@ function Issue() {
                     onChange={(e) =>
                       setFormData({ ...formData, templateType: e.target.value })
                     }
-                  />
-                  School Certificate
+                  />{" "}
+                  School Certificate{" "}
                 </label>
                 <label
                   style={{
@@ -154,6 +171,7 @@ function Issue() {
                     cursor: "pointer",
                   }}
                 >
+                  {" "}
                   <input
                     type="radio"
                     name="templateType"
@@ -162,8 +180,28 @@ function Issue() {
                     onChange={(e) =>
                       setFormData({ ...formData, templateType: e.target.value })
                     }
-                  />
-                  Internship Certificate
+                  />{" "}
+                  Internship Certificate{" "}
+                </label>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {" "}
+                  <input
+                    type="radio"
+                    name="templateType"
+                    value="rank"
+                    checked={formData.templateType === "rank"}
+                    onChange={(e) =>
+                      setFormData({ ...formData, templateType: e.target.value })
+                    }
+                  />{" "}
+                  rank{" "}
                 </label>
               </div>
             </div>
@@ -183,6 +221,93 @@ function Issue() {
                   onChange={handleChange}
                 />
               </div>
+
+              {formData.templateType === "rank" && (
+                <div className={styles.extraFields}>
+                  <div className={styles.date}>
+                    <label>Branch</label>
+                    <select
+                      value={formData.branch}
+                      name="branch"
+                      onChange={(e) => {
+                        handleChange(e);
+                      }}
+                      required
+                    >
+                      <option value="">Choose</option>
+
+                      <option value="ST">ST</option>
+                      <option value="MI">MI</option>
+                    </select>
+                  </div>
+                  <div className={styles.fillier}>
+                    {formData.branch === "MI" && (
+                      <div className={styles.date}>
+                        <label>speciality</label>
+                        <select
+                          value={formData.speciality}
+                          name="speciality"
+                          onChange={handleChange}
+                          required
+                        >
+                          <option value=""> Choose</option>
+                          <option value="CP">CP</option>
+                          <option value="AI">AI</option>
+                          <option value="system security">
+                            system security
+                          </option>
+                        </select>
+                      </div>
+                    )}
+
+                    {formData.branch === "ST" && (
+                      <div className={styles.date}>
+                        <label>speciality</label>
+                        <select
+                          value={formData.speciality}
+                          name="speciality"
+                          onChange={handleChange}
+                          required
+                        >
+                          <option value=""> Choose </option>
+                          <option value="CP">CP</option>
+                          <option value="GLE">GLE</option>
+                          <option value="OS">OS</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {formData.speciality && (
+                      <div className={styles.date}>
+                        <label>class</label>
+                        <select
+                          value={formData.class}
+                          name="class"
+                          onChange={handleChange}
+                          required
+                        >
+                          <option value="" disabled>
+                            Choose
+                          </option>
+
+                          {formData.speciality === "CP" ? (
+                            <>
+                              <option value="1st">1st year</option>
+                              <option value="2nd">2nd year</option>
+                            </>
+                          ) : (
+                            <>
+                              <option value="1st">1st year</option>
+                              <option value="2nd">2nd year</option>
+                              <option value="3rd">3rd year</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className={styles.slach}>
                 <img src="/slach.png" alt="slash" className={styles.img} />
@@ -221,25 +346,6 @@ function Issue() {
                 />
               </div>
             </div>
-
-            {success && (
-              <div className={styles.successBanner}>
-                <span className={styles.successIcon}>🎓</span>
-                <div className={styles.successText}>
-                  <strong>Success!</strong>
-                  <span>{success}</span>
-                </div>
-              </div>
-            )}
-            {error && (
-              <div className={styles.errorBanner}>
-                <span className={styles.errorIcon}>⚠️</span>
-                <div className={styles.errorText}>
-                  <strong>Error</strong>
-                  <span>{error}</span>
-                </div>
-              </div>
-            )}
 
             <div className={styles.buts}>
               <button

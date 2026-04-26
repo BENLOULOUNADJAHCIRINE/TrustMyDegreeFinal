@@ -125,7 +125,7 @@ function Dashboard() {
                         : "Invalid Date"}
                     </p>
                     <span
-                      className={`${styles.status} ${act.type === "STAGE" ? styles.internship : act.type === "MASTER" ? styles.master : act.type === "ENGINEER" ? styles.engineer : ""}`}
+                      className={`${styles.status} ${act.type === "STAGE" ? styles.internship : act.type === "SCOLARITE" ? styles.scolarite : act.type === "MASTER" ? styles.master : act.type === "ENGINEER" ? styles.engineer : ""}`}
                     >
                       {act.type}
                     </span>

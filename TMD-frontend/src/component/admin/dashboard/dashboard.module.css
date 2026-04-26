@@ -296,6 +296,15 @@
   border-radius: 7px;
 }
 
+.scolarite {
+  background-color: #ede9fe;
+  color: #7c3aed;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 7px;
+}
+
 .engineer {
   color: #1447e6;
   font-size: 12px;

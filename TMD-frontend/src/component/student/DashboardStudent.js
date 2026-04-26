@@ -296,7 +296,8 @@ function DashboardStudent() {
                     type="button"
                     onClick={() => downloadFile(cert.id, "CERT")}
                   >
-                    Download PDF
+                    {" "}
+                    Download PDF{" "}
                   </button>
                   <button
                     type="button"
@@ -416,7 +417,7 @@ function DashboardStudent() {
             <p>{user?.isGraduated ? "Graduated ✅" : "Not graduated yet"}</p>
           </div>
           <img
-            src="/exit.png"
+            src={user?.avatar || "/exit.png"}
             alt="exit"
             onClick={handleLogout}
             className={styles.exit}
@@ -424,7 +425,6 @@ function DashboardStudent() {
         </div>
       </div>
 
-      {/* Badge Modal */}
       {badgeModal && (
         <div
           style={{

@@ -2,7 +2,7 @@ import styles from "./RequestStudent.module.css";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api";
-
+import toast, { Toaster } from "react-hot-toast";
 function RequestStudent() {
   const editorRef = useRef(null);
   const [user, setUser] = useState(null);
@@ -33,17 +33,17 @@ function RequestStudent() {
       await api.post("/student/requests", {
         documentType: doc,
         reason,
-         delivery: delivery.toUpperCase(),
+        delivery: delivery.toUpperCase(),
         priority: priority.toUpperCase(),
       });
-      setSuccess("Request submitted successfully! ✅");
+      toast.success("Request submitted successfully!");
       setDoc("");
       setReason("");
-       setDelivery("");
+      setDelivery("");
       setPriority("");
       if (editorRef.current) editorRef.current.textContent = "";
     } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
+      toast.error(err.response?.data?.message || "Something went wrong");
     }
   }
 
@@ -51,7 +51,7 @@ function RequestStudent() {
     setDoc("");
     setReason("");
     setDelivery("");
-    
+
     setPriority("");
     if (editorRef.current) editorRef.current.textContent = "";
   }
@@ -98,7 +98,7 @@ function RequestStudent() {
             <p>{user?.isGraduated ? "Graduated ✅" : "Not graduated yet"}</p>
           </div>
           <img
-            src="/exit.png"
+            src={user?.avatar || "/exit.png"}
             alt="exit"
             onClick={handleLogout}
             className={styles.exit}
@@ -119,10 +119,10 @@ function RequestStudent() {
           </p>
         </div>
 
-        {success && (
+        {/* {success && (
           <p style={{ color: "green", marginBottom: "10px" }}>{success}</p>
         )}
-        {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
+        {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>} */}
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.document}>
