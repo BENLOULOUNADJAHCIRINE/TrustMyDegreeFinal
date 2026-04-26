@@ -107,7 +107,7 @@ function Issue() {
             <img className={styles.a} src="/greenissue.png" alt="green" />
             <div className={styles.hp}>
               <h3>ISSUE A NEW DOCUMENT</h3>
-              <p>CertiChain Academic Authentication Platform</p>
+              <p>TrustMyDegree Academic Authentication Platform</p>
             </div>
             <img className={styles.f} src="/vector.png" alt="vect" />
           </div>
