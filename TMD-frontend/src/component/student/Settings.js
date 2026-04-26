@@ -11,15 +11,52 @@ function Settings() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [openMenu, setOpenMenu] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   useEffect(() => {
     api
       .get("/student/dashboard")
       .then((res) => {
-        setUser({ name: res.data.fullName, isGraduated: res.data.isGraduated });
+        setUser({ name: res.data.fullName, isGraduated: res.data.isGraduated, avatar: res.data.avatar });
+        if (res.data.avatar) setAvatarPreview(`http://localhost:5000${res.data.avatar}`);
       })
       .catch((err) => console.log(err));
   }, []);
+
+  function handleAvatarChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  }
+
+  async function handleAvatarUpload() {
+    if (!avatarFile) {
+      toast.error("Please select an image first");
+      return;
+    }
+    setAvatarUploading(true);
+    const formData = new FormData();
+    formData.append("avatar", avatarFile);
+    try {
+      const res = await fetch("http://localhost:5000/api/student/avatar", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Upload failed");
+      toast.success("Profile picture updated!");
+      setAvatarFile(null);
+      setUser((prev) => ({ ...prev, avatar: data.avatar }));
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setAvatarUploading(false);
+    }
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -95,7 +132,7 @@ function Settings() {
 
         <div className={styles.info}>
           <img
-            src={user?.avatar || "/totalcertaficates.png"}
+            src={avatarPreview || "/totalcertaficates.png"}
             alt="ava"
             className={styles.student}
           />
@@ -104,7 +141,7 @@ function Settings() {
             <p>{user?.isGraduated ? "Graduated ✅" : "Not graduated yet"}</p>
           </div>
           <img
-            src={user?.avatar || "/exit.png"}
+            src="/exit.png"
             alt="exit"
             onClick={handleLogout}
             className={styles.exit}
@@ -192,6 +229,49 @@ function Settings() {
                 />
               </div>
             </div>
+
+            <hr className={styles.hr} />
+
+            <div className={styles.psw}>
+              <img src="/person.png" alt="avatar" />
+              <h4>Profile Picture</h4>
+            </div>
+
+            <div className={styles.avatarSection}>
+              <div className={styles.avatarPreviewWrap}>
+                <img
+                  src={avatarPreview || "/totalcertaficates.png"}
+                  alt="profile preview"
+                  className={styles.avatarPreview}
+                />
+                {avatarFile && <span className={styles.avatarNewBadge}>New</span>}
+              </div>
+
+              <div className={styles.avatarControls}>
+                <label className={styles.avatarLabel} htmlFor="avatarInput">
+                  Choose Image
+                </label>
+                <input
+                  id="avatarInput"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleAvatarChange}
+                  className={styles.avatarInput}
+                />
+                <p className={styles.avatarHint}>JPEG, PNG, WebP or GIF · max 3MB</p>
+                {avatarFile && (
+                  <button
+                    type="button"
+                    className={styles.avatarUploadBtn}
+                    onClick={handleAvatarUpload}
+                    disabled={avatarUploading}
+                  >
+                    {avatarUploading ? "Uploading…" : "Save Picture"}
+                  </button>
+                )}
+              </div>
+            </div>
+
           </div>
         </div>
       </form>

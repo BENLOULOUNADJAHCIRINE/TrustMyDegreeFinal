@@ -34,8 +34,8 @@ function Request() {
     if (storedUser) {
       const parsed = JSON.parse(storedUser);
       parsed.role === "ADMIN"
-        ? setUser({ name: "Admin", email: parsed.email })
-        : setUser({ name: "Super Admin", email: parsed.email });
+        ? setUser({ name: "Admin", email: parsed.email, avatar: parsed.avatar || null })
+        : setUser({ name: "Super Admin", email: parsed.email, avatar: parsed.avatar || null });
     }
   }, []);
 
@@ -235,7 +235,7 @@ function Request() {
             <h4>{user ? user.name : "Guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
-          <img src={user?.avatar || "/totalcertaficates.png"} alt="ava" />
+          <img src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"} alt="ava" />
         </div>
       </div>
 

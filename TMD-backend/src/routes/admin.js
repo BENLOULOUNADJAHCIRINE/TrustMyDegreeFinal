@@ -16,6 +16,7 @@ const {
   exportCertificates,
   downloadRequestFile,
   getAuditTrail,
+  uploadAvatar,
 } = require("../controllers/adminController");
 
 router.get("/dashboard", protect, isAdmin, dashboard);
@@ -32,5 +33,6 @@ router.get("/statistics", protect, isAdmin, getStatistics);
 router.get("/certificates/:id/download", protect, isAdmin, downloadCertificate);
 router.get('/requests/:id/download', protect, isAdmin, downloadRequestFile);
 router.get("/audit-trail", protect, isSuperAdmin, getAuditTrail);
+router.post("/avatar", protect, isAdmin, uploadAvatar);
 
 module.exports = router;

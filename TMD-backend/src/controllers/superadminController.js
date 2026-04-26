@@ -19,6 +19,7 @@ const getAdmins = async (req, res) => {
       select: {
         id: true,
         email: true,
+        avatar: true,
         createdAt: true,
       },
     });

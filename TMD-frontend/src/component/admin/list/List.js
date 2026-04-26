@@ -18,8 +18,8 @@ function List() {
     if (storedUser) {
       const parsed = JSON.parse(storedUser);
       parsed.role === "ADMIN"
-        ? setUser({ name: "Admin", email: parsed.email })
-        : setUser({ name: "Super Admin", email: parsed.email });
+        ? setUser({ name: "Admin", email: parsed.email, avatar: parsed.avatar || null })
+        : setUser({ name: "Super Admin", email: parsed.email, avatar: parsed.avatar || null });
     }
   }, []);
 
@@ -238,8 +238,7 @@ function List() {
             <h4>{user ? user.name : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
-          {/* removed user?.avatar since admin has no avatar */}
-          <img src="/totalcertaficates.png" alt="avatar" />
+          <img src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"} alt="avatar" />
         </div>
       </div>
 
@@ -391,7 +390,10 @@ function List() {
                       {cert.id.substring(0, 8)}...
                     </td>
                     <td className={styles.column}>
-                      <img src="/students.jpg" alt="student" />
+                      <img
+                        src={cert.student?.avatar ? `http://localhost:5000${cert.student.avatar}` : "/students.jpg"}
+                        alt="student"
+                      />
                       <span className={styles.student}>
                         {cert.student?.fullName}
                       </span>

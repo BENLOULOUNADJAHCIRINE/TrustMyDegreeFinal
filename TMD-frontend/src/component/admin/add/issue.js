@@ -18,13 +18,9 @@ function Issue() {
   const [fileKey, setFileKey] = useState(0);
 
   useEffect(() => {
-    // get user info from dashboard instead
-    api
-      .get("/admin/dashboard")
-      .then((res) => {
-        setUser({ name: "Admin", email: localStorage.getItem("email") || "" });
-      })
-      .catch((err) => console.log(err));
+    const storedUser = localStorage.getItem("user");
+    const parsed = storedUser ? JSON.parse(storedUser) : {};
+    setUser({ name: parsed.role === "ADMIN" ? "Admin" : "Super Admin", email: parsed.email || "", avatar: parsed.avatar || null });
   }, []);
 
   function handleChange(e) {
@@ -97,7 +93,7 @@ function Issue() {
             <h4>{user ? user.name : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
-          <img src="/totalcertaficates.png" alt="avatar" />
+          <img src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"} alt="avatar" />
         </div>
       </div>
 

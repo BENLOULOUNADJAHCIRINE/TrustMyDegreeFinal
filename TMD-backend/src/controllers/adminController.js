@@ -670,6 +670,7 @@ const getAuditTrail = async (req, res) => {
       id: cert.id,
       uniqueCode: cert.uniqueCode,
       studentName: cert.student?.fullName || "Unknown",
+      studentAvatar: cert.student?.avatar || null,
       matricule: cert.student?.matricule || "",
       type: cert.type || "",
       specialty: cert.specialty || "",
@@ -689,6 +690,51 @@ const getAuditTrail = async (req, res) => {
     res.status(500).json({ error: "an error occurred in the server" });
   }
 };
+const uploadAvatar = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    if (!req.files || !req.files.avatar) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const file = req.files.avatar;
+
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowed.includes(file.mimetype)) {
+      return res.status(400).json({ message: "Only JPEG, PNG, WebP, or GIF images are allowed" });
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      return res.status(400).json({ message: "Image must be under 3MB" });
+    }
+
+    const ext = path.extname(file.name) || ".jpg";
+    const fileName = `avatar_${userId}_${Date.now()}${ext}`;
+    const uploadPath = path.join(__dirname, "../uploads", fileName);
+
+    await file.mv(uploadPath);
+
+    const admin = await prisma.user.findUnique({ where: { id: userId } });
+    if (admin?.avatar && admin.avatar.startsWith("/uploads/")) {
+      const oldPath = path.join(__dirname, "../", admin.avatar);
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+
+    const avatarUrl = `/uploads/${fileName}`;
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { avatar: avatarUrl },
+    });
+
+    res.status(200).json({ message: "Avatar updated successfully", avatar: avatarUrl });
+  } catch (err) {
+    console.error("Avatar upload error:", err);
+    res.status(500).json({ error: "An error occurred on the server" });
+  }
+};
+
 module.exports = {
   changePassword,
   revokeCertificate,
@@ -704,4 +750,5 @@ module.exports = {
   exportCertificates,
   downloadRequestFile,
   getAuditTrail,
+  uploadAvatar,
 };

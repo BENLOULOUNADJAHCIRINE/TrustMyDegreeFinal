@@ -79,6 +79,7 @@ const dashboard = async (req, res) => {
       dateOfBirth: student.dateOfBirth,
       placeOfBirth: student.placeOfBirth,
       isGraduated: student.isGraduated,
+      avatar: student.avatar || null,
       activeCertificates,
       totalCertificates,
       certificates: certificatesWithChainData,
@@ -188,10 +189,59 @@ const changePassword = async (req, res) => {
   }
 };
 
+const uploadAvatar = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    if (!req.files || !req.files.avatar) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const file = req.files.avatar;
+
+    // only allow images
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowed.includes(file.mimetype)) {
+      return res.status(400).json({ message: "Only JPEG, PNG, WebP, or GIF images are allowed" });
+    }
+
+    // max 3MB
+    if (file.size > 3 * 1024 * 1024) {
+      return res.status(400).json({ message: "Image must be under 3MB" });
+    }
+
+    const ext = path.extname(file.name) || ".jpg";
+    const fileName = `avatar_${userId}_${Date.now()}${ext}`;
+    const uploadPath = path.join(__dirname, "../uploads", fileName);
+
+    await file.mv(uploadPath);
+
+    // delete old avatar file if it exists and is local
+    const student = await prisma.user.findUnique({ where: { id: userId } });
+    if (student?.avatar && student.avatar.startsWith("/uploads/")) {
+      const oldPath = path.join(__dirname, "../", student.avatar);
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+
+    const avatarUrl = `/uploads/${fileName}`;
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { avatar: avatarUrl },
+    });
+
+    res.status(200).json({ message: "Avatar updated successfully", avatar: avatarUrl });
+  } catch (err) {
+    console.error("Avatar upload error:", err);
+    res.status(500).json({ error: "An error occurred on the server" });
+  }
+};
+
 module.exports = {
   dashboard,
   requests,
   downloadCertificate,
   downloadRequestDocument,
   changePassword,
+  uploadAvatar,
 };

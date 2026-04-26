@@ -18,6 +18,7 @@ model User {
   placeOfBirth String?
   year         String?
   isGraduated  Boolean       @default(false)
+  avatar       String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   certificates Certificate[]

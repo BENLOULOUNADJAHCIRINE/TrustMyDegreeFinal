@@ -17,8 +17,8 @@ function Dashboard() {
     if (storedUser) {
       const parsed = JSON.parse(storedUser);
       parsed.role === "ADMIN"
-        ? setUser({ name: "Admin", email: parsed.email })
-        : setUser({ name: "Super Admin", email: "" });
+        ? setUser({ name: "Admin", email: parsed.email, avatar: parsed.avatar || null })
+        : setUser({ name: "Super Admin", email: parsed.email, avatar: parsed.avatar || null });
     }
   }, []);
 
@@ -68,7 +68,7 @@ function Dashboard() {
             <h4>{user ? user.name : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
-          <img src={user?.avatar || "/totalcertaficates.png"} alt="ava" />
+          <img src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"} alt="ava" />
         </div>
       </div>
 
@@ -110,7 +110,7 @@ function Dashboard() {
               activities.map((act, index) => (
                 <div key={index} className={styles["activity-item"]}>
                   <div className={styles.leftside}>
-                    <img src="/stdicon.jpg" alt="stdicon" />
+                    <img src={act.student?.avatar ? `http://localhost:5000${act.student.avatar}` : "/stdicon.jpg"} alt="stdicon" />
                     <div className={styles.codename}>
                       <h5>{act.student?.fullName || "Student"}</h5>
                       <p>{act.uniqueCode}</p>

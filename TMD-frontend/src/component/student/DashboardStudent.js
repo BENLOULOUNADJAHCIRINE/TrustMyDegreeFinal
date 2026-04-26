@@ -21,6 +21,7 @@ function DashboardStudent() {
         setUser({
           name: data.fullName,
           isGraduated: data.isGraduated,
+          avatar: data.avatar || null,
           totalCertificates: data.totalCertificates,
           activeCertificates: data.activeCertificates,
           lastIssued: data.lastIssuedCertificate?.issueDate || null,
@@ -408,7 +409,7 @@ function DashboardStudent() {
 
         <div className={styles.info}>
           <img
-            src="/totalcertaficates.png"
+            src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"}
             alt="ava"
             className={styles.student}
           />
@@ -417,7 +418,7 @@ function DashboardStudent() {
             <p>{user?.isGraduated ? "Graduated ✅" : "Not graduated yet"}</p>
           </div>
           <img
-            src={user?.avatar || "/exit.png"}
+            src="/exit.png"
             alt="exit"
             onClick={handleLogout}
             className={styles.exit}

@@ -12,7 +12,9 @@ function AuditTrail() {
 
   useEffect(() => {
     const role = localStorage.getItem("role");
-    setUser({ fullName: role === "SUPER_ADMIN" ? "Super Admin" : "Admin" });
+    const storedUser = localStorage.getItem("user");
+    const parsed = storedUser ? JSON.parse(storedUser) : {};
+    setUser({ fullName: role === "SUPER_ADMIN" ? "Super Admin" : "Admin", email: parsed.email || "", avatar: parsed.avatar || null });
   }, []);
 
   useEffect(() => {
@@ -60,7 +62,7 @@ function AuditTrail() {
             <h4>{user ? user.fullName : "guest"}</h4>
             <p>{user ? user.email : "super@ensta.edu.dz"}</p>
           </div>
-          <img src={user?.avatar || "/totalcertaficates.png"} alt="avat" />
+          <img src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"} alt="avat" />
         </div>
       </div>
 
@@ -151,7 +153,7 @@ function AuditTrail() {
                       {new Date(item.issueDate).toLocaleDateString("fr-FR")}
                     </td>
                     <td className={styles.column}>
-                      <img src="/students.jpg" alt="student" />
+                      <img src={item.studentAvatar ? `http://localhost:5000${item.studentAvatar}` : "/students.jpg"} alt="student" />
                       <span className={styles.student}>{item.studentName}</span>
                     </td>
                     <td className={styles.column}>{item.matricule}</td>

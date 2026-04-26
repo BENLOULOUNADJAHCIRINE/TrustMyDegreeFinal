@@ -643,3 +643,103 @@
     padding: 16px 20px;
   }
 }
+
+/* ─── AVATAR SECTION ─── */
+.avatarSection {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  margin-top: 8px;
+}
+
+.avatarPreviewWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatarPreview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+  transition: border-color 0.2s ease;
+}
+
+.avatarPreview:hover {
+  border-color: #2563eb;
+}
+
+.avatarNewBadge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: #2563eb;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.avatarControls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.avatarLabel {
+  display: inline-block;
+  padding: 8px 18px;
+  background: linear-gradient(135deg, #2563eb, #1e3a8a);
+  color: white;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: fit-content;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.avatarLabel:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+.avatarInput {
+  display: none;
+}
+
+.avatarHint {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.avatarUploadBtn {
+  padding: 8px 18px;
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  width: fit-content;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.avatarUploadBtn:hover:not(:disabled) {
+  background-color: #dcfce7;
+  border-color: #16a34a;
+}
+
+.avatarUploadBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

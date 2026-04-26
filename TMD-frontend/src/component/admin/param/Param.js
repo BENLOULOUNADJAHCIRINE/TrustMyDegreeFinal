@@ -7,16 +7,58 @@ function Parameters() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const parsed = JSON.parse(storedUser);
       parsed.role === "ADMIN"
-        ? setUser({ name: "Admin", email: parsed.email })
-        : setUser({ name: "Super Admin", email: parsed.email });
+        ? setUser({ name: "Admin", email: parsed.email, avatar: parsed.avatar || null })
+        : setUser({ name: "Super Admin", email: parsed.email, avatar: parsed.avatar || null });
+      if (parsed.avatar) setAvatarPreview(`http://localhost:5000${parsed.avatar}`);
     }
   }, []);
+
+  function handleAvatarChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  }
+
+  async function handleAvatarUpload() {
+    if (!avatarFile) {
+      toast.error("Please select an image first");
+      return;
+    }
+    setAvatarUploading(true);
+    const formData = new FormData();
+    formData.append("avatar", avatarFile);
+    try {
+      const res = await fetch("http://localhost:5000/api/admin/avatar", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Upload failed");
+      toast.success("Profile picture updated!");
+      setAvatarFile(null);
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        localStorage.setItem("user", JSON.stringify({ ...parsed, avatar: data.avatar }));
+      }
+      setUser((prev) => ({ ...prev, avatar: data.avatar }));
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setAvatarUploading(false);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -62,7 +104,7 @@ function Parameters() {
             <h4>{user ? user.name : "Admin"}</h4>
             <p>{user ? user.email : "admin@ensta.edu.dz"}</p>
           </div>
-          <img src={user?.avatar || "/totalcertaficates.png"} alt="ava" />
+          <img src={avatarPreview || "/totalcertaficates.png"} alt="ava" />
         </div>
       </div>
 
@@ -144,6 +186,48 @@ function Parameters() {
                 />
               </div>
             </div>
+
+            <hr className={styles.hr} />
+
+            <div className={styles.psw}>
+              <h4>Profile Picture</h4>
+            </div>
+
+            <div className={styles.avatarSection}>
+              <div className={styles.avatarPreviewWrap}>
+                <img
+                  src={avatarPreview || "/totalcertaficates.png"}
+                  alt="profile preview"
+                  className={styles.avatarPreview}
+                />
+                {avatarFile && <span className={styles.avatarNewBadge}>New</span>}
+              </div>
+
+              <div className={styles.avatarControls}>
+                <label className={styles.avatarLabel} htmlFor="avatarInput">
+                  Choose Image
+                </label>
+                <input
+                  id="avatarInput"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleAvatarChange}
+                  className={styles.avatarInput}
+                />
+                <p className={styles.avatarHint}>JPEG, PNG, WebP or GIF · max 3MB</p>
+                {avatarFile && (
+                  <button
+                    type="button"
+                    className={styles.avatarUploadBtn}
+                    onClick={handleAvatarUpload}
+                    disabled={avatarUploading}
+                  >
+                    {avatarUploading ? "Uploading…" : "Save Picture"}
+                  </button>
+                )}
+              </div>
+            </div>
+
           </div>
         </div>
       </form>

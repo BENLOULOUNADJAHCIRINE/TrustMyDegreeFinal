@@ -20,7 +20,7 @@ function RequestStudent() {
     api
       .get("/student/dashboard")
       .then((res) => {
-        setUser({ name: res.data.fullName, isGraduated: res.data.isGraduated });
+        setUser({ name: res.data.fullName, isGraduated: res.data.isGraduated, avatar: res.data.avatar || null });
       })
       .catch((err) => console.log(err));
   }, []);
@@ -89,7 +89,7 @@ function RequestStudent() {
 
         <div className={styles.info}>
           <img
-            src="/totalcertaficates.png"
+            src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"}
             alt="ava"
             className={styles.student}
           />
@@ -98,7 +98,7 @@ function RequestStudent() {
             <p>{user?.isGraduated ? "Graduated ✅" : "Not graduated yet"}</p>
           </div>
           <img
-            src={user?.avatar || "/exit.png"}
+            src="/exit.png"
             alt="exit"
             onClick={handleLogout}
             className={styles.exit}
