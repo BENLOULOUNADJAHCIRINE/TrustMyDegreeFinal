@@ -79,9 +79,9 @@ function DashboardStudent() {
   }
 
   function openBadgeModal(cert) {
-  setBadgeModal({ ...cert, studentFullName: user?.name });
-  setTimeout(() => drawBadge({ ...cert, studentFullName: user?.name }), 100);
-}
+    setBadgeModal({ ...cert, studentFullName: user?.name });
+    setTimeout(() => drawBadge({ ...cert, studentFullName: user?.name }), 100);
+  }
 
   function closeBadgeModal() {
     setBadgeModal(null);
@@ -280,6 +280,7 @@ function DashboardStudent() {
                     <p>{cert.type}</p>
                   </div>
                 </div>
+
                 <div className={styles.date}>
                   <div className={styles.calander}>
                     <img src="/calander.png" alt="cal" />
@@ -301,7 +302,8 @@ function DashboardStudent() {
                     type="button"
                     onClick={() => downloadFile(cert.id, "CERT")}
                   >
-                    Download PDF
+                    {" "}
+                    Download PDF{" "}
                   </button>
                   <button
                     type="button"
@@ -412,13 +414,14 @@ function DashboardStudent() {
             <p>{user?.isGraduated ? "Graduated ✅" : "Not graduated yet"}</p>
           </div>
           <img
-            src="/exit.png"
+            src={user?.avatar || "/exit.png"}
             alt="exit"
             onClick={handleLogout}
             className={styles.exit}
           />
         </div>
       </div>
+
       {badgeModal && (
         <div
           style={{
