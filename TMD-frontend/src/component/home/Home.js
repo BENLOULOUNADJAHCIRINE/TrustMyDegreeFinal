@@ -109,6 +109,12 @@ function Home() {
             credential verification
           </p>
           <button onClick={ToVerify}>Get Started</button>
+          <button
+            className={styles.loginMobile}
+            onClick={() => navigate("/login")}
+          >
+            Login
+          </button>
         </div>
 
         <img src="/home.png" alt="home " />

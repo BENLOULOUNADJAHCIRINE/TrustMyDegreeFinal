@@ -1,234 +1,274 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-<meta charset="UTF-8" />
-<title>Attestation de Stage</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Attestation de Stage</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
 
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 
-<style>
-:root {
-  --green-dark:  #23449f;
-  --green-mid:   #2d5b9b;
-  --gold:        #c9a84c;
-  --gold-light:  #e8d08a;
-  --cream:       #f5f2ea;
-  --ink:         #1a1a18;
-}
+    <style>
+      :root {
+        --green-dark: #23449f;
+        --green-mid: #2d5b9b;
+        --gold: #c9a84c;
+        --gold-light: #e8d08a;
+        --cream: #f5f2ea;
+        --ink: #1a1a18;
+      }
 
-@page { size: A4 landscape; margin: 0; }
+      @page {
+        size: A4 landscape;
+        margin: 0;
+      }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-body {
-  font-family: 'Lora', Georgia, serif;
-  background: var(--cream);
-  width: 29.7cm;
-  height: 21cm;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+      body {
+        font-family: "Lora", Georgia, serif;
+        background: var(--cream);
+        width: 29.7cm;
+        height: 21cm;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-.page {
-  width: 25.7cm;
-  background: #fff;
-  border: 2.5px solid var(--green-dark);
-  padding: 0 0 1.2cm;
-  position: relative;
-  box-shadow: 0 6px 36px rgba(26,58,42,0.15);
-}
+      .page {
+        width: 25.7cm;
+        background: #fff;
+        border: 2.5px solid var(--green-dark);
+        padding: 0 0 1.2cm;
+        position: relative;
+        box-shadow: 0 6px 36px rgba(26, 58, 42, 0.15);
+      }
 
-.page::before {
-  content: '';
-  position: absolute;
-  inset: 8px;
-  border: 1px solid var(--gold);
-  pointer-events: none;
-}
+      .page::before {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        border: 1px solid var(--gold);
+        pointer-events: none;
+      }
 
-.corner {
-  position: absolute;
-  width: 24px; height: 24px;
-  border-color: var(--gold);
-  border-style: solid;
-}
-.corner.tl { top: 14px; left: 14px; border-width: 2px 0 0 2px; }
-.corner.tr { top: 14px; right: 14px; border-width: 2px 2px 0 0; }
-.corner.bl { bottom: 14px; left: 14px; border-width: 0 0 2px 2px; }
-.corner.br { bottom: 14px; right: 14px; border-width: 0 2px 2px 0; }
+      .corner {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        border-color: var(--gold);
+        border-style: solid;
+      }
+      .corner.tl {
+        top: 14px;
+        left: 14px;
+        border-width: 2px 0 0 2px;
+      }
+      .corner.tr {
+        top: 14px;
+        right: 14px;
+        border-width: 2px 2px 0 0;
+      }
+      .corner.bl {
+        bottom: 14px;
+        left: 14px;
+        border-width: 0 0 2px 2px;
+      }
+      .corner.br {
+        bottom: 14px;
+        right: 14px;
+        border-width: 0 2px 2px 0;
+      }
 
-.header-bar {
-  background: var(--green-dark);
-  color: #fff;
-  text-align: center;
-  padding: 14px 40px 12px;
-}
+      .header-bar {
+        background: var(--green-dark);
+        color: #fff;
+        text-align: center;
+        padding: 14px 40px 12px;
+      }
 
-.republic {
-  font-family: 'Playfair Display', serif;
-  font-size: 11.5pt;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
+      .republic {
+        font-family: "Playfair Display", serif;
+        font-size: 11.5pt;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
 
-.ministry {
-  font-size: 10.5pt;
-  color: var(--gold-light);
-}
+      .ministry {
+        font-size: 10.5pt;
+        color: var(--gold-light);
+      }
 
-.rule {
-  height: 3px;
-  background: linear-gradient(to right, transparent, var(--gold), transparent);
-  margin-bottom: 16px;
-}
+      .rule {
+        height: 3px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          var(--gold),
+          transparent
+        );
+        margin-bottom: 16px;
+      }
 
-.title {
-  text-align: center;
-  margin-bottom: 20px;
-}
+      .title {
+        text-align: center;
+        margin-bottom: 20px;
+      }
 
-.title h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: 21pt;
-  font-weight: 700;
-  color: var(--green-dark);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
+      .title h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 21pt;
+        font-weight: 700;
+        color: var(--green-dark);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
 
-.underline {
-  width: 100px;
-  height: 2px;
-  background: var(--gold);
-  margin: 6px auto 0;
-}
+      .underline {
+        width: 100px;
+        height: 2px;
+        background: var(--gold);
+        margin: 6px auto 0;
+      }
 
-/* Main content row: body text + QR side by side */
-.content-row {
-  display: flex;
-  align-items: flex-start;
-  padding: 0 1.8cm;
-  gap: 20px;
-}
+      /* Main content row: body text + QR side by side */
+      .content-row {
+        display: flex;
+        align-items: flex-start;
+        padding: 0 1.8cm;
+        gap: 20px;
+      }
 
-.body {
-  flex: 1;
-}
+      .body {
+        flex: 1;
+      }
 
-.body p {
-  color: var(--ink);
-  font-size: 11.5pt;
-  line-height: 2.05;
-}
+      .body p {
+        color: var(--ink);
+        font-size: 11.5pt;
+        line-height: 2.05;
+      }
 
-/* QR + HASH BLOCK */
-.verify-block {
-  flex-shrink: 0;
-  text-align: center;
-  width: 110px;
-  padding-top: 4px;
-}
+      /* QR + HASH BLOCK */
+      .verify-block {
+        flex-shrink: 0;
+        text-align: center;
+        width: 110px;
+        padding-top: 4px;
+      }
 
-.hash {
-  font-size: 7px;
-  opacity: 0.6;
-  word-break: break-all;
-  margin-top: 4px;
-}
+      .hash {
+        font-size: 7px;
+        opacity: 0.6;
+        word-break: break-all;
+        margin-top: 4px;
+      }
 
-/* SIGNATURES */
-.signatures {
-  display: flex;
-  justify-content: space-between;
-  padding: 16px 1.8cm 0;
-  font-size: 11pt;
-  color: var(--ink);
-}
+      /* SIGNATURES */
+      .signatures {
+        display: flex;
+        justify-content: space-between;
+        padding: 16px 1.8cm 0;
+        font-size: 11pt;
+        color: var(--ink);
+      }
 
-.sig-col { line-height: 1.65; }
+      .sig-col {
+        line-height: 1.65;
+      }
 
-.footer {
-  margin: 14px 1.8cm 0;
-  border-top: 1px solid var(--gold);
-  padding-top: 8px;
-  font-style: italic;
-  font-size: 10pt;
-  color: var(--green-mid);
-  text-align: center;
-}
-</style>
-</head>
+      .footer {
+        margin: 14px 1.8cm 0;
+        border-top: 1px solid var(--gold);
+        padding-top: 8px;
+        font-style: italic;
+        font-size: 10pt;
+        color: var(--green-mid);
+        text-align: center;
+      }
+    </style>
+  </head>
 
-<body>
+  <body>
+    <div class="page">
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
 
-<div class="page">
+      <div class="header-bar">
+        <div class="republic">
+          République Algérienne Démocratique et Populaire
+        </div>
+        <div class="ministry">
+          Ministère de l'Enseignement Supérieur et de la Recherche Scientifique
+        </div>
+      </div>
 
-  <div class="corner tl"></div>
-  <div class="corner tr"></div>
-  <div class="corner bl"></div>
-  <div class="corner br"></div>
+      <div class="rule"></div>
 
-  <div class="header-bar">
-    <div class="republic">République Algérienne Démocratique et Populaire</div>
-    <div class="ministry">Ministère de l'Enseignement Supérieur et de la Recherche Scientifique</div>
-  </div>
+      <div class="title">
+        <h1>Attestation de Stage</h1>
+        <div class="underline"></div>
+      </div>
 
-  <div class="rule"></div>
+      <div class="content-row">
+        <div class="body">
+          <p>Je, soussigné(e), atteste</p>
+          <p>
+            Que l'étudiant(e) <b>{{fullName}}</b> né(e) le {{birthDate}} à
+            {{birthPlace}}
+          </p>
+          <p>Inscrit(e) à l'ENSTA.</p>
+          <p>A effectué un stage dans la filière {{specialty}} - {{field}}</p>
+          <p>Entreprise : {{company}}</p>
+          <p>Durant la période du {{startDate}} au {{endDate}}</p>
+          <p>Fait à {{internshipCity}} le {{issueDate}}</p>
+        </div>
 
-  <div class="title">
-    <h1>Attestation de Stage</h1>
-    <div class="underline"></div>
-  </div>
+        <div class="verify-block">
+          <div id="qrcode"></div>
+          <div class="hash">{{hash}}</div>
+          <div style="font-size: 8px; margin-top: 3px">{{uniqueCode}}</div>
+        </div>
+      </div>
 
-  <div class="content-row">
-    <div class="body">
-      <p>Je, soussigné(e), atteste</p>
-      <p>Que l'étudiant(e) <b>{{fullName}}</b> né(e) le {{birthDate}} à {{birthPlace}}</p>
-      <p>Inscrit(e) à l'ENSTA.</p>
-      <p>A effectué un stage dans la filière {{specialty}} - {{field}}</p>
-      <p>Entreprise : {{company}}</p>
-      <p>Durant la période du {{startDate}} au {{endDate}}</p>
-      <p>Fait à {{internshipCity}} le {{issueDate}}</p>
+      <div class="signatures">
+        <div class="sig-col">
+          <div>Le Directeur de L'Ecole Nationale Supérieure</div>
+          <div>des Technologies Avancées</div>
+        </div>
+        <div class="sig-col">
+          <div>Le Responsable de l'établissement</div>
+          <div>d'accueil</div>
+        </div>
+      </div>
+
+      <div class="footer">
+        Cette attestation est délivrée pour servir et faire valoir ce que de
+        droit
+      </div>
     </div>
 
-    <div class="verify-block">
-      <div id="qrcode"></div>
-      <div class="hash">{{hash}}</div>
-      <div style="font-size:8px; margin-top:3px;">{{uniqueCode}}</div>
-    </div>
-  </div>
+    <script>
+      const verificationURL =
+        "https://trustmydegree.io/verify/{{uniqueCode}}?hash={{hash}}";
 
-  <div class="signatures">
-    <div class="sig-col">
-      <div>Le Directeur de L'Ecole Nationale Supérieure</div>
-      <div>des Technologies Avancées</div>
-    </div>
-    <div class="sig-col">
-      <div>Le Responsable de l'établissement</div>
-      <div>d'accueil</div>
-    </div>
-  </div>
-
-  <div class="footer">
-    Cette attestation est délivrée pour servir et faire valoir ce que de droit
-  </div>
-
-</div>
-
-<script>
-  const verificationURL =
-    "https://trustmydegree.io/verify/{{uniqueCode}}?hash={{hash}}";
-
-  new QRCode(document.getElementById("qrcode"), {
-    text: verificationURL,
-    width: 90,
-    height: 90
-  });
-</script>
-
-</body>
+      new QRCode(document.getElementById("qrcode"), {
+        text: verificationURL,
+        width: 90,
+        height: 90,
+      });
+    </script>
+  </body>
 </html>

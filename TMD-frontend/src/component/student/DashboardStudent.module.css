@@ -743,4 +743,20 @@
     padding: 15px;
     font-size: 12px;
   }
+  .top > a {
+    order: 0;
+  }
+
+  .access {
+    width: 100%;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 8px;
+    order: 1;
+  }
+
+  .top > button {
+    width: 60%;
+    order: 2;
+  }
 }
