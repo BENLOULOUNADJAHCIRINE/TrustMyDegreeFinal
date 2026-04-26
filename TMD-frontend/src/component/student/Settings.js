@@ -138,7 +138,7 @@ function Settings() {
         <div className={styles.settings}>
           <div className={styles.top}>
             <h3>Profile Settings</h3>
-            <p>Manage your administrator account details and security.</p>
+            <p>Manage your  account details and security.</p>
           </div>
 
           <div className={styles.container}>

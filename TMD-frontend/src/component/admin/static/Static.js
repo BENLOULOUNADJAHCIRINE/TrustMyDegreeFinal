@@ -19,11 +19,16 @@ function Static() {
   const [linegraph, setLinegraph] = useState([]);
   const [piegraph, setPiegraph] = useState([]);
   const [heatmap, setHeatmap] = useState([]);
-
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      parsed.role === "ADMIN"
+        ? setUser({ name: "Admin", email: parsed.email })
+        : setUser({ name: "Super Admin", email: parsed.email });
+    }
   }, []);
+
   useEffect(() => {
     fetch("http://localhost:5000/api/admin/statistics", {
       headers: {
@@ -77,7 +82,7 @@ function Static() {
         <h4>Statistics</h4>
         <div className={styles.info}>
           <div className={styles.subinfo}>
-            <h4>{user ? user.fullName : "guest"}</h4>
+            <h4>{user ? user.name : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
           <img src={user?.avatar || "/totalcertaficates.png"} alt="ava" />

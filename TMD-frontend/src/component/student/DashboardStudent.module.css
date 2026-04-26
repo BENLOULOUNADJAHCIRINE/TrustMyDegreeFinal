@@ -30,7 +30,6 @@
   }
 }
 
-/* Makes the download button glow repeatedly */
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(21, 93, 252, 0.4);
@@ -67,7 +66,6 @@
     "policy policy";
 }
 
-/* nav top greeting*/
 .hello {
   grid-area: nav;
   display: flex;
@@ -121,7 +119,6 @@
   animation: smoothFade 0.6s ease;
 }
 
-/* card lifts up when you hover over it */
 .inf:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 25px rgba(21, 93, 252, 0.1);
@@ -144,9 +141,7 @@
   margin-top: 0px;
   margin-bottom: 0px;
   font-weight: bold;
-  /* made bigger so numbers stand out */
   font-size: 22px;
-  /* changed to blue to match the theme */
   color: #155dfc;
 }
 
@@ -160,13 +155,11 @@
   margin-top: 30px;
 }
 
-/* left side*/
 .left {
   padding-left: 30px;
   display: flex;
   flex-direction: column;
   align-items: start;
-  /* slides up when page loads */
   animation: fadeInUp 0.8s ease;
 }
 
@@ -237,8 +230,9 @@
   border-radius: 10px;
 }
 
+/* ── UPDATED CARD ── */
 .diplome-div {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   background-color: #ffffff;
   padding: 10px;
   border: 2px solid #f3f4f6;
@@ -261,7 +255,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin: 10px 0px 0px 10px;
+  margin: 4px 0px 8px 0px;
 }
 
 .type > img {
@@ -277,26 +271,31 @@
 .type > div > h4 {
   font-weight: 600;
   margin: 2px;
+  font-size: 15px;
+  color: #111827;
 }
 
 .type > div > p {
   color: #6a7282;
   font-family: Arimo;
-  font-size: 13px;
+  font-size: 12px;
   margin: 1px;
 }
 
 .date {
-  width: 90%;
+  width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  border-top: 0.5px solid #f3f4f6;
+  padding-top: 10px;
+  margin-bottom: 12px;
 }
 
 .date > div {
-  margin-top: 15px;
-  margin-left: 20px;
+  margin-top: 0px;
+  margin-left: 0px;
 }
 
 .calander {
@@ -312,6 +311,7 @@
 .calander > h5 {
   color: #6a7282;
   font-family: arimo;
+  font-size: 12px;
   margin: 0px 0px 0px 5px;
 }
 
@@ -328,6 +328,7 @@
   margin-left: 5px;
 }
 
+/* ── UPDATED STATUS BADGE ── */
 .date > span {
   font-size: 15px;
 
@@ -335,25 +336,27 @@
 }
 
 .verified {
-  color: #10b981;
+  color: #085041;
 }
 
 .notveri {
   color: #c70036;
 }
 
+/* ── UPDATED BUTTONS ── */
 .button {
   position: relative;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
 }
 
 .button > img {
-  width: 13px;
-  position: absolute;
-  top: 12px;
-  left: 220px;
+  display: none;
 }
 
-.button > button {
+.button > button:first-of-type {
+  flex: 1;
   color: white;
   width: 500px;
   padding: 10px;
@@ -363,15 +366,12 @@
 
   transition:
     background-color 0.3s ease,
-    box-shadow 0.3s ease,
     transform 0.2s ease;
   background: linear-gradient(135deg, #2563eb, #1e3a8a);
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
 }
 
-/* pulse stops and button darkens when you hover */
-.button > button:hover {
-  color: white;
+.button > button:first-of-type:hover {
   background-color: navy;
   box-shadow: 1px 1px 10px #155dfc;
   transform: scale(1.02);
@@ -384,7 +384,6 @@
   flex-direction: column;
   align-items: end;
   padding: 20px 50px 20px 20px;
-  /* slides up slightly after left side */
   animation: fadeInUp 0.9s ease;
 }
 
@@ -405,7 +404,6 @@
   animation: smoothFade 0.8s ease;
 }
 
-/* request card lifts up when you hover */
 .request:hover {
   transform: translateY(-5px);
   box-shadow: 0 15px 30px rgba(2, 8, 62, 0.3);
@@ -430,13 +428,11 @@
   border-radius: 10px;
   background-color: white;
   cursor: pointer;
-  /* smooth color change on hover */
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
 }
 
-/* button fills blue when you hover */
 .request button:hover {
   background-color: #155dfc;
   color: white;
@@ -477,7 +473,6 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
-  /* smooth rotation transition */
   transition: transform 0.3s ease;
 }
 
@@ -494,7 +489,6 @@
   border-radius: 8px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   padding: 6px 0;
-  /* dropdown slides down smoothly */
   animation: fadeInDown 0.2s ease;
 }
 
@@ -511,11 +505,9 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  /* smooth background color change */
   transition: background 0.2s ease;
 }
 
-/* light blue highlight on hover */
 .list li:hover {
   background-color: #e0f2fe;
 }
@@ -527,7 +519,6 @@
   width: 100%;
 }
 
-/* link turns blue when hovered */
 .list li:hover a {
   color: #2563eb;
 }
@@ -541,11 +532,9 @@
   border-radius: 20px;
   padding: 5px;
   margin-right: 20px;
-  /* smooth shadow transition */
   transition: box-shadow 0.3s ease;
 }
 
-/* profile section gets a shadow when hovered */
 .info:hover {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
@@ -576,13 +565,11 @@
   width: 15px;
   height: 15px;
   cursor: pointer;
-  /* smooth scale and fade transition */
   transition:
     transform 0.3s ease,
     opacity 0.3s ease;
 }
 
-/* logout icon grows and fades slightly on hover */
 .exit:hover {
   transform: scale(1.2);
   opacity: 0.7;
@@ -601,13 +588,17 @@
   color: #62748e;
   font-weight: 500;
   margin-top: 30px;
-  /* smooth color change on hover */
   transition: color 0.3s ease;
 }
 
-/* back link turns blue on hover */
 .backto a:hover {
   color: #155dfc;
+}
+
+.noData {
+  color: #6a7282;
+  text-align: center;
+  margin-top: 40px;
 }
 
 /*responsive*/
@@ -651,11 +642,6 @@
 
   .button > button {
     width: 100%;
-  }
-
-  .button > img {
-    left: auto;
-    right: 20px;
   }
 }
 
@@ -724,15 +710,11 @@
   }
 
   .button {
-    margin-top: 10px;
+    flex-direction: column;
   }
 
   .button > button {
     width: 100%;
-  }
-
-  .button > img {
-    display: none;
   }
 
   .right {

@@ -61,7 +61,7 @@
   justify-content: space-between;
   background-color: white;
   padding: 10px;
-  height: 40%;
+  height: 65%;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   animation: fadeInDown 0.4s ease;
 }
@@ -216,9 +216,8 @@
 }
 
 .reset {
-  width: 10%;
+  width: 120px;
   margin-left: 59px;
-  padding: 8px;
   border: 1px solid #155dfc;
   border-radius: 12px;
   background-color: white;

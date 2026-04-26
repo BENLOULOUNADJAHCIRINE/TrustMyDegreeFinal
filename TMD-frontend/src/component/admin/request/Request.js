@@ -31,8 +31,12 @@ function Request() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
-    fetchRequests();
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      parsed.role === "ADMIN"
+        ? setUser({ name: "Admin", email: parsed.email })
+        : setUser({ name: "Super Admin", email: parsed.email });
+    }
   }, []);
 
   // Centralized fetch to keep stats and list in sync
@@ -62,7 +66,8 @@ function Request() {
       req.student?.matricule?.toLowerCase().includes(search.toLowerCase()) ||
       req.documentType?.toLowerCase().includes(search.toLowerCase()) ||
       req.priority?.toLowerCase().includes(search.toLowerCase()) ||
-      req.createdAt?.toLowerCase().includes(search.toLowerCase()),
+      req.createdAt?.toLowerCase().includes(search.toLowerCase()) ||
+      req.reason?.toLowerCase().includes(search.toLowerCase()),
   );
 
   const sortedRequests = [...filteredRequests].sort((a, b) => {
@@ -227,7 +232,7 @@ function Request() {
         <h4>Requests</h4>
         <div className={styles.info}>
           <div className={styles.subinfo}>
-            <h4>{user ? user.fullName : "Guest"}</h4>
+            <h4>{user ? user.name : "Guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
           <img src={user?.avatar || "/totalcertaficates.png"} alt="ava" />
@@ -337,6 +342,17 @@ function Request() {
                 </th>
                 <th
                   className={styles.colu}
+                  onClick={() => handleSort("reason")}
+                >
+                  Reason
+                  {sortConfig.key === "reason"
+                    ? sortConfig.direction === "asc"
+                      ? "↑"
+                      : "↓"
+                    : ""}
+                </th>
+                <th
+                  className={styles.colu}
                   onClick={() => handleSort("priority")}
                 >
                   Priority
@@ -390,6 +406,7 @@ function Request() {
                       </div>
                     </td>
                     <td className={styles.column}>{req.documentType}</td>
+                    <td className={styles.column}>{req.reason || "—"}</td>
                     <td className={styles.column}>
                       <span
                         className={`${styles.priority} ${req.priority?.toLowerCase() === "normal" ? styles.normal : styles.urgent}`}

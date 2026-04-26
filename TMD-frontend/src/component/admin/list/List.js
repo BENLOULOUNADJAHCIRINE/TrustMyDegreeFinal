@@ -14,8 +14,13 @@ function List() {
 
   // get user from localStorage
   useEffect(() => {
-    const role = localStorage.getItem("role");
-    setUser({ fullName: role === "ADMIN" ? "Admin" : "Super Admin" });
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      parsed.role === "ADMIN"
+        ? setUser({ name: "Admin", email: parsed.email })
+        : setUser({ name: "Super Admin", email: parsed.email });
+    }
   }, []);
 
   // the new route we added
@@ -230,7 +235,7 @@ function List() {
 
         <div className={styles.info}>
           <div className={styles.subinfo}>
-            <h4>{user ? user.fullName : "guest"}</h4>
+            <h4>{user ? user.name : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
           {/* removed user?.avatar since admin has no avatar */}

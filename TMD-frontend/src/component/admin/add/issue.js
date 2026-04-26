@@ -17,14 +17,15 @@ function Issue() {
   });
   const [fileKey, setFileKey] = useState(0);
 
+  // Get user from localStorage
   useEffect(() => {
-    // get user info from dashboard instead
-    api
-      .get("/admin/dashboard")
-      .then((res) => {
-        setUser({ name: "Admin", email: localStorage.getItem("email") || "" });
-      })
-      .catch((err) => console.log(err));
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      parsed.role === "ADMIN"
+        ? setUser({ name: "Admin", email: parsed.email })
+        : setUser({ name: "Super Admin", email: parsed.email });
+    }
   }, []);
 
   function handleChange(e) {
@@ -107,7 +108,7 @@ function Issue() {
             <img className={styles.a} src="/greenissue.png" alt="green" />
             <div className={styles.hp}>
               <h3>ISSUE A NEW DOCUMENT</h3>
-              <p>CertiChain Academic Authentication Platform</p>
+              <p>TrustMyDegree Academic Authentication Platform</p>
             </div>
             <img className={styles.f} src="/vector.png" alt="vect" />
           </div>
