@@ -15,7 +15,10 @@ function Dashboard() {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsed = JSON.parse(storedUser);
+      parsed.role === "ADMIN"
+        ? setUser({ name: "Admin", email: parsed.email })
+        : setUser({ name: "Super Admin", email: "" });
     }
   }, []);
 
@@ -122,7 +125,8 @@ function Dashboard() {
                         : "Invalid Date"}
                     </p>
                     <span
-                      className={`${styles.status} ${  act.type === "STAGE"? styles.internship: act.type === "MASTER"? styles.master: act.type === "ENGINEER" ? styles.engineer: ""}`} >
+                      className={`${styles.status} ${act.type === "STAGE" ? styles.internship : act.type === "MASTER" ? styles.master : act.type === "ENGINEER" ? styles.engineer : ""}`}
+                    >
                       {act.type}
                     </span>
                   </div>

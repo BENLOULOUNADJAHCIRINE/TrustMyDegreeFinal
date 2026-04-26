@@ -14,14 +14,15 @@ function Issue() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
+  // Get user from localStorage
   useEffect(() => {
-    // get user info from dashboard instead
-    api
-      .get("/admin/dashboard")
-      .then((res) => {
-        setUser({ name: "Admin", email: localStorage.getItem("email") || "" });
-      })
-      .catch((err) => console.log(err));
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      parsed.role === "ADMIN"
+        ? setUser({ name: "Admin", email: parsed.email })
+        : setUser({ name: "Super Admin", email: parsed.email });
+    }
   }, []);
 
   function handleChange(e) {

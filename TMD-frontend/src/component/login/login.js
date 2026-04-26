@@ -45,7 +45,7 @@ function Login() {
             <img src="/logoproject.png" alt="CertiChain logo" />
             <div>
               <h2>
-                TrustMy<span className={styles.span}>Dgree</span>
+                TrustMy<span className={styles.span}>Degree</span>
               </h2>
               <p>Verified Education</p>
             </div>
@@ -88,7 +88,7 @@ function Login() {
               <img src="/logoproject.png" alt="cert" />
               <div>
                 <h3 className={styles.iff}>
-                  TrustMy<span className={styles.span}>Dgree</span>
+                  TrustMy<span className={styles.span}>Degree</span>
                 </h3>
                 <p>Verified Education</p>
               </div>

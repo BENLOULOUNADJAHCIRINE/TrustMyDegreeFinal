@@ -64,7 +64,7 @@
   justify-content: space-between;
   background-color: #ffffff;
   padding: 10px;
-  height: 40px;
+  height: 70%;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   animation: fadeInDown 0.4s ease;
 }
@@ -245,7 +245,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
   border: 2px solid #f3f4f6;
   width: 160px;
-  height: 120px;
+  height: auto;
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease,
@@ -393,6 +393,10 @@
 } /* Upload */
 .colu:nth-child(8) {
   width: 70px;
+}
+.colu:nth-child(9) {
+  width: 70px;
+  position: relative;
 }
 
 .line {

@@ -8,18 +8,14 @@ function Parameters() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // NEW: State for on-page messages
-
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    fetch("http://localhost:5000/api/auth/user", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setUser(data);
-        setName(data.fullName || "");
-      });
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      parsed.role === "ADMIN"
+        ? setUser({ name: "Admin", email: parsed.email })
+        : setUser({ name: "Super Admin", email: parsed.email });
+    }
   }, []);
 
   async function handleSubmit(e) {
@@ -63,7 +59,7 @@ function Parameters() {
         <h4>Parameters</h4>
         <div className={styles.info}>
           <div className={styles.subinfo}>
-            <h4>{user ? user.fullName : "Admin"}</h4>
+            <h4>{user ? user.name : "Admin"}</h4>
             <p>{user ? user.email : "admin@ensta.edu.dz"}</p>
           </div>
           <img src={user?.avatar || "/totalcertaficates.png"} alt="ava" />
