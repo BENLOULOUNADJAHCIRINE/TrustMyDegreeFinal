@@ -94,7 +94,7 @@ const getRequests = async (req, res) => {
       },
     });
     res.status(200).json({
-      requests: fullList, //
+      requests: fullList,
       summary: {
         total: totalRequests,
         pending: pendingRequests,
@@ -225,7 +225,6 @@ const revokeCertificate = async (req, res) => {
 };
 
 // Change admin password
-
 const changePassword = async (req, res) => {
   try {
     const adminId = req.user.userId || req.user.id;
@@ -239,7 +238,7 @@ const changePassword = async (req, res) => {
       return res.status(404).json({ message: "Admin account not found" });
     }
 
-    //compare
+    // compare
     const isMatch = await bcrypt.compare(currentPassword, admin.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid current password" });
@@ -249,7 +248,7 @@ const changePassword = async (req, res) => {
     const saltRounds = 10;
     const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
 
-    //  Update the database
+    // Update the database
     await prisma.user.update({
       where: { id: adminId },
       data: { password: hashedNewPassword },
@@ -261,6 +260,7 @@ const changePassword = async (req, res) => {
     res.status(500).json({ error: "An error occurred in the server" });
   }
 };
+
 // sync students
 const syncStudents = async (req, res) => {
   try {
@@ -325,14 +325,29 @@ const syncStudents = async (req, res) => {
 // import diplomas from excel file
 const importDiplomas = async (req, res) => {
   try {
-    const { graduationDate, templateType } = req.body;
+    // ✅ FIX: destructure both graduationDate and issueDate from req.body
+    const {
+      issueDate,
+      graduationDate,
+      templateType,
+      branch,
+      speciality,
+      class: level,
+    } = req.body;
+
     const file = req.files.excel;
 
     if (!file) return res.status(400).json({ message: "no file uploaded" });
-    if (!graduationDate)
-      return res.status(400).json({ message: "graduationDate is required" });
+
+    // ✅ FIX: proper date validation
+    if (!graduationDate && !issueDate)
+      return res.status(400).json({ message: "date is required" });
+
     if (!templateType)
       return res.status(400).json({ message: "templateType is required" });
+
+    // ✅ diploma uses graduationDate, everything else uses issueDate
+    const date = templateType === "diploma" ? graduationDate : issueDate;
 
     const workbook = XLSX.read(file.data);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -347,7 +362,9 @@ const importDiplomas = async (req, res) => {
         ? "INTERNSHIP"
         : templateType === "scolarite"
           ? "STUDY"
-          : "DIPLOMA";
+          : templateType === "rank"
+            ? "RANK"
+            : "DIPLOMA";
 
     let created = 0;
     const errors = [];
@@ -387,66 +404,85 @@ const importDiplomas = async (req, res) => {
             studentId: student.matricule,
             studentName: student.fullName,
             degreeName: row.type || templateType,
-            fieldOfStudy: row.specialty || "",
+            fieldOfStudy: row.speciality || "",
             ipfsHash: "pending",
           });
         } else if (contractType === "INTERNSHIP") {
-          const start = new Date(row.startDate || graduationDate);
-          const end = new Date(row.endDate || graduationDate);
+          const start = row.startDate ? new Date(row.startDate) : null;
+          let end = row.endDate ? new Date(row.endDate) : null;
+
           if (end <= start) end.setDate(end.getDate() + 1);
 
           blockchainResult = await issueInternship({
             studentId: student.matricule,
             studentName: student.fullName,
             companyName: row.company || "ENSTA",
-            internshipRole: row.specialty || "",
-            internshipCity: row.city || "", // ← added
+            internshipRole: row.speciality || "",
+            internshipCity: row.internshipCity || "",
             ipfsHash: "pending",
             startDate: start.toISOString(),
             endDate: end.toISOString(),
+          });
+        } else if (contractType === "RANK") {
+          // ✅ FIX: properly closed issueDocument call for RANK
+          blockchainResult = await issueDocument({
+            studentId: student.matricule,
+            studentName: student.fullName,
+            documentType: "RANK",
+            ipfsHash: "pending",
           });
         } else {
           // STUDY / scolarite
           blockchainResult = await issueStudyCertificate({
             studentId: student.matricule,
             studentName: student.fullName,
-            programName: row.specialty || "",
-            academicYear: row.academicYear || graduationDate,
+            programName: row.speciality || "",
+            academicYear: row.academicYear || date,
             certificateType: row.type || templateType,
             ipfsHash: "pending",
           });
         }
 
-        //generate PDF using correct template
-        const pdfPath = await generateDiplomaPDF({
-          fullName: student.fullName,
-          matricule: student.matricule,
-          specialty: row.specialty || "",
-          faculty: row.faculty || "",
-          sectionNum: String(row.sectionNum || ""),
-          facultyNum: String(row.facultyNum || ""),
-          mention: row.mention || "",
-          graduationDate,
-          issueDate: new Date().toISOString().split("T")[0],
-          uniqueCode,
-          academicYear: row.academicYear || "",
-          year: row.year || "",
-          company: row.company || "",
-          duration: row.duration || "",
-          startDate: row.startDate || "",
+        // ✅ FIX: specialty — RANK uses form value, everything else uses Excel row
+        const resolvedSpecialty =
+          contractType === "RANK"
+            ? speciality || ""
+            : row.speciality || "";
+
+        // generate PDF using correct template
+        const pdfPath = await generateDiplomaPDF(
+          {
+            fullName: student.fullName,
+            matricule: student.matricule,
+            specialty: resolvedSpecialty,
+            faculty: row.faculty || "",
+            sectionNum: String(row.sectionNum || ""),
+            facultyNum: String(row.facultyNum || ""),
+            mention: row.mention || "",
+            graduationDate,
+            issueDate: new Date().toISOString().split("T")[0],
+            uniqueCode,
+            academicYear: row.academicYear || "",
+            year: row.year || "",
+            company: row.company || "",
+            duration: row.duration || "",
+            startDate: row.startDate || "",
             birthDate: student.dateOfBirth || "",
             birthPlace: student.placeOfBirth || "",
-            endDate: row.endDate,
+            endDate: row.endDate || "",
             internshipCity: row.internshipCity || "",
-            academicYear: row.academicYear || "",
-            level:row.level || "",
-             field:row.field || "",
-        }, templateType);
+            level: row.level || "",
+            field: row.field || "",
+            average: row.average || "",
+            rank: row.rank || "",
+          },
+          templateType,
+        );
 
-        //upload PDF to IPFS, get back the CID
+        // upload PDF to IPFS, get back the CID
         const ipfsHash = await uploadPDFtoPinata(pdfPath);
 
-        //save to Prisma
+        // save to Prisma
         await prisma.certificate.create({
           data: {
             studentId: student.id,
@@ -455,12 +491,13 @@ const importDiplomas = async (req, res) => {
             blockchainCertId: blockchainResult.blockchainCertId,
             contractType,
             type: row.type || templateType,
-            specialty: row.specialty || "",
+            specialty: resolvedSpecialty,
             status: "ACTIVE",
+            issueDate: new Date(),
           },
         });
 
-        //mark student as graduated
+        // mark student as graduated
         await prisma.user.update({
           where: { id: student.id },
           data: { isGraduated: true },

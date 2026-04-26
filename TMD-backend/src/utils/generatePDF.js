@@ -7,6 +7,7 @@ const generateDiplomaPDF = async (studentData, templateType = "diploma") => {
   let templateName = "certificate.html";
   if (templateType === "scolarite")  templateName = "scolarite.html";
   if (templateType === "internship") templateName = "internship.html";
+  if (templateType === "rank")       templateName = "rank.html"; // ✅ added
 
   const templatePath = path.join(__dirname, "../templates", templateName);
   let html = fs.readFileSync(templatePath, "utf8");
@@ -47,6 +48,10 @@ const generateDiplomaPDF = async (studentData, templateType = "diploma") => {
   replace("internshipCity", studentData.internshipCity);
   replace("birthDate",      studentData.birthDate);
   replace("birthPlace",     studentData.birthPlace);
+  replace("average",        studentData.average);  // ✅ for rank template
+  replace("rank",           studentData.rank);     // ✅ for rank template
+  replace("branch",         studentData.branch);   // ✅ for rank template
+  replace("class",          studentData.class);    // ✅ for rank template
   replace("hash",           studentData.hash ?? studentData.uniqueCode);
   replace("uniqueCode",     studentData.uniqueCode);
 

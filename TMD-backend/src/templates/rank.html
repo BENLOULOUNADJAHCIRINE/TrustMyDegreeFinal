@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 1050px;
+      height: 742px;
+      font-family: 'EB Garamond', serif;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .diploma {
+      width: 1010px;
+      height: 702px;
+      border: 12px solid #1a3466;
+      outline: 3px solid #c9a84c;
+      outline-offset: -18px;
+      padding: 36px 56px;
+      position: relative;
+      background: #fdfaf5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .corner {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border: 3px solid #c9a84c;
+    }
+    .corner.tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+    .corner.tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+    .corner.bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+    .corner.br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+    .header {
+      text-align: center;
+      width: 100%;
+    }
+
+    .university-name {
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      color: #1a3466;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .divider {
+      width: 320px;
+      height: 2px;
+      background: linear-gradient(to right, transparent, #c9a84c, transparent);
+      margin: 6px auto;
+    }
+
+    .cert-title {
+      font-family: 'Cinzel', serif;
+      font-size: 26px;
+      color: #1a3466;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin: 6px 0 2px;
+    }
+
+    .cert-subtitle {
+      font-size: 13px;
+      color: #c9a84c;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .body {
+      width: 100%;
+      text-align: center;
+    }
+
+    .presented-to {
+      font-size: 13px;
+      color: #555;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .student-name {
+      font-family: 'Cinzel', serif;
+      font-size: 28px;
+      color: #1a3466;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .student-info {
+      font-size: 13px;
+      color: #444;
+      margin-bottom: 10px;
+    }
+
+    .statement {
+      font-size: 14px;
+      color: #333;
+      line-height: 1.8;
+      max-width: 780px;
+      margin: 0 auto 10px;
+    }
+
+    .statement strong {
+      color: #1a3466;
+      font-weight: 600;
+    }
+
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 28px;
+      background: #1a3466;
+      color: white;
+      padding: 10px 36px;
+      border-radius: 4px;
+      margin: 6px 0;
+    }
+
+    .rank-item { text-align: center; }
+
+    .rank-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.75;
+      margin-bottom: 2px;
+    }
+
+    .rank-value {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #c9a84c;
+    }
+
+    .rank-sep {
+      width: 1px;
+      height: 36px;
+      background: rgba(255,255,255,0.2);
+    }
+
+    .footer {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .footer-left {
+      font-size: 11px;
+      color: #777;
+      line-height: 1.9;
+    }
+
+    .footer-left span { display: block; }
+    .footer-left strong { color: #1a3466; }
+
+    .seal {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: 3px solid #1a3466;
+      outline: 2px solid #c9a84c;
+      outline-offset: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-size: 8px;
+      color: #1a3466;
+      text-align: center;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .date-wrap { text-align: center; }
+
+    .date-label {
+      font-size: 10px;
+      color: #999;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .date-value {
+      font-family: 'Cinzel', serif;
+      font-size: 13px;
+      color: #1a3466;
+    }
+
+    .qr-wrap { text-align: center; }
+
+    .qr-label {
+      font-size: 9px;
+      color: #aaa;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    .unique-code {
+      font-size: 9px;
+      color: #bbb;
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="diploma">
+
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="university-name">National Higher School of Advanced Technology</div>
+      <div class="divider"></div>
+      <div class="cert-title">Academic Rank Certificate</div>
+      <div class="cert-subtitle">Official Academic Record</div>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+      <div class="presented-to">This is to certify that</div>
+      <div class="student-name">{{fullName}}</div>
+      <div class="student-info">
+        Matricule: <strong>{{matricule}}</strong> &nbsp;|&nbsp;
+        Born: <strong>{{birthDate}}</strong> in <strong>{{birthPlace}}</strong>
+      </div>
+      <div class="statement">
+        enrolled in <strong>{{branch}}</strong> — <strong>{{specialty}}</strong>,
+        Year <strong>{{class}}</strong>, has achieved the following academic results
+        for the academic year <strong>{{academicYear}}</strong>:
+      </div>
+      <div class="rank-badge">
+        <div class="rank-item">
+          <div class="rank-label">Average</div>
+          <div class="rank-value">{{average}}</div>
+        </div>
+        <div class="rank-sep"></div>
+        <div class="rank-item">
+          <div class="rank-label">Class Rank</div>
+          <div class="rank-value">{{rank}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-left">
+        <span><strong>Branch:</strong> {{branch}}</span>
+        <span><strong>Specialty:</strong> {{specialty}}</span>
+        <span><strong>Class:</strong> {{class}}</span>
+      </div>
+
+      <div class="seal">ENSTA<br/>Official<br/>Seal</div>
+
+      <div class="date-wrap">
+        <div class="date-label">Issue Date</div>
+        <div class="date-value">{{issueDate}}</div>
+      </div>
+
+      <div class="qr-wrap">
+        {{qrCode}}
+        <div class="qr-label">Verify</div>
+        <div class="unique-code">{{uniqueCode}}</div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
