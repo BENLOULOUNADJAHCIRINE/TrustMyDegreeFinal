@@ -1,49 +1,44 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-
 contract RankRegistry {
 
-   
     enum Session { NORMAL, RATTRAPAGE }
 
-    
     struct Student {
         uint256 matricule;
         string  name;
         string  familyName;
-        string  speciality;    
+        string  speciality;
+        string  branch;      
+        string  year;       
         uint256 rank;
-        string  average;      
+        string  average;
         uint256 credits;
         Session session;
         bool    exists;
     }
 
     struct CustomDocument {
-        bytes32 certId;          
-        uint256 matricule;       
-        string  documentType;    
-        string  description;     
-        string  ipfsHash;        
-        uint256 issueDate;       
-        address issuedBy;        
+        bytes32 certId;
+        uint256 matricule;
+        string  documentType;
+        string  description;
+        string  ipfsHash;
+        uint256 issueDate;
+        address issuedBy;
         bool    isRevoked;
     }
 
-    
     address public owner;
 
-    // Student data
     mapping(uint256 => Student) private students;
     uint256[] private matricules;
     uint256 public studentCount;
 
-    // Document data
     mapping(bytes32 => CustomDocument) private documents;
-    mapping(uint256 => bytes32[])      private studentDocuments;  // matricule => certIds
+    mapping(uint256 => bytes32[])      private studentDocuments;
 
-    // Access control
     mapping(address => bool)   public authorizedSchools;
     mapping(address => string) public schoolNames;
 
@@ -59,8 +54,6 @@ contract RankRegistry {
     event DocumentIssued(bytes32 indexed certId, uint256 indexed matricule, address indexed issuedBy, string documentType);
     event DocumentRevoked(bytes32 indexed certId, address revokedBy);
     event DocumentUnrevoked(bytes32 indexed certId, address unrevokedBy);
-
-   
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not the contract owner");
@@ -86,7 +79,6 @@ contract RankRegistry {
         owner = msg.sender;
     }
 
- 
     function authorizeSchool(address school, string calldata name) external onlyOwner {
         require(school != address(0), "Invalid address");
         require(!authorizedSchools[school], "School already authorized");
@@ -106,12 +98,13 @@ contract RankRegistry {
         owner = newOwner;
     }
 
-   
     function addStudent(
         uint256         _matricule,
         string calldata _name,
         string calldata _familyName,
         string calldata _speciality,
+        string calldata _branch,     
+        string calldata _year,       
         uint256         _rank,
         string calldata _average,
         uint256         _credits,
@@ -125,6 +118,8 @@ contract RankRegistry {
             name:       _name,
             familyName: _familyName,
             speciality: _speciality,
+            branch:     _branch,     
+            year:       _year,       
             rank:       _rank,
             average:    _average,
             credits:    _credits,
@@ -143,6 +138,8 @@ contract RankRegistry {
         string calldata _name,
         string calldata _familyName,
         string calldata _speciality,
+        string calldata _branch,     
+        string calldata _year,       
         uint256         _rank,
         string calldata _average,
         uint256         _credits,
@@ -152,6 +149,8 @@ contract RankRegistry {
         s.name       = _name;
         s.familyName = _familyName;
         s.speciality = _speciality;
+        s.branch     = _branch;    
+        s.year       = _year;     
         s.rank       = _rank;
         s.average    = _average;
         s.credits    = _credits;
@@ -160,7 +159,6 @@ contract RankRegistry {
         emit StudentUpdated(_matricule);
     }
 
-    
     function deleteStudent(uint256 _matricule)
         external onlyOwnerOrSchool studentExists(_matricule)
     {
@@ -177,12 +175,7 @@ contract RankRegistry {
 
         emit StudentDeleted(_matricule);
     }
-//document stuff
 
-    /// @param _matricule    Student's matricule (must exist)
-    /// @param _documentType e.g. "English Medium", "Top Student", "Rank Certificate"
-    /// @param _description  Custom description set by admin
-    /// @param _ipfsHash     CID of the generated HTML document on IPFS
     function issueDocument(
         uint256         _matricule,
         string calldata _documentType,
@@ -212,7 +205,6 @@ contract RankRegistry {
         emit DocumentIssued(certId, _matricule, msg.sender, _documentType);
     }
 
-   //revoke doc
     function revokeDocument(bytes32 certId) external docExists(certId) {
         CustomDocument storage doc = documents[certId];
         require(!doc.isRevoked, "Document already revoked");
@@ -224,7 +216,6 @@ contract RankRegistry {
         emit DocumentRevoked(certId, msg.sender);
     }
 
-    //unrevoke stuff
     function unrevokeDocument(bytes32 certId) external docExists(certId) {
         CustomDocument storage doc = documents[certId];
         require(doc.isRevoked, "Document is not revoked");
@@ -235,8 +226,6 @@ contract RankRegistry {
 
         emit DocumentUnrevoked(certId, msg.sender);
     }
-
-    //getters for the student + document
 
     function getStudent(uint256 _matricule)
         external view studentExists(_matricule)

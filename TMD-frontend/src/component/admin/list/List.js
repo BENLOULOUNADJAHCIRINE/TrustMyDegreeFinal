@@ -146,20 +146,77 @@ function List() {
   const [selectedIds, setSelectedIds] = useState([]);
 
   function revokeCertificate(id) {
-    if (!window.confirm("Are you sure you want to revoke this certificate?"))
-      return;
-
-    api
-      .put(`/admin/certificates/${id}/revoke`)
-      .then(() => {
-        const updated = certaficate.map((c) =>
-          c.id === id ? { ...c, status: "REVOKED" } : c,
-        );
-        setCertaficate(updated);
-        setOpenMenu(null);
-      })
-      .catch((err) => console.log(err));
+    toast((t) => (
+      <div className={styles.toastConfirm}>
+        <span>Are you sure you want to revoke this certificate?</span>
+        <div className={styles.toastButtons}>
+          <button
+            className={styles.toastConfirmBtn}
+            onClick={() => {
+              toast.dismiss(t.id);
+              api.put(`/admin/certificates/${id}/revoke`)
+                .then(() => {
+                  const updated = certaficate.map((c) =>
+                    c.id === id ? { ...c, status: "REVOKED" } : c
+                  );
+                  setCertaficate(updated);
+                  setOpenMenu(null);
+                  toast.success("Certificate revoked successfully");
+                })
+                .catch((err) => {
+                  const message = err.response?.data?.message || "Failed to revoke certificate";
+                  toast.error(message);
+                });
+            }}
+          >
+            Confirm
+          </button>
+          <button
+            className={styles.toastCancelBtn}
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ), { duration: Infinity });
   }
+function unrevokeCert(id) {
+  toast((t) => (
+    <div className={styles.toastConfirm}>
+      <span>Are you sure you want to unrevoke this certificate?</span>
+      <div className={styles.toastButtons}>
+        <button
+          className={styles.toastConfirmBtn}
+          onClick={() => {
+            toast.dismiss(t.id);
+            api.put(`/admin/certificates/${id}/unrevoke`)
+              .then(() => {
+                const updated = certaficate.map((c) =>
+                  c.id === id ? { ...c, status: "ACTIVE" } : c
+                );
+                setCertaficate(updated);
+                toast.success("Certificate unrevoked successfully");
+              })
+              .catch((err) => {
+                const message = err.response?.data?.message || "Failed to unrevoke certificate";
+                toast.error(message);
+              });
+          }}
+        >
+          Confirm
+        </button>
+        <button
+          className={styles.toastCancelBtn}
+          onClick={() => toast.dismiss(t.id)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  ), { duration: Infinity });
+}
+
   function toggleSelect(id) {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
@@ -186,34 +243,47 @@ function List() {
   }
 
   function bulkRevoke() {
-    const activeSelected = selectedIds.filter(
-      (id) => certaficate.find((c) => c.id === id)?.status !== "REVOKED",
-    );
+  const activeSelected = selectedIds.filter(
+    (id) => certaficate.find((c) => c.id === id)?.status !== "REVOKED",
+  );
 
-    if (activeSelected.length === 0) {
-      toast.info("All selected certificates are already revoked.");
-      return;
-    }
-
-    if (
-      !window.confirm(
-        `Are you sure you want to revoke ${activeSelected.length} certificate(s)?`,
-      )
-    )
-      return;
-
-    api
-      .put("/admin/certificates/bulk-revoke", { ids: activeSelected })
-      .then((res) => {
-        const updated = certaficate.map((c) =>
-          activeSelected.includes(c.id) ? { ...c, status: "REVOKED" } : c,
-        );
-        setCertaficate(updated);
-        setSelectedIds([]);
-        toast.info(res.data.message);
-      })
-      .catch((err) => console.log(err));
+  if (activeSelected.length === 0) {
+    toast.info("All selected certificates are already revoked.");
+    return;
   }
+
+  toast((t) => (
+    <div className={styles.toastConfirm}>
+      <span>Are you sure you want to revoke {activeSelected.length} certificate(s)?</span>
+      <div className={styles.toastButtons}>
+        <button
+          className={styles.toastConfirmBtn}
+          onClick={() => {
+            toast.dismiss(t.id);
+            api.put("/admin/certificates/bulk-revoke", { ids: activeSelected })
+              .then((res) => {
+                const updated = certaficate.map((c) =>
+                  activeSelected.includes(c.id) ? { ...c, status: "REVOKED" } : c,
+                );
+                setCertaficate(updated);
+                setSelectedIds([]);
+                toast.info(res.data.message);
+              })
+              .catch((err) => console.log(err));
+          }}
+        >
+          Confirm
+        </button>
+        <button
+          className={styles.toastCancelBtn}
+          onClick={() => toast.dismiss(t.id)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  ), { duration: Infinity });
+}
 
   function viewCertificate(id) {
     const token = localStorage.getItem("token");
@@ -427,14 +497,12 @@ function List() {
                         </span>
                         {openMenu === cert.id && (
                           <div className={styles.menu}>
-                            <button onClick={() => viewCertificate(cert.id)}>
-                              {" "}
-                              View PDF{" "}
-                            </button>
-                            <button onClick={() => revokeCertificate(cert.id)}>
-                              {" "}
-                              Revoke{" "}
-                            </button>
+                            <button onClick={() => viewCertificate(cert.id)}>View PDF</button>
+                            {cert.status === "REVOKED" ? (
+                              <button onClick={() => unrevokeCert(cert.id)}>Unrevoke</button>
+                            ) : (
+                              <button onClick={() => revokeCertificate(cert.id)}>Revoke</button>
+                            )}
                           </div>
                         )}
                       </div>

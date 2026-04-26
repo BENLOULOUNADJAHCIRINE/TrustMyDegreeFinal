@@ -42,6 +42,7 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Login error:", error); 
     res.status(500).json({ message: "Something went wrong", error });
   }
 };
@@ -126,4 +127,5 @@ const getUser = async (req, res) => {
     res.status(500).json({ message: "something went wrong" });
   }
 };
+
 module.exports = { login, changePassword, seedSuperAdmin, getUser };

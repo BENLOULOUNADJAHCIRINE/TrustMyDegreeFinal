@@ -51,7 +51,7 @@ function Issue() {
       return;
     }
     if (!formData.date) {
-      toast.rror("Please select a graduation date");
+      toast.error("Please select a graduation date");
       return;
     }
 

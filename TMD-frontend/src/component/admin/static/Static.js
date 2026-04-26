@@ -12,7 +12,7 @@ defaults.plugins.title.font.size = 20;
 defaults.plugins.title.color = "black";
 
 function Static() {
-  const pieColors = ["#1E3A8A", "#10B981", "#F59E0B"];
+  const pieColors = ["#1E3A8A", "#10B981", "#F59E0B", "#8B5CF6", "#EF4444"];
 
   const [user, setUser] = useState(null);
   const [bargraph, setBargraph] = useState([]);
@@ -179,7 +179,7 @@ function Static() {
                 datasets: [
                   {
                     data: piegraph.map((data) => data.value),
-                    backgroundColor: ["#1E3A8A", "#10B981", "#F59E0B"],
+                    backgroundColor: ["#1E3A8A", "#10B981", "#F59E0B", "#8B5CF6", "#EF4444"],
                     borderRadius: 8,
                     spacing: 4,
                   },

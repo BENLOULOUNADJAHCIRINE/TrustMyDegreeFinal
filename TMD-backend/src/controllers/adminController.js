@@ -14,6 +14,8 @@ const {
 } = require("../services/blockchain.service");
 const {
   revokeCertificate: revokeCertificateOnChain,
+  unrevokeCertificate: unrevokeCertificateOnChain,
+  verifyCertificate,
 } = require("../services/blockchain.service");
 const path = require("path");
 const fs = require("fs");
@@ -112,27 +114,35 @@ const handleRequestStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const id = req.params.id;
+
     const findRequest = await prisma.request.findUnique({
-      where: { id: id },
+      where: { id },
       include: { student: true },
     });
-    if (!findRequest) {
-      return res.status(400).json({ message: "request not found" });
+
+    if (!findRequest) return res.status(400).json({ message: "Request not found" });
+
+    // only REJECTED is allowed here — APPROVED happens via handleRequestDocument
+    if (status !== "REJECTED") {
+      return res.status(400).json({ message: "Use the document upload endpoint to approve requests" });
     }
-    if (status === "APPROVED") {
-      await prisma.request.update({
-        where: { id: id },
-        data: { status: "APPROVED" },
-      });
-    } else {
-      await prisma.request.update({
-        where: { id: id },
-        data: { status: "REJECTED" },
-      });
-    }
-    res.status(200).json({ message: "Request status updated successfully" });
+
+    await prisma.request.update({
+      where: { id },
+      data: { status: "REJECTED" },
+    });
+
+    // notify student of rejection
+    await sendEmail(
+      findRequest.student.email,
+      "Request Update",
+      `<h2>Hello ${findRequest.student.fullName}</h2>
+       <p>Your request for <strong>${findRequest.documentType}</strong> has been rejected.</p>`
+    ).catch((err) => console.warn("Email failed:", err.message));
+
+    res.status(200).json({ message: "Request rejected successfully" });
   } catch (err) {
-    res.status(500).json({ error: "an error occured in the server" });
+    res.status(500).json({ error: "An error occurred on the server" });
   }
 };
 
@@ -221,6 +231,102 @@ const revokeCertificate = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "an error occurred in the server" });
+  }
+};
+
+const bulkRevokeCertificates = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No certificate IDs provided" });
+    }
+
+    const results = [];
+    const errors = [];
+
+    for (const id of ids) {
+      try {
+        const cert = await prisma.certificate.findUnique({ where: { id } });
+
+        if (!cert) {
+          errors.push({ id, error: "Certificate not found" });
+          continue;
+        }
+
+        if (cert.status === "REVOKED") {
+          errors.push({ id, error: "Already revoked" });
+          continue;
+        }
+
+        // revoke on blockchain first
+        await revokeCertificateOnChain(cert.contractType, cert.blockchainCertId);
+
+        await prisma.certificate.update({
+          where: { id },
+          data: { status: "REVOKED" },
+        });
+
+        results.push({ id, success: true });
+      } catch (err) {
+        errors.push({ id, error: err.message });
+      }
+    }
+
+    res.status(200).json({
+      message: `Revoked ${results.length} certificates`,
+      revoked: results.length,
+      errors,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "An error occurred on the server" });
+  }
+};
+
+const unrevokeCertificate = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const cert = await prisma.certificate.findUnique({ where: { id } });
+
+    if (!cert) return res.status(404).json({ message: "Certificate not found" });
+    if (cert.status !== "REVOKED") return res.status(400).json({ message: "Certificate is not revoked" });
+
+    // get all certificates for same student + contractType from DB
+    const allCerts = await prisma.certificate.findMany({
+      where: {
+        studentId: cert.studentId,
+        contractType: cert.contractType,
+        NOT: { id: cert.id },
+      },
+    });
+
+    // check each one on blockchain — if any is active, block the unrevoke
+    for (const c of allCerts) {
+      if (c.blockchainCertId) {
+        const isActive = await verifyCertificate(c.contractType, c.blockchainCertId);
+        if (isActive) {
+          return res.status(400).json({ 
+            message: "Cannot unrevoke — another active certificate already exists for this student on the blockchain. Revoke it first." 
+          });
+        }
+      }
+    }
+
+    // unrevoke on blockchain
+    await unrevokeCertificateOnChain(cert.contractType, cert.blockchainCertId);
+
+    // sync DB
+    await prisma.certificate.update({
+      where: { id },
+      data: { status: "ACTIVE" },
+    });
+
+    res.status(200).json({ message: "Certificate unrevoked successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "An error occurred on the server" });
   }
 };
 
@@ -365,7 +471,11 @@ const importDiplomas = async (req, res) => {
 
         // duplicate check — one certificate per student per contractType
         const existingCert = await prisma.certificate.findFirst({
-          where: { studentId: student.id, contractType },
+          where: { 
+            studentId: student.id,
+            contractType,
+            status: "ACTIVE"
+          },
         });
 
         if (existingCert) {
@@ -512,20 +622,18 @@ const importDiplomas = async (req, res) => {
 // get statistics
 const getStatistics = async (req, res) => {
   try {
-    const totalMaster = await prisma.certificate.count({
-      where: { type: "MASTER" },
-    });
-    const totalEngineer = await prisma.certificate.count({
-      where: { type: "ENGINEER" },
-    });
-    const totalStage = await prisma.certificate.count({
-      where: { type: "STAGE" },
-    });
+    const totalMaster = await prisma.certificate.count({ where: { type: "MASTER" } });
+    const totalEngineer = await prisma.certificate.count({ where: { type: "ENGINEER" } });
+    const totalInternship = await prisma.certificate.count({ where: { contractType: "INTERNSHIP" } });
+    const totalScolarite = await prisma.certificate.count({ where: { contractType: "STUDY" } });
+    const totalDiploma = await prisma.certificate.count({ where: { contractType: "DIPLOMA" } });
 
     const DistributionByType = {
       MASTER: totalMaster,
       ENGINEER: totalEngineer,
-      STAGE: totalStage,
+      INTERNSHIP: totalInternship,
+      SCOLARITE: totalScolarite,
+      DIPLOMA: totalDiploma,
     };
 
     const topSpecialties = await prisma.certificate.groupBy({
@@ -692,6 +800,8 @@ const getAuditTrail = async (req, res) => {
 module.exports = {
   changePassword,
   revokeCertificate,
+  bulkRevokeCertificates,
+  unrevokeCertificate,
   getRequests,
   dashboard,
   syncStudents,

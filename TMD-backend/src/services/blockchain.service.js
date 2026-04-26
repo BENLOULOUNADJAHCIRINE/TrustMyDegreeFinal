@@ -3,6 +3,7 @@ const DiplomaABI = require("../config/abis/DiplomaRegistry.json");
 const InternshipABI = require("../config/abis/InternshipRegistry.json");
 const StudyABI = require("../config/abis/StudyCertificateRegistry.json");
 const DocumentABI = require("../config/abis/DocumentRegistry.json");
+const RankRegistryABI = require("../config/abis/RankRegistry.json");
 
 const provider = new ethers.JsonRpcProvider(process.env.BLOCKCHAIN_RPC_URL);
 const signer = new ethers.Wallet(process.env.SCHOOL_WALLET_PRIVATE_KEY, provider);
@@ -31,10 +32,17 @@ const documentContract = new ethers.Contract(
   signer
 );
 
+const rankRegistryContract = new ethers.Contract(
+  process.env.RANK_REGISTRY_ADDRESS,
+  RankRegistryABI.abi,
+  signer
+);
+
 const getContract = (contractType) => {
   if (contractType === "DIPLOMA") return diplomaContract;
   if (contractType === "INTERNSHIP") return internshipContract;
   if (contractType === "STUDY") return studyContract;
+  if (contractType === "RANK") return rankRegistryContract;
   throw new Error(`Unknown contract type: ${contractType}`);
 };
 
@@ -127,9 +135,8 @@ const issueStudyCertificate = async ({ studentId, studentName, programName, acad
 // verifyCertificate on internship/study also returns bool
 const verifyCertificate = async (contractType, blockchainCertId) => {
   const contract = getContract(contractType);
-  if (contractType === "DIPLOMA") {
-    return await contract.verifyDiploma(blockchainCertId);
-  }
+  if (contractType === "DIPLOMA") return await contract.verifyDiploma(blockchainCertId);
+  if (contractType === "RANK") return await contract.verifyDocument(blockchainCertId);
   return await contract.verifyCertificate(blockchainCertId);
 };
 
@@ -151,20 +158,31 @@ const getCertificateData = async (contractType, blockchainCertId) => {
       isRevoked: data.isRevoked,
     };
   }
-
   if (contractType === "INTERNSHIP") {
-  const data = await contract.getCertificate(blockchainCertId);
+    const data = await contract.getCertificate(blockchainCertId);
+    return {
+      certId: data.certId,
+      studentId: data.studentId,
+      studentName: data.studentName,
+      schoolName: data.schoolName,
+      companyName: data.companyName,
+      internshipRole: data.internshipRole,
+      internshipCity: data.internshipCity,  // ← added
+      ipfsHash: data.ipfsHash,
+      startDate: data.startDate.toString(),
+      endDate: data.endDate.toString(),
+      issueDate: data.issueDate.toString(),
+      issuedBy: data.issuedBy,
+      isRevoked: data.isRevoked,
+    };
+  }
+  if (contractType === "RANK") {
+  const data = await contract.getDocument(blockchainCertId);
   return {
-    certId: data.certId,
-    studentId: data.studentId,
-    studentName: data.studentName,
-    schoolName: data.schoolName,
-    companyName: data.companyName,
-    internshipRole: data.internshipRole,
-    internshipCity: data.internshipCity,  // ← added
+    matricule: data.matricule.toString(),
+    documentType: data.documentType,
+    description: data.description,
     ipfsHash: data.ipfsHash,
-    startDate: data.startDate.toString(),
-    endDate: data.endDate.toString(),
     issueDate: data.issueDate.toString(),
     issuedBy: data.issuedBy,
     isRevoked: data.isRevoked,
@@ -247,6 +265,74 @@ const getDocumentData = async (blockchainDocId) => {
   };
 };
 
+// add student academic record to RankRegistry
+const addStudentToRankRegistry = async ({ matricule, name, familyName, speciality, branch, year, rank, average, credits, session }) => {
+  const tx = await rankRegistryContract.addStudent(
+    BigInt(matricule),
+    name,
+    familyName,
+    speciality,
+    branch,
+    year,
+    BigInt(rank),
+    String(average),
+    BigInt(credits),
+    session === "RATTRAPAGE" ? 1 : 0
+  );
+  const receipt = await tx.wait();
+  return receipt.hash;
+};
+
+// get one student from RankRegistry
+const getStudentFromRankRegistry = async (matricule) => {
+  const data = await rankRegistryContract.getStudent(BigInt(matricule));
+  return {
+    matricule: data.matricule.toString(),
+    name: data.name,
+    familyName: data.familyName,
+    speciality: data.speciality,
+    branch : data.branch,
+    year : data.year,
+    rank: data.rank.toString(),
+    average: data.average,
+    credits: data.credits.toString(),
+    session: data.session === 0n ? "NORMAL" : "RATTRAPAGE",
+  };
+};
+
+// get all students from RankRegistry
+const getAllStudentsFromRankRegistry = async () => {
+  const all = await rankRegistryContract.getAllStudents();
+  return all.map((data) => ({
+    matricule: data.matricule.toString(),
+    name: data.name,
+    familyName: data.familyName,
+    speciality: data.speciality,
+    branch : data.branch,
+    year : data.year,
+    rank: data.rank.toString(),
+    average: data.average,
+    credits: data.credits.toString(),
+    session: data.session === 0n ? "NORMAL" : "RATTRAPAGE",
+  }));
+};
+
+const unrevokeCertificate = async (contractType, blockchainCertId) => {
+  const contract = getContract(contractType);
+  let tx;
+
+  if (contractType === "DIPLOMA") {
+    tx = await contract.unrevokeDiploma(blockchainCertId);
+  } else if (contractType === "RANK") {
+    tx = await contract.unrevokeDocument(blockchainCertId);
+  } else {
+    tx = await contract.unrevokeCertificate(blockchainCertId);
+  }
+
+  const receipt = await tx.wait();
+  return receipt.hash;
+};
+
 module.exports = {
   issueDiploma,
   issueInternship,
@@ -254,7 +340,11 @@ module.exports = {
   verifyCertificate,
   getCertificateData,
   revokeCertificate,
+  unrevokeCertificate,
   issueDocument,
   verifyDocument,
   getDocumentData,
+  addStudentToRankRegistry,
+  getStudentFromRankRegistry,
+  getAllStudentsFromRankRegistry,
 };

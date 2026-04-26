@@ -126,6 +126,7 @@ font-size: 12px;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
 
 .legend {
@@ -337,7 +338,7 @@ font-size: 12px;
   }
 
   .doughnutWrapper {
-    width: 130px;
-    height: 130px;
+    width: 150px;
+    height: 180px;
   }
 }

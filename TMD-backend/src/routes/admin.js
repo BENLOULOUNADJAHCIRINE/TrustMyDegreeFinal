@@ -7,6 +7,8 @@ const {
   handleRequestStatus,
   handleRequestDocument,
   revokeCertificate,
+  bulkRevokeCertificates,
+  unrevokeCertificate,
   changePassword,
   syncStudents,
   importDiplomas,
@@ -23,7 +25,9 @@ router.get("/requests", protect, isAdmin, getRequests);
 router.put("/requests/:id/status", protect, isAdmin, handleRequestStatus);
 router.get("/certificates/export", protect, isAdmin, exportCertificates);
 router.put("/requests/:id/upload", protect, isAdmin, handleRequestDocument);
+router.put("/certificates/bulk-revoke", protect, isAdmin, bulkRevokeCertificates);
 router.put("/certificates/:id/revoke", protect, isAdmin, revokeCertificate);
+router.put("/certificates/:id/unrevoke", protect, isAdmin, unrevokeCertificate);  
 router.put("/settings", protect, isAdmin, changePassword);
 router.post("/sync-students", protect, isAdmin, syncStudents);
 router.post("/import", protect, isAdmin, importDiplomas);

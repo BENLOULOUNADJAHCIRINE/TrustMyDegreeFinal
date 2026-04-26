@@ -528,3 +528,46 @@ tbody td[colspan] {
     visibility: visible !important;
   }
 }
+
+.toastConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.toastButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.toastConfirmBtn {
+  background: #4F46E5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s ease;
+}
+
+.toastConfirmBtn:hover {
+  background: #3730a3;
+}
+
+.toastCancelBtn {
+  background: #e5e7eb;
+  color: #111;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.toastCancelBtn:hover {
+  background: #d1d5db;
+}

@@ -39,6 +39,7 @@ function Request() {
     }
   }, []);
 
+
   // Centralized fetch to keep stats and list in sync
   const fetchRequests = () => {
     fetch("http://localhost:5000/api/admin/requests", {
@@ -58,6 +59,9 @@ function Request() {
       })
       .catch((err) => console.log(err));
   };
+  useEffect(() => {
+  fetchRequests();
+}, []);
 
   const filteredRequests = request.filter(
     (req) =>
@@ -146,59 +150,71 @@ function Request() {
   }
 
   function uploadDocument(id) {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".pdf,.doc,.docx";
-    input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".pdf,.doc,.docx";
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-      const formData = new FormData();
-      formData.append("document", file);
+    const formData = new FormData();
+    formData.append("document", file);
 
-      fetch(`http://localhost:5000/api/admin/requests/${id}/upload`, {
-        method: "PUT",
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-        body: formData,
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.request) {
-            // Update local state with the returned object
-            const updated = request.map((r) =>
-              r.id === id ? data.request : r,
-            );
-            setRequest(updated);
-            toast.success("Document uploaded and approved successfully!");
-          }
-        })
-        .catch((err) => console.log(err), toast.error("Upload failed"));
-    };
-    input.click();
-  }
+    toast.loading("Uploading document...", { id: "upload" });
 
-  function updateStatus(id, newStatus) {
-    fetch(`http://localhost:5000/api/admin/requests/${id}/status`, {
+    fetch(`http://localhost:5000/api/admin/requests/${id}/upload`, {
       method: "PUT",
       headers: {
-        "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
-      body: JSON.stringify({ status: newStatus }),
+      body: formData,
     })
       .then((res) => res.json())
-      .then(() => {
-        const updated = request.map((c) =>
-          c.id === id ? { ...c, status: newStatus } : c,
+      .then((data) => {
+        toast.dismiss("upload");
+        if (data.error) {
+          toast.error(data.error);
+          return;
+        }
+        // update local state directly — no reload needed
+        const updated = request.map((r) =>
+          r.id === id ? { ...r, status: "APPROVED" } : r
         );
         setRequest(updated);
-        setOpenMenu(null);
-        toast.success(`Request ${newStatus.toLowerCase()} successfully.`);
+        toast.success("Document uploaded and approved successfully!");
       })
-      .catch((err) => console.log(err), toast.error("Update failed"));
-  }
+      .catch((err) => {
+        toast.dismiss("upload");
+        console.log(err);
+        toast.error("Upload failed");
+      });
+  };
+  input.click();
+}
+
+  function updateStatus(id, newStatus) {
+  fetch(`http://localhost:5000/api/admin/requests/${id}/status`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + localStorage.getItem("token"),
+    },
+    body: JSON.stringify({ status: newStatus }),
+  })
+    .then((res) => res.json())
+    .then(() => {
+      const updated = request.map((c) =>
+        c.id === id ? { ...c, status: newStatus } : c,
+      );
+      setRequest(updated);
+      setOpenMenu(null);
+      toast.success(`Request ${newStatus.toLowerCase()} successfully.`);
+    })
+    .catch((err) => {
+      console.log(err);
+      toast.error("Update failed");
+    });
+}
 
   // --- PAGINATION LOGIC ---
   useEffect(() => {
@@ -455,11 +471,6 @@ function Request() {
                                 View Doc
                               </button>
                             )}
-                            <button
-                              onClick={() => updateStatus(req.id, "APPROVED")}
-                            >
-                              approve
-                            </button>
                             <button
                               onClick={() => updateStatus(req.id, "REJECTED")}
                             >
