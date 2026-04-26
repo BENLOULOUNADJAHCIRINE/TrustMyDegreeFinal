@@ -67,8 +67,12 @@ function Issue() {
       return;
     }
 
-    const form = new FormData();
-    form.append("graduationDate", formData.date);
+    const form = new FormData();const dateField =
+  formData.templateType === "diploma"
+    ? "graduationDate"
+    : "issueDate";
+
+form.append(dateField, formData.date);
     form.append("excel", formData.file);
     form.append("templateType", formData.templateType);
     form.append("class", formData.class);
@@ -213,7 +217,11 @@ function Issue() {
               </div>
 
               <div className={styles.date}>
-                <label>Date of Completion</label>
+                <label>
+                  {formData.templateType === "diploma"
+                     ? "Graduation Date"
+                      : "Issue Date"}
+                          </label>
                 <input
                   type="date"
                   name="date"
