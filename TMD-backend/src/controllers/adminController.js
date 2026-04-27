@@ -764,6 +764,7 @@ const downloadCertificate = async (req, res) => {
 
     // Already generated before — stream from IPFS
     if (certificate.ipfsHash && certificate.ipfsHash !== "pending") {
+      console.log("[downloadCertificate] Serving from IPFS:", certificate.ipfsHash);
       const ipfsUrl = `https://ipfs.filebase.io/ipfs/${certificate.ipfsHash}`;
       const response = await axios.get(ipfsUrl, { responseType: "stream" });
       res.setHeader("Content-Type", "application/pdf");
@@ -776,22 +777,41 @@ const downloadCertificate = async (req, res) => {
       return res.status(404).json({ message: "Certificate data not available for generation" });
     }
 
+    console.log("[downloadCertificate] Generating PDF for cert:", id);
     const generateDiplomaPDF = require("../utils/generatePDF");
     const data = certificate.certData;
-    const pdfPath = await generateDiplomaPDF(data, data.templateType || "diploma");
-    const ipfsHash = await uploadPDFtoPinata(pdfPath);
-    fs.unlinkSync(pdfPath);
+
+    // generatePDF returns a relative path like "uploads/diploma_XYZ.pdf"
+    // We must resolve it to an absolute path before passing to fs/pinata
+    const relativePdfPath = await generateDiplomaPDF(data, data.templateType || "diploma");
+    const absolutePdfPath = path.resolve(relativePdfPath);
+    console.log("[downloadCertificate] PDF generated at:", absolutePdfPath);
+
+    if (!fs.existsSync(absolutePdfPath)) {
+      console.error("[downloadCertificate] PDF file not found at:", absolutePdfPath);
+      return res.status(500).json({ error: "PDF generation failed — file not found on disk" });
+    }
+
+    console.log("[downloadCertificate] Uploading to Filebase...");
+    const ipfsHash = await uploadPDFtoPinata(absolutePdfPath);
+    console.log("[downloadCertificate] Filebase CID:", ipfsHash);
+    fs.unlinkSync(absolutePdfPath);
 
     await prisma.certificate.update({ where: { id }, data: { ipfsHash } });
 
+    // Give Filebase a moment to propagate the file before fetching it back
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     const ipfsUrl = `https://ipfs.filebase.io/ipfs/${ipfsHash}`;
+    console.log("[downloadCertificate] Fetching from IPFS:", ipfsUrl);
     const response = await axios.get(ipfsUrl, { responseType: "stream" });
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `inline; filename="certificate_${id}.pdf"`);
     response.data.pipe(res);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "An error occurred on the server" });
+    console.error("[downloadCertificate] ERROR:", err.message);
+    console.error(err.stack);
+    res.status(500).json({ error: "An error occurred on the server", detail: err.message });
   }
 };
 

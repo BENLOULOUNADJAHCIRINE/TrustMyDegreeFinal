@@ -96,7 +96,7 @@ const generateDiplomaPDF = async (studentData, templateType = "diploma") => {
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
     });
 
-    return `uploads/${fileName}`;
+    return filePath; // absolute path — safe to pass directly to fs/pinata
   } finally {
     await browser.close();
   }

@@ -17,7 +17,12 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(fileUpload());
+app.use(fileUpload({
+  limits: { fileSize: 3 * 1024 * 1024 },
+  abortOnLimit: true,
+  useTempFiles: false,
+  parseNested: true,
+}));
 app.use(express.static(path.join(__dirname, "public")));
 
 // routes

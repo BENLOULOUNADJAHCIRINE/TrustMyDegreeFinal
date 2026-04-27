@@ -89,7 +89,7 @@ function RequestStudent() {
 
         <div className={styles.info}>
           <img
-            src={user?.avatar ? `${process.env.REACT_APP_API_URL}${user.avatar}` : "/totalcertaficates.png"}
+            src={user?.avatar ? user.avatar : "/totalcertaficates.png"}
             alt="ava"
             className={styles.student}
           />

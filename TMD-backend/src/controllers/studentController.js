@@ -119,15 +119,27 @@ const downloadCertificate = async (req, res) => {
     const { id } = req.params;
 
     const certificate = await prisma.certificate.findUnique({ where: { id } });
-
     if (!certificate) return res.status(404).json({ message: "Certificate not found" });
     if (certificate.studentId !== userId) return res.status(403).json({ message: "Access denied" });
+
+    // Auto-generate if not yet uploaded to Filebase
     if (!certificate.ipfsHash || certificate.ipfsHash === "pending") {
-      return res.status(404).json({ message: "Certificate is being prepared, please try again shortly" });
+      if (!certificate.certData) {
+        return res.status(404).json({ message: "Certificate data not available" });
+      }
+      const generateDiplomaPDF = require("../utils/generatePDF");
+      const { uploadPDFtoPinata } = require("../services/pinata.service");
+      const data = certificate.certData;
+      const pdfPath = await generateDiplomaPDF(data, data.templateType || "diploma");
+      const absolutePdfPath = require("path").resolve(pdfPath);
+      const ipfsHash = await uploadPDFtoPinata(absolutePdfPath);
+      require("fs").unlinkSync(absolutePdfPath);
+      await prisma.certificate.update({ where: { id }, data: { ipfsHash } });
+      certificate.ipfsHash = ipfsHash; // use it below
     }
+
     const ipfsUrl = `https://ipfs.filebase.io/ipfs/${certificate.ipfsHash}`;
     const response = await axios.get(ipfsUrl, { responseType: "stream" });
-
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `inline; filename="certificate_${id}.pdf"`);
     response.data.pipe(res);
