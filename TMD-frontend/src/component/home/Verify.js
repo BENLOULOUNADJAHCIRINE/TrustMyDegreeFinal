@@ -16,7 +16,7 @@ function Verify() {
   }, []);
 
   function verifyCode(codeToVerify) {
-    fetch("http://localhost:5000/verify", {
+    fetch(`${process.env.REACT_APP_API_URL}/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code: codeToVerify }),
@@ -118,6 +118,28 @@ function Verify() {
                 {new Date(
                   Number(result.academicData.endDate) * 1000,
                 ).toLocaleDateString("fr-FR")}
+              </p>
+            </>
+          )}
+          {result.contractType === "RANK" && result.academicData && (
+            <>
+              <p>
+                <strong>Rank:</strong> {result.academicData.rank}
+              </p>
+              <p>
+                <strong>Average:</strong> {result.academicData.average}
+              </p>
+              <p>
+                <strong>Speciality:</strong> {result.academicData.speciality}
+              </p>
+              <p>
+                <strong>Year:</strong> {result.academicData.year}
+              </p>
+              <p>
+                <strong>Branch:</strong> {result.academicData.branch}
+              </p>
+              <p>
+                <strong>Session:</strong> {result.academicData.session}
               </p>
             </>
           )}

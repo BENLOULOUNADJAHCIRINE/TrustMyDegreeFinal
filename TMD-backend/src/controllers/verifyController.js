@@ -68,6 +68,13 @@ const verifyCertificateHandler = async (req, res) => {
       academicData.programName = chainData.programName;
       academicData.academicYear = chainData.academicYear;
       academicData.certificateType = chainData.certificateType;
+    } else if (certificate.contractType === "RANK") {
+      academicData.rank = chainData.rank;
+      academicData.average = chainData.average;
+      academicData.speciality = chainData.speciality;
+      academicData.year = chainData.year;
+      academicData.branch = chainData.branch;
+      academicData.session = chainData.session;
     }
 
     res.json({
