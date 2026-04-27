@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <title>شهادة مدرسية</title>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-
 <style>
 
 @page {
@@ -77,9 +75,11 @@ body {
     border-radius: 8px;
 }
 
-#qrcode {
-    display: flex;
-    justify-content: center;
+.verify-box img {
+    width: 110px;
+    height: 110px;
+    display: block;
+    margin: 0 auto;
 }
 
 .hash {
@@ -155,8 +155,9 @@ body {
 
     </div>
 
+    <!-- ✅ FIX: replaced qrcodejs CDN with base64 QR from generatePDF.js -->
     <div class="verify-box">
-        <div id="qrcode"></div>
+        {{qrCode}}
         <div class="hash">{{hash}}</div>
         <div style="font-size:10px; margin-top:4px;">{{uniqueCode}}</div>
     </div>
@@ -166,17 +167,6 @@ body {
     </div>
 
 </div>
-
-<script>
-  const verificationURL =
-    "https://trustmydegree.io/verify/{{uniqueCode}}?hash={{hash}}";
-
-  new QRCode(document.getElementById("qrcode"), {
-    text: verificationURL,
-    width: 110,
-    height: 110
-  });
-</script>
 
 </body>
 </html>

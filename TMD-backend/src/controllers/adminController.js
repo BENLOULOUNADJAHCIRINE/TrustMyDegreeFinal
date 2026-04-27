@@ -624,6 +624,8 @@ const importDiplomas = async (req, res) => {
             field: row.field || "",
             average: row.average || "",
             rank: row.rank || "",
+              branch: branch || "",       
+              class: level || "",
           },
           templateType,
         );
