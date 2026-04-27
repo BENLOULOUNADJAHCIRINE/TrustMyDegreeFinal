@@ -177,15 +177,31 @@ const getCertificateData = async (contractType, blockchainCertId) => {
     };
   }
   if (contractType === "RANK") {
-  const data = await contract.getDocument(blockchainCertId);
+  const doc = await contract.getDocument(blockchainCertId);
+  
+  // also fetch student data to get rank and average
+  let studentData = null;
+  try {
+    studentData = await contract.getStudent(doc.matricule);
+  } catch (e) {
+    console.warn("Could not fetch student rank data:", e.message);
+  }
+
   return {
-    matricule: data.matricule.toString(),
-    documentType: data.documentType,
-    description: data.description,
-    ipfsHash: data.ipfsHash,
-    issueDate: data.issueDate.toString(),
-    issuedBy: data.issuedBy,
-    isRevoked: data.isRevoked,
+    matricule: doc.matricule.toString(),
+    documentType: doc.documentType,
+    description: doc.description,
+    ipfsHash: doc.ipfsHash,
+    issueDate: doc.issueDate.toString(),
+    issuedBy: doc.issuedBy,
+    isRevoked: doc.isRevoked,
+    // student academic data
+    rank: studentData?.rank?.toString() || "—",
+    average: studentData?.average || "—",
+    speciality: studentData?.speciality || "",
+    year: studentData?.year || "",
+    branch: studentData?.branch || "",
+    session: studentData?.session === 0n ? "NORMAL" : "RATTRAPAGE",
   };
 }
 
@@ -211,6 +227,8 @@ const revokeCertificate = async (contractType, blockchainCertId) => {
   let tx;
   if (contractType === "DIPLOMA") {
     tx = await contract.revokeDiploma(blockchainCertId);
+  } else if (contractType === "RANK") {
+    tx = await contract.revokeDocument(blockchainCertId);
   } else {
     tx = await contract.revokeCertificate(blockchainCertId);
   }
@@ -218,7 +236,6 @@ const revokeCertificate = async (contractType, blockchainCertId) => {
   const receipt = await tx.wait();
   return receipt.hash;
 };
-
 const issueDocument = async ({ studentId, studentName, documentType, ipfsHash }) => {
   const tx = await documentContract.issueDocument(
     studentId,
@@ -267,6 +284,7 @@ const getDocumentData = async (blockchainDocId) => {
 
 // add student academic record to RankRegistry
 const addStudentToRankRegistry = async ({ matricule, name, familyName, speciality, branch, year, rank, average, credits, session }) => {
+  const nonce = await provider.getTransactionCount(signer.address, "pending");
   const tx = await rankRegistryContract.addStudent(
     BigInt(matricule),
     name,
@@ -277,7 +295,8 @@ const addStudentToRankRegistry = async ({ matricule, name, familyName, specialit
     BigInt(rank),
     String(average),
     BigInt(credits),
-    session === "RATTRAPAGE" ? 1 : 0
+    session === "RATTRAPAGE" ? 1 : 0,
+    { nonce }
   );
   const receipt = await tx.wait();
   return receipt.hash;
@@ -317,10 +336,35 @@ const getAllStudentsFromRankRegistry = async () => {
   }));
 };
 
+const issueRankDocument = async ({ matricule, documentType, description, ipfsHash }) => {
+  const nonce = await provider.getTransactionCount(signer.address, "pending");
+  const tx = await rankRegistryContract.issueDocument(
+    BigInt(matricule),
+    documentType,
+    description,
+    ipfsHash,
+    { nonce }
+  );
+  const receipt = await tx.wait();
+
+  const event = receipt.logs
+    .map((log) => {
+      try { return rankRegistryContract.interface.parseLog(log); } catch { return null; }
+    })
+    .find((e) => e?.name === "DocumentIssued");
+
+  if (!event) throw new Error("DocumentIssued event not found in RankRegistry");
+
+  return {
+    blockchainCertId: event.args.certId,
+    txHash: receipt.hash,
+  };
+};
+
 const unrevokeCertificate = async (contractType, blockchainCertId) => {
   const contract = getContract(contractType);
-  let tx;
 
+  let tx;
   if (contractType === "DIPLOMA") {
     tx = await contract.unrevokeDiploma(blockchainCertId);
   } else if (contractType === "RANK") {
@@ -337,6 +381,7 @@ module.exports = {
   issueDiploma,
   issueInternship,
   issueStudyCertificate,
+  issueRankDocument,
   verifyCertificate,
   getCertificateData,
   revokeCertificate,

@@ -8,7 +8,7 @@ function Authorisations() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const BASE_URL = "http://localhost:5000";
+  const BASE_URL = process.env.REACT_APP_API_URL;
   const token = localStorage.getItem("token");
 
   // Get logged in user from localStorage
@@ -99,7 +99,7 @@ function Authorisations() {
             <h4>{user ? user.fullName : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
-          <img src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"} alt="avatar" />
+          <img src={user?.avatar ? `${process.env.REACT_APP_API_URL}${user.avatar}` : "/totalcertaficates.png"} alt="avatar" />
         </div>
       </div>
 
@@ -138,7 +138,7 @@ function Authorisations() {
               admins.map((adm) => (
                 <div className={styles.admin} key={adm.id}>
                   <div className={styles.left}>
-                    <img src={adm.avatar ? `http://localhost:5000${adm.avatar}` : "/email.png"} alt="pic" />
+                    <img src={adm.avatar ? `${process.env.REACT_APP_API_URL}${adm.avatar}` : "/email.png"} alt="pic" />
                     <h3>{adm.email}</h3>
                   </div>
                   <div className={styles.right}>

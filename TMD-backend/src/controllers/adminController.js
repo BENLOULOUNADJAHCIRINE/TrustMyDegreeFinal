@@ -11,6 +11,8 @@ const {
   issueInternship,
   issueStudyCertificate,
   issueDocument,
+  issueRankDocument,
+  addStudentToRankRegistry,
 } = require("../services/blockchain.service");
 const {
   revokeCertificate: revokeCertificateOnChain,
@@ -533,15 +535,53 @@ const importDiplomas = async (req, res) => {
             startDate: start.toISOString(),
             endDate: end.toISOString(),
           });
-        } else if (contractType === "RANK") {
-          // ✅ FIX: properly closed issueDocument call for RANK
-          blockchainResult = await issueDocument({
-            studentId: student.matricule,
-            studentName: student.fullName,
-            documentType: "RANK",
-            ipfsHash: "pending",
-          });
-        } else {
+          }  else if (contractType === "RANK") {
+              const rankValue = Number(row["rank"] || 0);
+              const nomValue = row["familyName"] || "";
+              const prenomValue = row["name"] || "";
+              const averageValue = String(row["average"] || "0");
+              const creditsValue = Number(row["credits"] || 0);
+              const sessionValue = String(row["session"] || "NORMAL")
+                .toLowerCase()
+                .includes("rattrapage") ? "RATTRAPAGE" : "NORMAL";
+
+              // register student in RankRegistry first (contract requires studentExists)
+              if (!student.blockchainRegistered) {
+                try {
+                  await addStudentToRankRegistry({
+                    matricule: student.matricule,
+                    name: prenomValue || student.fullName?.split(" ")[0] || "",
+                    familyName: nomValue || student.fullName?.split(" ").slice(1).join(" ") || "",
+                    speciality: speciality || "",
+                    branch: branch || "",
+                    year: level || "",
+                    rank: rankValue,
+                    average: averageValue,
+                    credits: creditsValue,
+                    session: sessionValue,
+                  });
+
+                  await prisma.user.update({
+                    where: { id: student.id },
+                    data: { blockchainRegistered: true },
+                  });
+                } catch (err) {
+                  console.log(`Student ${student.matricule} already in RankRegistry:`, err.message);
+                  await prisma.user.update({
+                    where: { id: student.id },
+                    data: { blockchainRegistered: true },
+                  });
+                }
+              }
+
+              // issue rank document on RankRegistry
+              blockchainResult = await issueRankDocument({
+                matricule: student.matricule,
+                documentType: "Rank Certificate",
+                description: `Rank ${rankValue} — ${speciality || ""}`,
+                ipfsHash: "pending",
+              });
+            }else {
           // STUDY / scolarite
           blockchainResult = await issueStudyCertificate({
             studentId: student.matricule,
@@ -553,7 +593,6 @@ const importDiplomas = async (req, res) => {
           });
         }
 
-        // ✅ FIX: specialty — RANK uses form value, everything else uses Excel row
         const resolvedSpecialty =
           contractType === "RANK"
             ? speciality || ""
@@ -614,12 +653,13 @@ const importDiplomas = async (req, res) => {
         });
 
         // notify student by email
+        try {
         await sendEmail(
           student.email,
           "Your Certificate is Ready 🎓",
           `<h2>Congratulations ${student.fullName}!</h2>
           <p>Your certificate is now available on your dashboard.</p>
-          <a href="http://localhost:3000/login"
+          <a href="${process.env.FRONTEND_URL}/login"
             style="
               display: inline-block;
               padding: 12px 24px;
@@ -633,9 +673,12 @@ const importDiplomas = async (req, res) => {
             Login to Dashboard
           </a>
           <p style="color: #888; font-size: 12px; margin-top: 16px;">
-            If the button doesn't work, copy this link: http://localhost:3000/login
+            If the button doesn't work, copy this link: ${process.env.FRONTEND_URL}/login
           </p>`,
         );
+      } catch (emailErr) {
+        console.error(`Email failed for matricule ${row.matricule}:`, emailErr.message);
+      }
 
         created++;
       } catch (rowErr) {
@@ -664,6 +707,7 @@ const getStatistics = async (req, res) => {
     const totalInternship = await prisma.certificate.count({ where: { contractType: "INTERNSHIP" } });
     const totalScolarite = await prisma.certificate.count({ where: { contractType: "STUDY" } });
     const totalDiploma = await prisma.certificate.count({ where: { contractType: "DIPLOMA" } });
+    const totalRank = await prisma.certificate.count({ where: { contractType: "RANK" } });
 
     const DistributionByType = {
       MASTER: totalMaster,
@@ -671,6 +715,7 @@ const getStatistics = async (req, res) => {
       INTERNSHIP: totalInternship,
       SCOLARITE: totalScolarite,
       DIPLOMA: totalDiploma,
+      RANK: totalRank,
     };
 
     const topSpecialties = await prisma.certificate.groupBy({

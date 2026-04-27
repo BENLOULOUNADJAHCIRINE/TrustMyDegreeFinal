@@ -12,8 +12,7 @@ defaults.plugins.title.font.size = 20;
 defaults.plugins.title.color = "black";
 
 function Static() {
-  const pieColors = ["#1E3A8A", "#10B981", "#F59E0B", "#8B5CF6", "#EF4444"];
-
+  const pieColors = ["#1E3A8A", "#10B981", "#F59E0B", "#8B5CF6", "#EF4444", "#be185d"];
   const [user, setUser] = useState(null);
   const [bargraph, setBargraph] = useState([]);
   const [linegraph, setLinegraph] = useState([]);
@@ -30,19 +29,25 @@ function Static() {
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/admin/statistics", {
+    fetch(`${process.env.REACT_APP_API_URL}/api/admin/statistics`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     })
       .then((res) => res.json())
       .then((data) => {
-        // Line graph - monthly issuance
+        const monthlyVerifications = {};
+        Object.entries(data.verificationsPerDay).forEach(([day, count]) => {
+          const month = new Date(day).toLocaleString("fr-FR", { month: "short" });
+          monthlyVerifications[month] = (monthlyVerifications[month] || 0) + count;
+        });
+
+        // Line graph - monthly issuance + verifications
         const lineFormatted = Object.entries(data.monthlyIssuance).map(
           ([label, value]) => ({
             label,
             Issuances: value,
-            verification: 0,
+            verification: monthlyVerifications[label] || 0,
           }),
         );
         setLinegraph(lineFormatted);
@@ -85,7 +90,7 @@ function Static() {
             <h4>{user ? user.name : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
-          <img src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"} alt="ava" />
+          <img src={user?.avatar ? `${process.env.REACT_APP_API_URL}${user.avatar}` : "/totalcertaficates.png"} alt="ava" />
         </div>
       </div>
 
@@ -179,7 +184,7 @@ function Static() {
                 datasets: [
                   {
                     data: piegraph.map((data) => data.value),
-                    backgroundColor: ["#1E3A8A", "#10B981", "#F59E0B", "#8B5CF6", "#EF4444"],
+                    backgroundColor: ["#1E3A8A", "#10B981", "#F59E0B", "#8B5CF6", "#EF4444", "#be185d"],
                     borderRadius: 8,
                     spacing: 4,
                   },

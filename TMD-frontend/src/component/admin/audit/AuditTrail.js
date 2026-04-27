@@ -14,7 +14,11 @@ function AuditTrail() {
     const role = localStorage.getItem("role");
     const storedUser = localStorage.getItem("user");
     const parsed = storedUser ? JSON.parse(storedUser) : {};
-    setUser({ fullName: role === "SUPER_ADMIN" ? "Super Admin" : "Admin", email: parsed.email || "", avatar: parsed.avatar || null });
+    setUser({
+      fullName: role === "SUPER_ADMIN" ? "Super Admin" : "Admin",
+      email: parsed.email || "",
+      avatar: parsed.avatar || null,
+    });
   }, []);
 
   useEffect(() => {
@@ -62,7 +66,14 @@ function AuditTrail() {
             <h4>{user ? user.fullName : "guest"}</h4>
             <p>{user ? user.email : "super@ensta.edu.dz"}</p>
           </div>
-          <img src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"} alt="avat" />
+          <img
+            src={
+              user?.avatar
+                ? `${process.env.REACT_APP_API_URL}${user.avatar}`
+                : "/totalcertaficates.png"
+            }
+            alt="avat"
+          />
         </div>
       </div>
 
@@ -101,6 +112,12 @@ function AuditTrail() {
           </span>
           <span className={styles.statLabel}>Scolarités</span>
         </div>
+        <div className={styles.stat}>
+          <span className={`${styles.statNumber} ${styles.pink}`}>
+            {trail.filter((t) => t.contractType === "RANK").length}
+          </span>
+          <span className={styles.statLabel}>Ranks</span>
+        </div>
       </div>
 
       <div className={styles.search}>
@@ -115,7 +132,7 @@ function AuditTrail() {
           />
         </div>
         <div className={styles.filters}>
-          {["ALL", "ACTIVE", "REVOKED", "DIPLOMA", "INTERNSHIP", "STUDY"].map(
+          {["ALL", "ACTIVE", "REVOKED", "DIPLOMA", "INTERNSHIP", "STUDY", "RANK"].map(
             (f) => (
               <button
                 key={f}
@@ -153,7 +170,14 @@ function AuditTrail() {
                       {new Date(item.issueDate).toLocaleDateString("fr-FR")}
                     </td>
                     <td className={styles.column}>
-                      <img src={item.studentAvatar ? `http://localhost:5000${item.studentAvatar}` : "/students.jpg"} alt="student" />
+                      <img
+                        src={
+                          item.studentAvatar
+                            ? `${process.env.REACT_APP_API_URL}${item.studentAvatar}`
+                            : "/students.jpg"
+                        }
+                        alt="student"
+                      />
                       <span className={styles.student}>{item.studentName}</span>
                     </td>
                     <td className={styles.column}>{item.matricule}</td>

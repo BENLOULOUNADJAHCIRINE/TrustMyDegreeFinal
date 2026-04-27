@@ -588,3 +588,37 @@
     box-sizing: border-box;
   }
 }
+
+.internship {
+  background-color: #ede9fe;
+  color: #7c3aed;
+  border: 1px solid #7c3aed;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.rank {
+  background-color: #fce7f3;
+  color: #be185d;
+  border: 1px solid #be185d;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.scolarite {
+  background-color: #8B5CF6;
+  color: white;
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+
+.rank {
+  background-color: #be185d;
+  color: white;
+  border-radius: 20px;
+  padding: 3px 10px;
+}

@@ -26,9 +26,7 @@ function DashboardStudent() {
           activeCertificates: data.activeCertificates,
           lastIssued: data.lastIssuedCertificate?.issueDate || null,
         });
-
         setCertificates(data.certificates || []);
-
         const approvedDocs = (data.requests || []).filter(
           (req) => req.status === "APPROVED" && req.fileUrl,
         );
@@ -52,8 +50,8 @@ function DashboardStudent() {
     const token = localStorage.getItem("token");
     const endpoint =
       type === "CERT"
-        ? `http://localhost:5000/api/student/certificates/${id}/download`
-        : `http://localhost:5000/api/student/requests/${id}/download`;
+        ? `${process.env.REACT_APP_API_URL}/api/student/certificates/${id}/download`
+        : `${process.env.REACT_APP_API_URL}/api/student/requests/${id}/download`;
 
     fetch(endpoint, {
       headers: { Authorization: `Bearer ${token}` },
@@ -94,17 +92,21 @@ function DashboardStudent() {
     canvas.width = W;
     canvas.height = H;
 
+    // background
     ctx.fillStyle = "#1e1b4b";
     ctx.fillRect(0, 0, W, H);
 
+    // left bar
     ctx.fillStyle = "#4F46E5";
     ctx.fillRect(0, 0, 8, H);
 
+    // top right arc
     ctx.fillStyle = "#4F46E5";
     ctx.beginPath();
     ctx.arc(W, 0, 120, 0, Math.PI / 2);
     ctx.fill();
 
+    // school name
     ctx.fillStyle = "#a5b4fc";
     ctx.font = "bold 13px Arial";
     ctx.fillText(
@@ -113,10 +115,12 @@ function DashboardStudent() {
       40,
     );
 
+    // verified
     ctx.fillStyle = "#22c55e";
     ctx.font = "bold 12px Arial";
     ctx.fillText("✓ Blockchain Verified", 30, 75);
 
+    // student name
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 28px Arial";
     ctx.fillText(
@@ -125,6 +129,7 @@ function DashboardStudent() {
       120,
     );
 
+    // divider
     ctx.strokeStyle = "#4F46E5";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -132,6 +137,7 @@ function DashboardStudent() {
     ctx.lineTo(420, 135);
     ctx.stroke();
 
+    // certificate type
     ctx.fillStyle = "#a5b4fc";
     ctx.font = "13px Arial";
     ctx.fillText("CERTIFICATE TYPE", 30, 165);
@@ -139,21 +145,58 @@ function DashboardStudent() {
     ctx.font = "bold 16px Arial";
     ctx.fillText(cert.type || "MASTER", 30, 185);
 
-    ctx.fillStyle = "#a5b4fc";
-    ctx.font = "13px Arial";
-    ctx.fillText("SPECIALTY", 30, 220);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 16px Arial";
-    ctx.fillText(cert.specialty || "", 30, 240);
-    if (cert.contractType === "INTERNSHIP" && cert.chainData?.companyName) {
+    // ── RANK specific layout ──
+    if (cert.contractType === "RANK" && cert.chainData) {
+      // rank
       ctx.fillStyle = "#a5b4fc";
       ctx.font = "13px Arial";
-      ctx.fillText("COMPANY", 220, 220);
+      ctx.fillText("RANK", 30, 220);
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 16px Arial";
-      ctx.fillText(cert.chainData.companyName, 220, 240);
+      ctx.fillText(cert.chainData.rank?.toString() || "—", 30, 240);
+
+      // average
+      ctx.fillStyle = "#a5b4fc";
+      ctx.font = "13px Arial";
+      ctx.fillText("AVERAGE", 150, 220);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText(cert.chainData.average?.toString() || "—", 150, 240);
+
+      // specialty
+      const branchLabel =
+        cert.chainData?.branch === "MI"
+          ? "CPMI"
+          : cert.chainData?.branch === "ST"
+            ? "CPST"
+            : cert.chainData?.speciality || cert.specialty || "—";
+
+      ctx.fillStyle = "#a5b4fc";
+      ctx.font = "13px Arial";
+      ctx.fillText("SPECIALTY", 280, 220);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText(branchLabel, 280, 240);
+    } else {
+      // ── non-RANK layout ──
+      ctx.fillStyle = "#a5b4fc";
+      ctx.font = "13px Arial";
+      ctx.fillText("SPECIALTY", 30, 220);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText(cert.specialty || "", 30, 240);
+
+      if (cert.contractType === "INTERNSHIP" && cert.chainData?.companyName) {
+        ctx.fillStyle = "#a5b4fc";
+        ctx.font = "13px Arial";
+        ctx.fillText("COMPANY", 220, 220);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 16px Arial";
+        ctx.fillText(cert.chainData.companyName, 220, 240);
+      }
     }
 
+    // issued date
     ctx.fillStyle = "#a5b4fc";
     ctx.font = "13px Arial";
     ctx.fillText("ISSUED", 30, 275);
@@ -161,11 +204,13 @@ function DashboardStudent() {
     ctx.font = "bold 16px Arial";
     ctx.fillText(new Date(cert.issueDate).toLocaleDateString("fr-FR"), 30, 295);
 
+    // unique code
     ctx.fillStyle = "#6366f1";
     ctx.font = "11px Arial";
     ctx.fillText(cert.uniqueCode, 30, 325);
 
-    const verifyUrl = `http://localhost:3000/verify?code=${cert.uniqueCode}`;
+    // QR code
+    const verifyUrl = `${process.env.REACT_APP_FRONTEND_URL}/verify?code=${cert.uniqueCode}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${encodeURIComponent(verifyUrl)}&bgcolor=1e1b4b&color=ffffff`;
     const qrImg = new Image();
     qrImg.crossOrigin = "anonymous";
@@ -194,14 +239,14 @@ function DashboardStudent() {
   }
 
   function shareOnLinkedIn(cert) {
-    const verifyUrl = `http://localhost:3000/verify?code=${cert.uniqueCode}`;
+    const verifyUrl = `${process.env.REACT_APP_FRONTEND_URL}/verify?code=${cert.uniqueCode}`;
     const text = `🎓 I'm proud to share my ${cert.type} in ${cert.specialty} from ENSTA, verified on the blockchain!\n\nVerify here: ${verifyUrl}`;
     const linkedInUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`;
     window.open(linkedInUrl, "_blank");
   }
 
   function copyShareLink(cert) {
-    const verifyUrl = `http://localhost:3000/verify?code=${cert.uniqueCode}`;
+    const verifyUrl = `${process.env.REACT_APP_FRONTEND_URL}/verify?code=${cert.uniqueCode}`;
     navigator.clipboard.writeText(verifyUrl).then(() => {
       alert("Link copied to clipboard!");
     });
@@ -229,7 +274,6 @@ function DashboardStudent() {
               <p>{user ? user.totalCertificates : "..."}</p>
             </div>
           </div>
-
           <div className={styles.inf}>
             <img src="/studentactivecertificates.png" alt="active" />
             <div>
@@ -237,7 +281,6 @@ function DashboardStudent() {
               <p>{user ? user.activeCertificates : "..."}</p>
             </div>
           </div>
-
           <div className={styles.inf}>
             <img src="/studentlastissued.png" alt="last" />
             <div>
@@ -268,7 +311,6 @@ function DashboardStudent() {
           </div>
 
           <div className={styles.diplomes}>
-            {/* 1. Certificates */}
             {filteredCertificates.map((cert) => (
               <div key={cert.id} className={styles["diplome-div"]}>
                 <div className={styles.type}>
@@ -277,11 +319,12 @@ function DashboardStudent() {
                     <p>{cert.type}</p>
                   </div>
                 </div>
-
                 <div className={styles.date}>
                   <div className={styles.calander}>
                     <img src="/calander.png" alt="cal" />
-                    <h5>{new Date(cert.graduationDate).toLocaleDateString()}</h5>
+                    <h5>
+                      {new Date(cert.graduationDate).toLocaleDateString()}
+                    </h5>
                   </div>
                   <div className={styles.chain}>
                     <img src="/chain.png" alt="chain" />
@@ -291,14 +334,12 @@ function DashboardStudent() {
                     ✓ verified on the Blockchain
                   </span>
                 </div>
-
                 <div className={styles.button}>
                   <button
                     type="button"
                     onClick={() => downloadFile(cert.id, "CERT")}
                   >
-                    {" "}
-                    Download PDF{" "}
+                    Download PDF
                   </button>
                   <button
                     type="button"
@@ -328,7 +369,6 @@ function DashboardStudent() {
               </div>
             ))}
 
-            {/* 2. Approved Document Requests */}
             {filteredRequests.map((req) => (
               <div key={req.id} className={styles["diplome-div"]}>
                 <div className={styles.type}>
@@ -337,7 +377,6 @@ function DashboardStudent() {
                     <p>OFFICIAL DOCUMENT</p>
                   </div>
                 </div>
-
                 <div className={styles.date}>
                   <div className={styles.calander}>
                     <img src="/calander.png" alt="cal" />
@@ -347,7 +386,6 @@ function DashboardStudent() {
                     ✓ verified on the Blockchain
                   </span>
                 </div>
-
                 <div className={styles.button}>
                   <button
                     type="button"
@@ -384,7 +422,6 @@ function DashboardStudent() {
         </h4>
       </div>
 
-      {/* Profile & Settings Menu */}
       <div className={styles.login}>
         <div className={styles.image}>
           <img
@@ -409,7 +446,11 @@ function DashboardStudent() {
 
         <div className={styles.info}>
           <img
-            src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"}
+            src={
+              user?.avatar
+                ? `${process.env.REACT_APP_API_URL}${user.avatar}`
+                : "/totalcertaficates.png"
+            }
             alt="ava"
             className={styles.student}
           />
@@ -500,7 +541,7 @@ function DashboardStudent() {
                   whiteSpace: "nowrap",
                 }}
               >
-                {`http://localhost:3000/verify?code=${badgeModal.uniqueCode}`}
+                {`${process.env.REACT_APP_FRONTEND_URL}/verify?code=${badgeModal.uniqueCode}`}
               </span>
               <button
                 onClick={() => copyShareLink(badgeModal)}
@@ -543,7 +584,6 @@ function DashboardStudent() {
               >
                 ⬇️ Download Badge
               </button>
-
               <button
                 onClick={() => shareOnLinkedIn(badgeModal)}
                 style={{
@@ -559,7 +599,6 @@ function DashboardStudent() {
               >
                 🔗 Share on LinkedIn
               </button>
-
               <button
                 onClick={closeBadgeModal}
                 style={{

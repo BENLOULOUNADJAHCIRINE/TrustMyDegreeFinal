@@ -20,7 +20,7 @@ function Settings() {
       .get("/student/dashboard")
       .then((res) => {
         setUser({ name: res.data.fullName, isGraduated: res.data.isGraduated, avatar: res.data.avatar });
-        if (res.data.avatar) setAvatarPreview(`http://localhost:5000${res.data.avatar}`);
+        if (res.data.avatar) setAvatarPreview(`${process.env.REACT_APP_API_URL}${res.data.avatar}`);
       })
       .catch((err) => console.log(err));
   }, []);
@@ -41,7 +41,7 @@ function Settings() {
     const formData = new FormData();
     formData.append("avatar", avatarFile);
     try {
-      const res = await fetch("http://localhost:5000/api/student/avatar", {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/student/avatar`, {
         method: "POST",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
@@ -72,7 +72,7 @@ function Settings() {
       return;
     }
 
-    fetch("http://localhost:5000/api/student/settings", {
+    fetch(`${process.env.REACT_APP_API_URL}/api/student/settings`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

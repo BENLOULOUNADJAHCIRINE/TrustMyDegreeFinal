@@ -88,7 +88,7 @@ function List() {
   // download excel - not changed
   function downloadExcel() {
     console.log("download request");
-    fetch("http://localhost:5000/api/admin/certificates/export", {
+    fetch(`${process.env.REACT_APP_API_URL}/api/admin/certificates/export`, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
@@ -287,7 +287,7 @@ function unrevokeCert(id) {
 
   function viewCertificate(id) {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:5000/api/admin/certificates/${id}/download`, {
+    fetch(`${process.env.REACT_APP_API_URL}/api/admin/certificates/${id}/download`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.blob())
@@ -308,7 +308,7 @@ function unrevokeCert(id) {
             <h4>{user ? user.name : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
-          <img src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"} alt="avatar" />
+          <img src={user?.avatar ? `${process.env.REACT_APP_API_URL}${user.avatar}` : "/totalcertaficates.png"} alt="avatar" />
         </div>
       </div>
 
@@ -461,7 +461,7 @@ function unrevokeCert(id) {
                     </td>
                     <td className={styles.column}>
                       <img
-                        src={cert.student?.avatar ? `http://localhost:5000${cert.student.avatar}` : "/students.jpg"}
+                        src={cert.student?.avatar ? `${process.env.REACT_APP_API_URL}${cert.student.avatar}` : "/students.jpg"}
                         alt="student"
                       />
                       <span className={styles.student}>

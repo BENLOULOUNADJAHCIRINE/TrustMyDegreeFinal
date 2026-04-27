@@ -18,7 +18,7 @@ function Parameters() {
       parsed.role === "ADMIN"
         ? setUser({ name: "Admin", email: parsed.email, avatar: parsed.avatar || null })
         : setUser({ name: "Super Admin", email: parsed.email, avatar: parsed.avatar || null });
-      if (parsed.avatar) setAvatarPreview(`http://localhost:5000${parsed.avatar}`);
+      if (parsed.avatar) setAvatarPreview(`${process.env.REACT_APP_API_URL}${parsed.avatar}`);
     }
   }, []);
 
@@ -38,7 +38,7 @@ function Parameters() {
     const formData = new FormData();
     formData.append("avatar", avatarFile);
     try {
-      const res = await fetch("http://localhost:5000/api/admin/avatar", {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/avatar`, {
         method: "POST",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
@@ -70,7 +70,7 @@ function Parameters() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/admin/settings", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/settings`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

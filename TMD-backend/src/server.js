@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: `${process.env.FRONTEND_URL}`,
     credentials: true,
   }),
 );
@@ -76,6 +76,8 @@ app.post("/verify", async (req, res) => {
     await prisma.verification.create({
       data: { certificateId: certificate.id, ipAddress: req.ip },
     });
+    console.log("Verification recorded for cert:", certificate.id);
+
 
     const chainData = await getCertificateData(
       certificate.contractType,
@@ -97,6 +99,9 @@ app.post("/verify", async (req, res) => {
       academicData.programName = chainData.programName;
       academicData.academicYear = chainData.academicYear;
       academicData.certificateType = chainData.certificateType;
+    } else if (certificate.contractType === "RANK") {
+      academicData.description = chainData.description;
+      academicData.documentType = chainData.documentType;
     } else {
       academicData.degreeName = chainData.degreeName;
       academicData.fieldOfStudy = chainData.fieldOfStudy;
@@ -128,5 +133,5 @@ prisma
   .catch((err) => console.error("error in connection to database", err));
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running at ${process.env.FRONTEND_URL}:${PORT}`);
 });

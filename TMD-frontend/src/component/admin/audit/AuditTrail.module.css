@@ -414,3 +414,11 @@ tbody td[colspan] {
   opacity: 0.4;
   cursor: not-allowed;
 }
+.rank {
+  background-color: #fce7f3;
+  color: #be185d;
+}
+
+.pink {
+  color: #be185d;
+}

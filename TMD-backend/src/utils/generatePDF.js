@@ -12,7 +12,7 @@ const generateDiplomaPDF = async (studentData, templateType = "diploma") => {
   const templatePath = path.join(__dirname, "../templates", templateName);
   let html = fs.readFileSync(templatePath, "utf8");
 
-  const verifyUrl = `http://localhost:3000/verify?code=${studentData.uniqueCode}`;
+  const verifyUrl = `${process.env.FRONTEND_URL}/verify?code=${studentData.uniqueCode}`;
   const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, {
     width: 120,
     margin: 1,

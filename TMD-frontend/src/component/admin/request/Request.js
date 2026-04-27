@@ -42,7 +42,7 @@ function Request() {
 
   // Centralized fetch to keep stats and list in sync
   const fetchRequests = () => {
-    fetch("http://localhost:5000/api/admin/requests", {
+    fetch(`${process.env.REACT_APP_API_URL}/api/admin/requests`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -109,7 +109,7 @@ function Request() {
 
   // Handle Export
   function downloadExcel() {
-    fetch("http://localhost:5000/api/admin/requests/export", {
+    fetch(`${process.env.REACT_APP_API_URL}/api/admin/requests/export`, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
@@ -130,7 +130,7 @@ function Request() {
   function viewDocument(id) {
     const token = localStorage.getItem("token");
 
-    fetch(`http://localhost:5000/api/admin/requests/${id}/download`, {
+    fetch(`${process.env.REACT_APP_API_URL}/api/admin/requests/${id}/download`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -162,7 +162,7 @@ function Request() {
 
     toast.loading("Uploading document...", { id: "upload" });
 
-    fetch(`http://localhost:5000/api/admin/requests/${id}/upload`, {
+    fetch(`${process.env.REACT_APP_API_URL}/api/admin/requests/${id}/upload`, {
       method: "PUT",
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token"),
@@ -193,7 +193,7 @@ function Request() {
 }
 
   function updateStatus(id, newStatus) {
-  fetch(`http://localhost:5000/api/admin/requests/${id}/status`, {
+  fetch(`${process.env.REACT_APP_API_URL}/api/admin/requests/${id}/status`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -251,7 +251,7 @@ function Request() {
             <h4>{user ? user.name : "Guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
-          <img src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"} alt="ava" />
+          <img src={user?.avatar ? `${process.env.REACT_APP_API_URL}${user.avatar}` : "/totalcertaficates.png"} alt="ava" />
         </div>
       </div>
 

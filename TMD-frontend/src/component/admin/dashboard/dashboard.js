@@ -2,7 +2,7 @@ import styles from "./dashboard.module.css";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -17,8 +17,16 @@ function Dashboard() {
     if (storedUser) {
       const parsed = JSON.parse(storedUser);
       parsed.role === "ADMIN"
-        ? setUser({ name: "Admin", email: parsed.email, avatar: parsed.avatar || null })
-        : setUser({ name: "Super Admin", email: parsed.email, avatar: parsed.avatar || null });
+        ? setUser({
+            name: "Admin",
+            email: parsed.email,
+            avatar: parsed.avatar || null,
+          })
+        : setUser({
+            name: "Super Admin",
+            email: parsed.email,
+            avatar: parsed.avatar || null,
+          });
     }
   }, []);
 
@@ -68,7 +76,14 @@ function Dashboard() {
             <h4>{user ? user.name : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
-          <img src={user?.avatar ? `http://localhost:5000${user.avatar}` : "/totalcertaficates.png"} alt="ava" />
+          <img
+            src={
+              user?.avatar
+                ? `${process.env.REACT_APP_API_URL}${user.avatar}`
+                : "/totalcertaficates.png"
+            }
+            alt="ava"
+          />
         </div>
       </div>
 
@@ -110,7 +125,14 @@ function Dashboard() {
               activities.map((act, index) => (
                 <div key={index} className={styles["activity-item"]}>
                   <div className={styles.leftside}>
-                    <img src={act.student?.avatar ? `http://localhost:5000${act.student.avatar}` : "/stdicon.jpg"} alt="stdicon" />
+                    <img
+                      src={
+                        act.student?.avatar
+                          ? `${process.env.REACT_APP_API_URL}${act.student.avatar}`
+                          : "/stdicon.jpg"
+                      }
+                      alt="stdicon"
+                    />
                     <div className={styles.codename}>
                       <h5>{act.student?.fullName || "Student"}</h5>
                       <p>{act.uniqueCode}</p>
@@ -125,9 +147,23 @@ function Dashboard() {
                         : "Invalid Date"}
                     </p>
                     <span
-                      className={`${styles.status} ${act.type === "INTERNSHIP" ? styles.internship : act.type === "MASTER" ? styles.master : act.type === "ENGINEER" ? styles.engineer : ""}`}
+                      className={`${styles.status} ${
+                        act.type === "INTERNSHIP" ||
+                        act.contractType === "INTERNSHIP"
+                          ? styles.internship
+                          : act.type === "MASTER"
+                            ? styles.master
+                            : act.type === "ENGINEER"
+                              ? styles.engineer
+                              : act.contractType === "STUDY" ||
+                                  act.type === "SCOLARITE"
+                                ? styles.scolarite
+                                : act.contractType === "RANK"
+                                  ? styles.rank
+                                  : ""
+                      }`}
                     >
-                      {act.type}
+                      {act.contractType === "RANK" ? "RANK" : act.type}
                     </span>
                   </div>
                 </div>

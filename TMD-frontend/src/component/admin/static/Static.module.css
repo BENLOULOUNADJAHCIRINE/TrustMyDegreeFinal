@@ -130,8 +130,12 @@ font-size: 12px;
 }
 
 .legend {
-  margin-top: 20px;
   width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 columns */
+  row-gap: 8px;
+  column-gap: 10px;
+  padding: 0 10px;
 }
 
 .legendItem {
@@ -338,7 +342,7 @@ font-size: 12px;
   }
 
   .doughnutWrapper {
-    width: 150px;
+    width: 180px;
     height: 180px;
   }
 }
