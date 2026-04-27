@@ -15,12 +15,10 @@
     "prisma": "^7.4.2"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1037.0",
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^7.4.2",
     "axios": "^1.15.1",
     "bcrypt": "^6.0.0",
-    "cloudinary": "^2.10.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "ethers": "^6.16.0",

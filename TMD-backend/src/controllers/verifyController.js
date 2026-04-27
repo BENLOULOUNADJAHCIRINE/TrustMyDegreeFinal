@@ -83,7 +83,7 @@ const verifyCertificateHandler = async (req, res) => {
       certificate: {
         uniqueCode: certificate.uniqueCode,
         ipfsHash: certificate.ipfsHash,
-        ipfsUrl: certificate.ipfsHash ? `https://ipfs.filebase.io/ipfs/${certificate.ipfsHash}` : null,
+        ipfsUrl: `https://gateway.pinata.cloud/ipfs/${certificate.ipfsHash}`,
         status: certificate.status,
         issueDate: certificate.issueDate,
         contractType: certificate.contractType,

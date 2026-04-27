@@ -79,7 +79,7 @@ function Dashboard() {
           <img
             src={
               user?.avatar
-                ? user.avatar
+                ? `${process.env.REACT_APP_API_URL}${user.avatar}`
                 : "/totalcertaficates.png"
             }
             alt="ava"
