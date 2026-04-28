@@ -521,20 +521,36 @@ const importDiplomas = async (req, res) => {
             ipfsHash: "pending",
           });
         } else if (contractType === "INTERNSHIP") {
+          // Try multiple column names for internship role
+          const internshipRole = row.speciality || row.specialty || row.role || row.position || row.internshipRole || row["Internship Role"] || row["Role"];
+          if (!internshipRole || internshipRole.trim() === "") {
+            console.error(`Internship data for ${row.matricule}:`, JSON.stringify(row));
+            throw new Error(`Internship role/specialty is required. Available columns: ${Object.keys(row).join(", ")}`);
+          }
+
           const start = row.startDate ? new Date(row.startDate) : null;
           let end = row.endDate ? new Date(row.endDate) : null;
 
-          if (end <= start) end.setDate(end.getDate() + 1);
+          if (!start || !end) {
+            throw new Error("Start date and end date are required for internships");
+          }
+
+          if (new Date(end) <= new Date(start)) {
+            throw new Error("End date must be after start date");
+          }
+
+          const endDate = new Date(end);
+          endDate.setDate(endDate.getDate() + 1);
 
           blockchainResult = await issueInternship({
             studentId: student.matricule,
             studentName: student.fullName,
-            companyName: row.company || "ENSTA",
-            internshipRole: row.speciality || "",
-            internshipCity: row.internshipCity || "",
+            companyName: row.company || row.Company || "ENSTA",
+            internshipRole: internshipRole.trim(),
+            internshipCity: row.internshipCity || row.city || row.City || "",
             ipfsHash: "pending",
             startDate: start.toISOString(),
-            endDate: end.toISOString(),
+            endDate: endDate.toISOString(),
           });
           }  else if (contractType === "RANK") {
               const rankValue = Number(row["rank"] || 0);
@@ -958,6 +974,47 @@ const downloadRequestFile = async (req, res) => {
   }
 };
 
+const exportRequests = async (req, res) => {
+  try {
+    const requests = await prisma.request.findMany({
+      include: { student: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const rows = requests.map((req) => ({
+      "Request ID": req.id.substring(0, 8) + "...",
+      "Student Name": req.student?.fullName || "",
+      Matricule: req.student?.matricule || "",
+      "Document Type": req.documentType || "",
+      Reason: req.reason || "",
+      Priority: req.priority || "",
+      "Submitted Date": new Date(req.createdAt).toLocaleDateString("fr-FR"),
+      Status: req.status || "PENDING",
+      "IPFS Hash": req.ipfsHash || "",
+      "Blockchain Doc ID": req.blockchainDocId || "",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Requests");
+
+    const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=requests.xlsx",
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    res.send(buffer);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "an error occurred in the server" });
+  }
+};
+
 const getAuditTrail = async (req, res) => {
   try {
     const certificates = await prisma.certificate.findMany({
@@ -1037,6 +1094,7 @@ module.exports = {
   getAllCertificates,
   downloadCertificate,
   exportCertificates,
+  exportRequests,
   downloadRequestFile,
   getAuditTrail,
   uploadAvatar,

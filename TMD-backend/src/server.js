@@ -17,8 +17,9 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
 app.use(fileUpload());
+app.use(express.static(path.join(__dirname, "public")));
+
 
 // routes
 app.use("/api/auth", require("./routes/auth"));
@@ -39,92 +40,8 @@ app.get("/", (req, res) => {
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "TrustMyDegree API is running" });
 });
-
-app.post("/verify", async (req, res) => {
-  const { code } = req.body;
-  if (!code) return res.status(400).json({ valid: false, message: "Code is required" });
-
-  try {
-    const certificate = await prisma.certificate.findUnique({
-      where: { uniqueCode: code },
-      include: {
-        student: {
-          select: {
-            fullName: true,
-            matricule: true,
-            placeOfBirth: true,
-            dateOfBirth: true,
-          },
-        },
-      },
-    });
-
-    if (!certificate) {
-      return res.status(404).json({ valid: false, message: "Certificate not found" });
-    }
-
-    const isValidOnChain = await verifyCertificate(
-      certificate.contractType,
-      certificate.blockchainCertId
-    );
-
-    if (!isValidOnChain) {
-      return res.status(400).json({ valid: false, message: "Certificate has been revoked" });
-    }
-
-    await prisma.verification.create({
-      data: { certificateId: certificate.id, ipAddress: req.ip },
-    });
-    console.log("Verification recorded for cert:", certificate.id);
-
-
-    const chainData = await getCertificateData(
-      certificate.contractType,
-      certificate.blockchainCertId
-    );
-
-    const academicData = {
-      studentName: chainData.studentName,
-      schoolName: chainData.schoolName,
-      issueDate: chainData.issueDate,
-    };
-
-    if (certificate.contractType === "INTERNSHIP") {
-      academicData.companyName = chainData.companyName;
-      academicData.internshipRole = chainData.internshipRole;
-      academicData.startDate = chainData.startDate;
-      academicData.endDate = chainData.endDate;
-    } else if (certificate.contractType === "STUDY") {
-      academicData.programName = chainData.programName;
-      academicData.academicYear = chainData.academicYear;
-      academicData.certificateType = chainData.certificateType;
-    } else if (certificate.contractType === "RANK") {
-      academicData.description = chainData.description;
-      academicData.documentType = chainData.documentType;
-    } else {
-      academicData.degreeName = chainData.degreeName;
-      academicData.fieldOfStudy = chainData.fieldOfStudy;
-    }
-
-    res.json({
-      valid: true,
-      message: "Certificate is valid",
-      certificate: {
-        uniqueCode: certificate.uniqueCode,
-        type: certificate.type,
-        specialty: certificate.specialty,
-        status: certificate.status,
-        issueDate: certificate.issueDate,
-        contractType: certificate.contractType,
-        academicData,
-        student: certificate.student,
-      },
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ valid: false, message: "Something went wrong" });
-  }
-});
+const verifyController = require("./controllers/verifyController");
+app.post("/api/verify", verifyController.verifyCertificate);
 
 prisma
   .$connect()
