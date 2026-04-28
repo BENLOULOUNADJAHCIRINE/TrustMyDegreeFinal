@@ -99,7 +99,7 @@ function Authorisations() {
             <h4>{user ? user.fullName : "guest"}</h4>
             <p>{user ? user.email : "guest25@ensta.edu.dz"}</p>
           </div>
-          <img src={user?.avatar ? `${process.env.REACT_APP_API_URL}${user.avatar}` : "/totalcertaficates.png"} alt="avatar" />
+          <img src={user?.avatar ? user.avatar : "/totalcertaficates.png"} alt="avatar" />
         </div>
       </div>
 

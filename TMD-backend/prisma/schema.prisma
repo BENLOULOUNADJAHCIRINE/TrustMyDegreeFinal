@@ -37,6 +37,7 @@ model Certificate {
   ipfsHash         String?
   blockchainCertId String?
   contractType     String?
+  certData         Json?
   student          User           @relation(fields: [studentId], references: [id])
   verifications    Verification[]
 }
