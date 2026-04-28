@@ -25,7 +25,6 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/superadmin", require("./routes/superadmin"));
 app.use("/api/student", require("./routes/student"));
-app.use("/api/verify", require("./routes/verify"));
 app.use("/api/contact", require("./routes/contact"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -133,5 +132,5 @@ prisma
   .catch((err) => console.error("error in connection to database", err));
 
 app.listen(PORT, () => {
-  console.log(`Server running at ${process.env.FRONTEND_URL}:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
