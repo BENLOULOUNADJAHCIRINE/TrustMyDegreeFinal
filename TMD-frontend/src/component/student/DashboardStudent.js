@@ -19,10 +19,15 @@ function DashboardStudent() {
       .get("/student/dashboard")
       .then((res) => {
         const data = res.data;
+        const avatarUrl = data.avatar
+          ? data.avatar.startsWith("http")
+            ? data.avatar
+            : `${process.env.REACT_APP_API_URL}${data.avatar}`
+          : null;
         setUser({
           name: data.fullName,
           isGraduated: data.isGraduated,
-          avatar: data.avatar || null,
+          avatar: avatarUrl,
           totalCertificates: data.totalCertificates,
           activeCertificates: data.activeCertificates,
           lastIssued: data.lastIssuedCertificate?.issueDate || null,

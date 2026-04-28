@@ -16,6 +16,7 @@ const {
   getStatistics,
   downloadCertificate,
   exportCertificates,
+  exportRequests,
   downloadRequestFile,
   getAuditTrail,
   uploadAvatar,
@@ -24,6 +25,7 @@ const {
 router.get("/dashboard", protect, isAdmin, dashboard);
 router.get("/requests", protect, isAdmin, getRequests);
 router.put("/requests/:id/status", protect, isAdmin, handleRequestStatus);
+router.get("/requests/export", protect, isAdmin, exportRequests);
 router.get("/certificates/export", protect, isAdmin, exportCertificates);
 router.put("/requests/:id/upload", protect, isAdmin, handleRequestDocument);
 router.put("/certificates/bulk-revoke", protect, isAdmin, bulkRevokeCertificates);

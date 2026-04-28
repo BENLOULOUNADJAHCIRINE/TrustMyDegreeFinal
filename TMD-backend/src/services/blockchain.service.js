@@ -46,15 +46,30 @@ const getContract = (contractType) => {
   throw new Error(`Unknown contract type: ${contractType}`);
 };
 
+let noncePromise = null;
+
+const getNonce = async () => {
+  if (!noncePromise) {
+    noncePromise = provider.getTransactionCount(signer.address, "pending");
+  }
+
+  const nonce = await noncePromise;
+  noncePromise = Promise.resolve(nonce + 1);
+
+  return nonce;
+};
+
 // Diploma struct fields: certId, studentId, studentName, schoolName,
 // degreeName, fieldOfStudy, ipfsHash, issueDate, issuedBy, isRevoked
 const issueDiploma = async ({ studentId, studentName, degreeName, fieldOfStudy, ipfsHash }) => {
+  const nonce = await getNonce();
   const tx = await diplomaContract.issueDiploma(
     studentId,
     studentName,
     degreeName,
     fieldOfStudy,
-    ipfsHash
+    ipfsHash,
+    { nonce }
   );
 
   const receipt = await tx.wait();
@@ -80,6 +95,7 @@ const issueInternship = async ({ studentId, studentName, companyName, internship
     throw new Error("Internship end date must be strictly after start date");
   }
 
+  const nonce = await getNonce();
   const tx = await internshipContract.issueInternship(
     studentId,
     studentName,
@@ -88,7 +104,8 @@ const issueInternship = async ({ studentId, studentName, companyName, internship
     internshipCity,  // ← added
     ipfsHash,
     startTs,
-    endTs
+    endTs,
+    { nonce }
   );
 
   const receipt = await tx.wait();
@@ -108,13 +125,15 @@ const issueInternship = async ({ studentId, studentName, companyName, internship
 // StudyCertificate struct fields: certId, studentId, studentName, schoolName,
 // programName, academicYear, certificateType, ipfsHash, issueDate, issuedBy, isRevoked
 const issueStudyCertificate = async ({ studentId, studentName, programName, academicYear, certificateType, ipfsHash }) => {
+  const nonce = await getNonce();
   const tx = await studyContract.issueStudyCertificate(
     studentId,
     studentName,
     programName,
     academicYear,
     certificateType,
-    ipfsHash
+    ipfsHash,
+    { nonce }
   );
 
   const receipt = await tx.wait();
@@ -223,25 +242,28 @@ const getCertificateData = async (contractType, blockchainCertId) => {
 
 const revokeCertificate = async (contractType, blockchainCertId) => {
   const contract = getContract(contractType);
+  const nonce = await getNonce();
 
   let tx;
   if (contractType === "DIPLOMA") {
-    tx = await contract.revokeDiploma(blockchainCertId);
+    tx = await contract.revokeDiploma(blockchainCertId, { nonce });
   } else if (contractType === "RANK") {
-    tx = await contract.revokeDocument(blockchainCertId);
+    tx = await contract.revokeDocument(blockchainCertId, { nonce });
   } else {
-    tx = await contract.revokeCertificate(blockchainCertId);
+    tx = await contract.revokeCertificate(blockchainCertId, { nonce });
   }
 
   const receipt = await tx.wait();
   return receipt.hash;
 };
 const issueDocument = async ({ studentId, studentName, documentType, ipfsHash }) => {
+  const nonce = await getNonce();
   const tx = await documentContract.issueDocument(
     studentId,
     studentName,
     documentType,
-    ipfsHash
+    ipfsHash,
+    { nonce }
   );
   const receipt = await tx.wait();
 
@@ -284,7 +306,7 @@ const getDocumentData = async (blockchainDocId) => {
 
 // add student academic record to RankRegistry
 const addStudentToRankRegistry = async ({ matricule, name, familyName, speciality, branch, year, rank, average, credits, session }) => {
-  const nonce = await provider.getTransactionCount(signer.address, "pending");
+  const nonce = await getNonce();
   const tx = await rankRegistryContract.addStudent(
     BigInt(matricule),
     name,
@@ -337,7 +359,7 @@ const getAllStudentsFromRankRegistry = async () => {
 };
 
 const issueRankDocument = async ({ matricule, documentType, description, ipfsHash }) => {
-  const nonce = await provider.getTransactionCount(signer.address, "pending");
+  const nonce = await getNonce();
   const tx = await rankRegistryContract.issueDocument(
     BigInt(matricule),
     documentType,
@@ -363,14 +385,15 @@ const issueRankDocument = async ({ matricule, documentType, description, ipfsHas
 
 const unrevokeCertificate = async (contractType, blockchainCertId) => {
   const contract = getContract(contractType);
+  const nonce = await getNonce();
 
   let tx;
   if (contractType === "DIPLOMA") {
-    tx = await contract.unrevokeDiploma(blockchainCertId);
+    tx = await contract.unrevokeDiploma(blockchainCertId, { nonce });
   } else if (contractType === "RANK") {
-    tx = await contract.unrevokeDocument(blockchainCertId);
+    tx = await contract.unrevokeDocument(blockchainCertId, { nonce });
   } else {
-    tx = await contract.unrevokeCertificate(blockchainCertId);
+    tx = await contract.unrevokeCertificate(blockchainCertId, { nonce });
   }
 
   const receipt = await tx.wait();
