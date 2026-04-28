@@ -1,4 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config();
 
 module.exports = {
   solidity: {
@@ -11,6 +12,11 @@ module.exports = {
   networks: {
     localhost: {
       url: "http://127.0.0.1:8545"
+    },
+    arbitrumSepolia: {
+      url: process.env.BLOCKCHAIN_RPC_URL,
+      accounts: [process.env.SCHOOL_WALLET_PRIVATE_KEY],
+      chainId: 421614
     }
   }
 };
