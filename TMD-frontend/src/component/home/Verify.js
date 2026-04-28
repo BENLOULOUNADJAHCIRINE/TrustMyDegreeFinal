@@ -5,7 +5,7 @@ function Verify() {
   const [code, setCode] = useState("");
   const [result, setResult] = useState(null);
   const [status, setStatus] = useState(null);
-  const [open , setOpen]=useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -17,7 +17,7 @@ function Verify() {
   }, []);
 
   function verifyCode(codeToVerify) {
-    fetch(`${process.env.REACT_APP_API_URL}/verify`, {
+    fetch(`${process.env.REACT_APP_API_URL}/api/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code: codeToVerify }),
@@ -70,106 +70,122 @@ function Verify() {
           type="submit"
           value="Verify Certificate ➜"
           className={styles.submit}
-          onClick={()=>setOpen(true)}
+          onClick={() => setOpen(true)}
         />
       </form>
+
+      {open && (
+              <div className={styles.out}>
+                {/* SUCCESS */}
+                {status === "found" && result && (
+                  <div className={styles.successBox}>
+                    <button className={styles.close} onClick={() => setOpen(false)}>
+                      &times;
+                    </button>
+                    <h3>Certificate Valid </h3>
       
-
-      {open && <div className={styles.out}>
-      {/* SUCCESS */}
-      {status === "found" && result && (
-        <div className={styles.successBox}>
-          <button className={styles.close} onClick={()=>setOpen(false)}>&times;</button> 
-          <h3>Certificate Valid </h3>
-
-          <p>
-            <strong>Name:</strong> {result.student.fullName}
-          </p>
-          <p>
-            <strong>Matricule:</strong> {result.student.matricule}
-          </p>
-          <p>
-            <strong>Date of Birth:</strong> {result.student.dateOfBirth}
-          </p>
-          <p>
-            <strong>Place of Birth:</strong> {result.student.placeOfBirth}
-          </p>
-          <p>
-            <strong>Certificate Type:</strong> {result.type}
-          </p>
-          <p>
-            <strong>Specialty:</strong> {result.specialty}
-          </p>
-          <p>
-            <strong>Issue Date:</strong>{" "}
-            {new Date(result.issueDate).toLocaleDateString("fr-FR")}
-          </p>
-          {result.contractType === "INTERNSHIP" && result.academicData && (
-            <>
-              <p>
-                <strong>Company:</strong> {result.academicData.companyName}
-              </p>
-              <p>
-                <strong>City:</strong> {result.academicData.internshipCity}
-              </p>
-              <p>
-                <strong>Start Date:</strong>{" "}
-                {new Date(
-                  Number(result.academicData.startDate) * 1000,
-                ).toLocaleDateString("fr-FR")}
-              </p>
-              <p>
-                <strong>End Date:</strong>{" "}
-                {new Date(
-                  Number(result.academicData.endDate) * 1000,
-                ).toLocaleDateString("fr-FR")}
-              </p>
-            </>
-          )}
-          {result.contractType === "RANK" && result.academicData && (
-            <>
-              <p>
-                <strong>Rank:</strong> {result.academicData.rank}
-              </p>
-              <p>
-                <strong>Average:</strong> {result.academicData.average}
-              </p>
-              <p>
-                <strong>Speciality:</strong> {result.academicData.speciality}
-              </p>
-              <p>
-                <strong>Year:</strong> {result.academicData.year}
-              </p>
-              <p>
-                <strong>Branch:</strong> {result.academicData.branch}
-              </p>
-              <p>
-                <strong>Session:</strong> {result.academicData.session}
-              </p>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* REVOKED */}
-      {status === "revoked" && (
-        <div className={styles.errorBox}>
-          <button className={styles.close} onClick={()=>setOpen(false)}>&times;</button> 
-          <h3>Certificate Revoked </h3>
-          <p>This certificate has been invalidated by the institution.</p>
-        </div>
-      )}
-
-      {/* NOT FOUND */}
-      {status === "not_found" && (
-        <div className={styles.errorBox}>
-          <button className={styles.close} onClick={()=>setOpen(false)}>&times;</button> 
-          <h3>Certificate Not Found </h3>
-          <p>No certificate matches this code.</p>
-        </div>
-      )}
-  </div>
-    }
+                    <p>
+                      <strong>Name:</strong> {result.student.fullName}
+                    </p>
+                    <p>
+                      <strong>Matricule:</strong> {result.student.matricule}
+                    </p>
+                    <p>
+                      <strong>Date of Birth:</strong> {result.student.dateOfBirth}
+                    </p>
+                    <p>
+                      <strong>Place of Birth:</strong> {result.student.placeOfBirth}
+                    </p>
+                    <p>
+                      <strong>Certificate Type:</strong> {result.contractType}
+                    </p>
+                    <p>
+                      <strong>Specialty:</strong>{" "}
+                      {result.contractType === "RANK"
+                        ? result.academicData?.speciality
+                        : result.contractType === "DIPLOMA"
+                          ? result.academicData?.fieldOfStudy
+                          : result.contractType === "INTERNSHIP"
+                            ? result.academicData?.internshipRole
+                            : result.contractType === "STUDY"
+                              ? result.academicData?.programName
+                              : "—"}
+                    </p>
+                    <p>
+                      <strong>Issue Date:</strong>{" "}
+                      {new Date(result.issueDate).toLocaleDateString("fr-FR")}
+                    </p>
+                    {result.contractType === "INTERNSHIP" && result.academicData && (
+                      <>
+                        <p>
+                          <strong>Company:</strong> {result.academicData.companyName}
+                        </p>
+                        <p>
+                          <strong>City:</strong> {result.academicData.internshipCity}
+                        </p>
+                        <p>
+                          <strong>Start Date:</strong>{" "}
+                          {new Date(
+                            Number(result.academicData.startDate) * 1000,
+                          ).toLocaleDateString("fr-FR")}
+                        </p>
+                        <p>
+                          <strong>End Date:</strong>{" "}
+                          {new Date(
+                            Number(result.academicData.endDate) * 1000,
+                          ).toLocaleDateString("fr-FR")}
+                        </p>
+                      </>
+                    )}
+                    {result.contractType === "RANK" && result.academicData && (
+                      <>
+                        <p>
+                          <strong>Rank:</strong> {result.academicData.rank}
+                        </p>
+                        <p>
+                          <strong>Average:</strong> {result.academicData.average}
+                        </p>
+                        <p>
+                          <strong>Speciality:</strong>{" "}
+                          {result.academicData.speciality}
+                        </p>
+                        <p>
+                          <strong>Year:</strong> {result.academicData.year}
+                        </p>
+                        <p>
+                          <strong>Branch:</strong> {result.academicData.branch}
+                        </p>
+                        <p>
+                          <strong>Session:</strong> {result.academicData.session}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+      
+                {/* REVOKED */}
+                {status === "revoked" && (
+                  <div className={styles.errorBox}>
+                    <button className={styles.close} onClick={() => setOpen(false)}>
+                      &times;
+                    </button>
+                    <h3>Certificate Revoked </h3>
+                    <p>This certificate has been invalidated by the institution.</p>
+                  </div>
+                )}
+      
+                {/* NOT FOUND */}
+                {status === "not_found" && (
+                  <div className={styles.errorBox}>
+                    <button className={styles.close} onClick={() => setOpen(false)}>
+                      &times;
+                    </button>
+                    <h3>Certificate Not Found </h3>
+                    <p>No certificate matches this code.</p>
+                  </div>
+                )}
+              </div>
+            )}
 
       <div className={styles.bottomStatus}>
         <div className={styles.online}>

@@ -3,7 +3,8 @@ const { verifyCertificate, getCertificateData } = require("../services/blockchai
 
 const verifyCertificateHandler = async (req, res) => {
   try {
-    const { uniqueCode } = req.params;
+        const { code: uniqueCode } = req.body;
+
 
     // find the cert in Prisma to get the blockchain reference
     const certificate = await prisma.certificate.findUnique({
@@ -62,6 +63,7 @@ const verifyCertificateHandler = async (req, res) => {
     } else if (certificate.contractType === "INTERNSHIP") {
       academicData.companyName = chainData.companyName;
       academicData.internshipRole = chainData.internshipRole;
+      academicData.internshipCity = chainData.internshipCity; // ✅ add this
       academicData.startDate = chainData.startDate;
       academicData.endDate = chainData.endDate;
     } else if (certificate.contractType === "STUDY") {

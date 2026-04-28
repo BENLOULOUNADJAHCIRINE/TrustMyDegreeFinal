@@ -17,7 +17,7 @@ function Verifie() {
   }, []);
 
   function verifyCode(codeToVerify) {
-    fetch(`${process.env.REACT_APP_API_URL}/verify`, {
+    fetch(`${process.env.REACT_APP_API_URL}/api/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code: codeToVerify }),
@@ -97,10 +97,19 @@ function Verifie() {
                 <strong>Place of Birth:</strong> {result.student.placeOfBirth}
               </p>
               <p>
-                <strong>Certificate Type:</strong> {result.type}
+                <strong>Certificate Type:</strong> {result.contractType}
               </p>
               <p>
-                <strong>Specialty:</strong> {result.specialty}
+                <strong>Specialty:</strong>{" "}
+                {result.contractType === "RANK"
+                  ? result.academicData?.speciality
+                  : result.contractType === "DIPLOMA"
+                    ? result.academicData?.fieldOfStudy
+                    : result.contractType === "INTERNSHIP"
+                      ? result.academicData?.internshipRole
+                      : result.contractType === "STUDY"
+                        ? result.academicData?.programName
+                        : "—"}
               </p>
               <p>
                 <strong>Issue Date:</strong>{" "}
