@@ -769,6 +769,15 @@ const downloadCertificate = async (req, res) => {
 
     if (!certificate) return res.status(404).json({ message: "Certificate not found" });
 
+    // --- Early return: if PDF already uploaded, stream directly from Filebase ---
+    if (certificate.ipfsHash && certificate.ipfsHash !== "pending") {
+      const ipfsUrl = `https://ipfs.filebase.io/ipfs/${certificate.ipfsHash}`;
+      const response = await axios.get(ipfsUrl, { responseType: "stream" });
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `inline; filename="certificate_${id}.pdf"`);
+      return response.data.pipe(res);
+    }
+
     // --- Step 1: Fetch the source-of-truth data from the blockchain ---
     console.log("[downloadCertificate] Fetching blockchain data for cert:", id);
     const chainData = await getCertificateData(certificate.contractType, certificate.blockchainCertId);
