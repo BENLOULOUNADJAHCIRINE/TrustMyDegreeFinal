@@ -880,28 +880,30 @@ const downloadCertificate = async (req, res) => {
     const generateDiplomaPDF = require("../utils/generatePDF");
     const pdfPath = await generateDiplomaPDF(pdfData, templateType);
     console.log("[downloadCertificate] PDF generated at:", pdfPath);
+    
+  // --- Step 4: Stream local file to client immediately ---
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename="certificate_${id}.pdf"`);
+    const fileStream = fs.createReadStream(pdfPath);
+    fileStream.pipe(res);
 
+    // --- Step 5: Upload to Filebase in background after streaming starts ---
+    fileStream.on("end", async () => {
+      try {
+        const ipfsHash = await uploadPDFtoPinata(pdfPath);
+        await prisma.certificate.update({ where: { id }, data: { ipfsHash } });
+        fs.unlinkSync(pdfPath);
+        console.log("[downloadCertificate] Uploaded to Filebase:", ipfsHash);
+      } catch (uploadErr) {
+        console.error("[downloadCertificate] Filebase upload failed:", uploadErr.message);
+        if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
+      }
+    });
     if (!fs.existsSync(pdfPath)) {
       return res.status(500).json({ error: "PDF generation failed — file not found on disk" });
     }
 
-    // --- Step 4: Upload to Filebase and save CID ---
-    console.log("[downloadCertificate] Uploading to Filebase...");
-    const ipfsHash = await uploadPDFtoPinata(pdfPath);
-    console.log("[downloadCertificate] Filebase CID:", ipfsHash);
-    fs.unlinkSync(pdfPath);
-
-    await prisma.certificate.update({ where: { id }, data: { ipfsHash } });
-
-    // Give Filebase a moment to propagate before fetching back
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // --- Step 5: Stream to client ---
-    const ipfsUrl = `https://ipfs.filebase.io/ipfs/${ipfsHash}`;
-    const response = await axios.get(ipfsUrl, { responseType: "stream" });
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="certificate_${id}.pdf"`);
-    response.data.pipe(res);
+ 
 
   } catch (err) {
     console.error("[downloadCertificate] ERROR:", err.message);
