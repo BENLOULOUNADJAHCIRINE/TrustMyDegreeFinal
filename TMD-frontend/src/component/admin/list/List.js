@@ -482,7 +482,7 @@ function unrevokeCert(id) {
                     </td>
                     <td className={styles.column}>{cert.student?.matricule}</td>
                     <td className={styles.column}>
-                      <span className={styles.type}>{cert.type}</span>
+                      <span className={styles.type}>{cert.type === "STAGE" ? "INTERNSHIP" : cert.type}</span>
                     </td>
                     <td className={styles.column}>
                       <span className={styles.specialty}>{cert.specialty}</span>

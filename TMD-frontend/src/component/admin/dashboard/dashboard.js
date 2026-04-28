@@ -147,7 +147,8 @@ function Dashboard() {
                     <span
                       className={`${styles.status} ${
                         act.type === "INTERNSHIP" ||
-                        act.contractType === "INTERNSHIP"
+                          act.contractType === "INTERNSHIP" ||
+                          act.type === "STAGE"
                           ? styles.internship
                           : act.type === "MASTER"
                             ? styles.master
@@ -161,7 +162,7 @@ function Dashboard() {
                                   : ""
                       }`}
                     >
-                      {act.contractType === "RANK" ? "RANK" : act.type}
+                      {act.contractType === "RANK" ? "RANK" : act.type === "STAGE" ? "INTERNSHIP" : act.type}
                     </span>
                   </div>
                 </div>
