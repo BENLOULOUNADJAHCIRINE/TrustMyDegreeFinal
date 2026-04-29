@@ -161,16 +161,71 @@
 
 .successBox,
 .errorBox {
-  margin-top: 10px;
-  padding: 12px 14px;
-  border-radius: 10px;
+  width: min(900px, 90%);
+  max-height: 85vh;
+  border-radius: 20px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-width: 320px;
-  font-size: 13px;
-  line-height: 1.4;
+  gap: 16px;
+
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+
   animation: popIn 0.25s ease;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid green;
+  padding-bottom: 10px;
+}
+
+.header h3 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.topinfo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 20px;
+  border-bottom: 1px solid green;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  padding: 5px 10px;
+  font-size: 13px;
+}
+
+.item span {
+  color: #6b7280;
+  font-size: 11px;
+}
+
+.item strong {
+  font-weight: 600;
+}
+
+.contentScroll {
+  overflow-y: auto;
+  max-height: 55vh;
+  padding-right: 6px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px 20px;
+}
+
+.contentScroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.contentScroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 10px;
 }
 
 @keyframes popIn {
@@ -189,14 +244,9 @@
   width: 100%;
   max-width: 420px;
   margin-left: 250px;
-  background: #ecfdf5;
-  border: 1px solid #10b981;
-
-  border-radius: 14px;
-  padding: 16px;
-
-  color: #065f46;
-
+  background: linear-gradient(135deg, #d1fae5, #bbf7d0);
+  border: 1px solid #059669;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -209,10 +259,8 @@
   margin-left: 250px;
   background: #fef2f2;
   border: 1px solid #ef4444;
-
   border-radius: 14px;
   padding: 16px;
-
   color: #991b1b;
 }
 

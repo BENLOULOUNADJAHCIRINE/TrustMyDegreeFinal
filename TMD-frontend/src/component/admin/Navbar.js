@@ -81,7 +81,7 @@ function Navbar() {
           </Link>
 
           <Link to="/admin/verif" onClick={() => setIsOpen(false)}>
-            <img src="" alt="verify" />
+            <img src="/veri.png" alt="verify" />
             <span className="same">verify</span>
           </Link>
         </div>

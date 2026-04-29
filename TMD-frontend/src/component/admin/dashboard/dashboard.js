@@ -206,7 +206,7 @@ function Dashboard() {
               <Link to="/admin/add">
                 <img src="/add.png" alt="add" className={styles.add} />
               </Link>
-              <h3>Issue New Certificate</h3>
+              <h3>Issue New Document</h3>
             </div>
             <img src="/chapeau.png" alt="chapeau" className={styles.chap} />
           </div>

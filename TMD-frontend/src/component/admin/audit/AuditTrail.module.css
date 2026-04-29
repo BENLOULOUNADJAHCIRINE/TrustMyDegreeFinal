@@ -71,7 +71,8 @@
   right: 20px;
   align-items: center;
   gap: 8px;
-  background-color: #f9fafb;
+  background: linear-gradient(135deg, #f1f5ff, #eef2ff);
+  border: 1px solid #e0e7ff;
   padding: 10px 20px;
   border-radius: 20px;
   transition: box-shadow 0.3s ease;
@@ -245,12 +246,6 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  table-layout: fixed;
-}
-
-.table {
-  width: 95%;
-  border-collapse: collapse;
   table-layout: fixed;
 }
 

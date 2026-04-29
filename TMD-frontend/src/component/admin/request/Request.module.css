@@ -81,7 +81,8 @@
   margin-right: 20px;
   align-items: center;
   gap: 8px;
-  background-color: #f9fafb;
+  background: linear-gradient(135deg, #f1f5ff, #eef2ff);
+  border: 1px solid #e0e7ff;
   padding: 5px 10px;
   border-radius: 20px;
   transition: box-shadow 0.3s ease;
@@ -365,13 +366,14 @@
   width: 95%;
   min-height: 300px;
   border-radius: 12px;
-  overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   table-layout: fixed;
 }
 
 .colu:nth-child(1) {
   width: 100px;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 } /* Request ID */
 .colu:nth-child(2) {
   width: 130px;
@@ -551,6 +553,9 @@ tbody td[colspan] {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
   animation: fadeInDown 0.2s ease;
   overflow: hidden;
+  position: absolute;
+
+  z-index: 1;
 }
 
 .menu button {
