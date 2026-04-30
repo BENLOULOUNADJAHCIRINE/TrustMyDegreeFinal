@@ -1079,6 +1079,219 @@ const uploadAvatar = async (req, res) => {
     res.status(500).json({ error: "An error occurred on the server" });
   }
 };
+const issueOne = async (req, res) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      studentId,        // this is the matricule
+      email,
+      templateType,
+      branch,
+      speciality,
+      class: level,
+      graduationDate,
+      issueDate,
+    } = req.body;
+
+    // validation
+    if (!firstName || !lastName || !studentId) {
+      return res.status(400).json({ message: "firstName, lastName, and studentId are required" });
+    }
+    if (!templateType) {
+      return res.status(400).json({ message: "templateType is required" });
+    }
+    if (!graduationDate && !issueDate) {
+      return res.status(400).json({ message: "date is required" });
+    }
+
+    const date = templateType === "diploma" ? graduationDate : issueDate;
+
+    // find the student in DB by matricule
+    const student = await prisma.user.findUnique({
+      where: { matricule: String(studentId) },
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: `Student with matricule "${studentId}" not found. Make sure they are synced first.` });
+    }
+
+    const contractType =
+      templateType === "internship"
+        ? "INTERNSHIP"
+        : templateType === "scolarite"
+          ? "STUDY"
+          : templateType === "rank"
+            ? "RANK"
+            : "DIPLOMA";
+
+    // duplicate check
+    const existingCert = await prisma.certificate.findFirst({
+      where: {
+        studentId: student.id,
+        contractType,
+        status: "ACTIVE",
+      },
+    });
+
+    if (existingCert) {
+      return res.status(400).json({ message: "An active certificate of this type already exists for this student." });
+    }
+
+    const uniqueCode = `CERT-${student.matricule}-${Date.now()}`;
+    let blockchainResult;
+
+    if (contractType === "DIPLOMA") {
+      blockchainResult = await issueDiploma({
+        studentId: student.matricule,
+        studentName: student.fullName,
+        degreeName: templateType,
+        fieldOfStudy: speciality || "",
+        ipfsHash: "pending",
+      });
+
+    } else if (contractType === "INTERNSHIP") {
+      if (!speciality) {
+        return res.status(400).json({ message: "Internship role (speciality) is required" });
+      }
+      const start = req.body.startDate ? new Date(req.body.startDate) : null;
+      const end   = req.body.endDate   ? new Date(req.body.endDate)   : null;
+      if (!start || !end) {
+        return res.status(400).json({ message: "startDate and endDate are required for internships" });
+      }
+      if (end <= start) {
+        return res.status(400).json({ message: "endDate must be after startDate" });
+      }
+      const endDateAdj = new Date(end);
+      endDateAdj.setDate(endDateAdj.getDate() + 1);
+
+      blockchainResult = await issueInternship({
+        studentId: student.matricule,
+        studentName: student.fullName,
+        companyName: req.body.company || "ENSTA",
+        internshipRole: speciality.trim(),
+        internshipCity: req.body.internshipCity || "",
+        ipfsHash: "pending",
+        startDate: start.toISOString(),
+        endDate: endDateAdj.toISOString(),
+      });
+
+    } else if (contractType === "RANK") {
+      try {
+        await addStudentToRankRegistry({
+          matricule: student.matricule,
+          name: firstName,
+          familyName: lastName,
+          speciality: speciality || "",
+          branch: branch || "",
+          year: level || "",
+          rank: Number(req.body.rank || 0),
+          average: String(req.body.average || "0"),
+          credits: Number(req.body.credits || 0),
+          session: String(req.body.session || "NORMAL").toLowerCase().includes("rattrapage")
+            ? "RATTRAPAGE"
+            : "NORMAL",
+        });
+        await prisma.user.update({
+          where: { id: student.id },
+          data: { blockchainRegistered: true },
+        });
+      } catch (err) {
+        console.log(`Rank registry for ${student.matricule}:`, err.message);
+        await prisma.user.update({
+          where: { id: student.id },
+          data: { blockchainRegistered: true },
+        });
+      }
+      blockchainResult = await issueRankDocument({
+        matricule: student.matricule,
+        documentType: "Rank Certificate",
+        description: `Rank ${req.body.rank || 0} — ${speciality || ""}`,
+        ipfsHash: "pending",
+      });
+
+    } else {
+      // STUDY
+      blockchainResult = await issueStudyCertificate({
+        studentId: student.matricule,
+        studentName: student.fullName,
+        programName: speciality || "",
+        academicYear: req.body.academicYear || date,
+        certificateType: templateType,
+        ipfsHash: "pending",
+      });
+    }
+
+    await prisma.certificate.create({
+      data: {
+        studentId: student.id,
+        uniqueCode,
+        ipfsHash: null,
+        certData: {
+          fullName: student.fullName,
+          matricule: student.matricule,
+          specialty: speciality || "",
+          faculty: "",
+          sectionNum: "",
+          facultyNum: "",
+          mention: req.body.mention || "",
+          graduationDate: graduationDate || "",
+          issueDate: new Date().toISOString().split("T")[0],
+          uniqueCode,
+          academicYear: req.body.academicYear || "",
+          year: "",
+          company: req.body.company || "",
+          duration: req.body.duration || "",
+          startDate: req.body.startDate || "",
+          birthDate: student.dateOfBirth || "",
+          birthPlace: student.placeOfBirth || "",
+          endDate: req.body.endDate || "",
+          internshipCity: req.body.internshipCity || "",
+          level: level || "",
+          field: speciality || "",
+          average: req.body.average || "",
+          rank: req.body.rank || "",
+          branch: branch || "",
+          class: level || "",
+          templateType,
+        },
+        blockchainCertId: blockchainResult.blockchainCertId,
+        contractType,
+        type: templateType,
+        specialty: speciality || "",
+        status: "ACTIVE",
+        issueDate: new Date(),
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: student.id },
+      data: { isGraduated: true },
+    });
+
+    // send email notification
+    try {
+      await sendEmail(
+        student.email,
+        "Your Certificate is Ready 🎓",
+        `<h2>Congratulations ${student.fullName}!</h2>
+        <p>Your certificate is now available on your dashboard.</p>
+        <a href="${process.env.FRONTEND_URL}/login"
+          style="display:inline-block;padding:12px 24px;background-color:#4F46E5;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin-top:16px;">
+          Login to Dashboard
+        </a>`,
+      );
+    } catch (emailErr) {
+      console.error(`Email failed for ${student.matricule}:`, emailErr.message);
+    }
+
+    res.status(201).json({ message: "Certificate issued successfully", uniqueCode });
+
+  } catch (err) {
+    console.error("[issueOne] ERROR:", err.message);
+    res.status(500).json({ error: "An error occurred on the server", detail: err.message });
+  }
+};
 
 module.exports = {
   changePassword,
@@ -1099,4 +1312,5 @@ module.exports = {
   downloadRequestFile,
   getAuditTrail,
   uploadAvatar,
+  issueOne,
 };

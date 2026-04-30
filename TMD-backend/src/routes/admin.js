@@ -20,6 +20,7 @@ const {
   downloadRequestFile,
   getAuditTrail,
   uploadAvatar,
+  issueOne,
 } = require("../controllers/adminController");
 
 router.get("/dashboard", protect, isAdmin, dashboard);
@@ -34,6 +35,7 @@ router.put("/certificates/:id/unrevoke", protect, isAdmin, unrevokeCertificate);
 router.put("/settings", protect, isAdmin, changePassword);
 router.post("/sync-students", protect, isAdmin, syncStudents);
 router.post("/import", protect, isAdmin, importDiplomas);
+router.post("/issue-one", protect, isAdmin, issueOne);  
 router.get("/certificates", protect, isAdmin, getAllCertificates);
 router.get("/statistics", protect, isAdmin, getStatistics);
 router.get("/certificates/:id/download", protect, isAdmin, downloadCertificate);
