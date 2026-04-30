@@ -14,8 +14,7 @@ const {
   issueDocument,
   issueRankDocument,
   addStudentToRankRegistry,
-} = require("../services/blockchain.service");
-const {
+  updateStudentInRankRegistry,
   revokeCertificate: revokeCertificateOnChain,
   unrevokeCertificate: unrevokeCertificateOnChain,
   verifyCertificate,
@@ -552,52 +551,55 @@ const importDiplomas = async (req, res) => {
             startDate: start.toISOString(),
             endDate: endDate.toISOString(),
           });
-          }  else if (contractType === "RANK") {
-              const rankValue = Number(row["rank"] || 0);
-              const nomValue = row["familyName"] || "";
-              const prenomValue = row["name"] || "";
-              const averageValue = String(row["average"] || "0");
-              const creditsValue = Number(row["credits"] || 0);
-              const sessionValue = String(row["session"] || "NORMAL")
-                .toLowerCase()
-                .includes("rattrapage") ? "RATTRAPAGE" : "NORMAL";
+          } else if (contractType === "RANK") {
+            const rankValue    = Number(row["rank"] || 0);
+            const nomValue     = row["familyName"] || "";
+            const prenomValue  = row["name"] || "";
+            const averageValue = String(row["average"] || "0");
+            const creditsValue = Number(row["credits"] || 0);
+            const sessionValue = String(row["session"] || "NORMAL")
+              .toLowerCase()
+              .includes("rattrapage") ? "RATTRAPAGE" : "NORMAL";
 
-              // register student in RankRegistry first (contract requires studentExists)
-                try {
-                  await addStudentToRankRegistry({
-                    matricule: student.matricule,
-                    name: prenomValue || student.fullName?.split(" ")[0] || "",
-                    familyName: nomValue || student.fullName?.split(" ").slice(1).join(" ") || "",
-                    speciality: speciality || "",
-                    branch: branch || "",
-                    year: level || "",
-                    rank: rankValue,
-                    average: averageValue,
-                    credits: creditsValue,
-                    session: sessionValue,
-                  });
+            const rankPayload = {
+              matricule:   student.matricule,
+              name:        prenomValue || student.fullName?.split(" ")[0] || "",
+              familyName:  nomValue || student.fullName?.split(" ").slice(1).join(" ") || "",
+              speciality:  speciality || "",
+              branch:      branch || "",
+              year:        level || "",
+              rank:        rankValue,
+              average:     averageValue,
+              credits:     creditsValue,
+              session:     sessionValue,
+            };
 
-                  await prisma.user.update({
-                    where: { id: student.id },
-                    data: { blockchainRegistered: true },
-                  });
-                } catch (err) {
-                  // student already exists on chain — still mark as registered
-                  console.log(`Student ${student.matricule} rank registry:`, err.message);
-                  await prisma.user.update({
-                    where: { id: student.id },
-                    data: { blockchainRegistered: true },
-                  });
-                }
+            // register or update student in RankRegistry (contract requires studentExists before issueDocument)
+            try {
+              await addStudentToRankRegistry(rankPayload);
+            } catch (addErr) {
+              if (addErr.message?.toLowerCase().includes("already exists")) {
+                // student is already on-chain — update with fresh data so re-issued cert shows new info
+                await updateStudentInRankRegistry(rankPayload);
+              } else {
+                throw addErr;
+              }
+            }
 
-              // issue rank document on RankRegistry
-              blockchainResult = await issueRankDocument({
-                matricule: student.matricule,
-                documentType: "Rank Certificate",
-                description: `Rank ${rankValue} — ${speciality || ""}`,
-                ipfsHash: "pending",
-              });
-            }else {
+            await prisma.user.update({
+              where: { id: student.id },
+              data: { blockchainRegistered: true },
+            });
+
+            // issue rank document on RankRegistry
+            blockchainResult = await issueRankDocument({
+              matricule:    student.matricule,
+              documentType: "Rank Certificate",
+              description:  `Rank ${rankValue} — ${speciality || ""}`,
+              ipfsHash:     "pending",
+            });
+          }
+          else {
           // STUDY / scolarite
           blockchainResult = await issueStudyCertificate({
             studentId: student.matricule,
@@ -1176,41 +1178,51 @@ const issueOne = async (req, res) => {
         endDate: endDateAdj.toISOString(),
       });
 
-    } else if (contractType === "RANK") {
-      try {
-        await addStudentToRankRegistry({
-          matricule: student.matricule,
-          name: firstName,
-          familyName: lastName,
-          speciality: speciality || "",
-          branch: branch || "",
-          year: level || "",
-          rank: Number(req.body.rank || 0),
-          average: String(req.body.average || "0"),
-          credits: Number(req.body.credits || 0),
-          session: String(req.body.session || "NORMAL").toLowerCase().includes("rattrapage")
-            ? "RATTRAPAGE"
-            : "NORMAL",
-        });
-        await prisma.user.update({
-          where: { id: student.id },
-          data: { blockchainRegistered: true },
-        });
-      } catch (err) {
-        console.log(`Rank registry for ${student.matricule}:`, err.message);
-        await prisma.user.update({
-          where: { id: student.id },
-          data: { blockchainRegistered: true },
-        });
-      }
-      blockchainResult = await issueRankDocument({
-        matricule: student.matricule,
-        documentType: "Rank Certificate",
-        description: `Rank ${req.body.rank || 0} — ${speciality || ""}`,
-        ipfsHash: "pending",
-      });
+      } else if (contractType === "RANK") {
+        try {
+          const rankPayload = {
+            matricule: student.matricule,
+            name: firstName,
+            familyName: lastName,
+            speciality: speciality || "",
+            branch: branch || "",
+            year: level || "",
+            rank: Number(req.body.rank || 0),
+            average: String(req.body.average || "0"),
+            credits: Number(req.body.credits || 0),
+            session: String(req.body.session || "NORMAL").toLowerCase().includes("rattrapage")
+              ? "RATTRAPAGE"
+              : "NORMAL",
+          };
 
-    } else {
+          // Try to add — if student already exists on-chain, update them with fresh data
+          try {
+            await addStudentToRankRegistry(rankPayload);
+          } catch (addErr) {
+            if (addErr.message?.toLowerCase().includes("already exists")) {
+              await updateStudentInRankRegistry(rankPayload);
+            } else {
+              throw addErr;
+            }
+          }
+
+          await prisma.user.update({
+            where: { id: student.id },
+            data: { blockchainRegistered: true },
+          });
+        } catch (err) {
+          console.error(`Rank registry error for ${student.matricule}:`, err.message);
+          throw err;
+        }
+
+        blockchainResult = await issueRankDocument({
+          matricule:    student.matricule,
+          documentType: "Rank Certificate",
+          description:  `Rank ${Number(req.body.rank || 0)} — ${speciality || ""}`,
+          ipfsHash:     "pending",
+        });
+
+      } else {
       // STUDY
       blockchainResult = await issueStudyCertificate({
         studentId: student.matricule,
