@@ -96,11 +96,35 @@ function Creators() {
               </a>
             </div>
           </div>
-
+                    <div className={styles.member}>
+            <div className={`${styles.avatar} ${styles["av-pink"]}`}>I</div>
+            <h4 className={styles.name}>Bedad ines</h4>
+            <h4 className={styles.role}>Team lead & Blockchain lead</h4>
+            <p className={styles.year}> 2nd Year · MI</p>
+            <p className={styles.desc}>intoduction</p>
+            <div className={styles.links}>
+              <a
+                href=""
+                target="_blank"
+                rel="noreferrer"
+                className={styles.linkBtn}
+              >
+                GitHub
+              </a>
+              <a
+                href=""
+                target="_blank"
+                rel="noreferrer"
+                className={styles.linkBtn}
+              >
+                LinkedIn
+              </a>
+            </div>
+          </div>
           <div className={styles.member}>
             <div className={`${styles.avatar} ${styles["av-orange"]}`}>K</div>
             <h4 className={styles.name}>Khlil Ikram</h4>
-            <h4 className={styles.role}>lead designer & sub backend dev</h4>
+            <h4 className={styles.role}>Design lead & Backend developer</h4>
             <p className={styles.year}> 2nd Year · MI</p>
             <p className={styles.desc}>intoduction</p>
             <div className={styles.links}>
@@ -123,36 +147,11 @@ function Creators() {
             </div>
           </div>
 
-          <div className={styles.member}>
-            <div className={`${styles.avatar} ${styles["av-pink"]}`}>I</div>
-            <h4 className={styles.name}>Bedad ines</h4>
-            <h4 className={styles.role}>team leader & sub Blockchain dev</h4>
-            <p className={styles.year}> 2nd Year · MI</p>
-            <p className={styles.desc}>intoduction</p>
-            <div className={styles.links}>
-              <a
-                href=""
-                target="_blank"
-                rel="noreferrer"
-                className={styles.linkBtn}
-              >
-                GitHub
-              </a>
-              <a
-                href=""
-                target="_blank"
-                rel="noreferrer"
-                className={styles.linkBtn}
-              >
-                LinkedIn
-              </a>
-            </div>
-          </div>
 
           <div className={styles.member}>
             <div className={`${styles.avatar} ${styles["av-teal"]}`}>R</div>
             <h4 className={styles.name}>Baghdadi Abderrahim Wael</h4>
-            <h4 className={styles.role}>Blockchain lead</h4>
+            <h4 className={styles.role}>Blockchain developer & Backend developer</h4>
             <p className={styles.year}> 2nd Year · MI</p>
             <p className={styles.desc}>intoduction</p>
             <div className={styles.links}>
