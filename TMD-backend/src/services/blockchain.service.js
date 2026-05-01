@@ -46,47 +46,77 @@ const getContract = (contractType) => {
   throw new Error(`Unknown contract type: ${contractType}`);
 };
 
-let noncePromise = null;
+// ─── Nonce Queue ───────────────────────────────────────────────────────────────
+// All transactions are serialized through this queue so they are sent one at a
+// time, each with a fresh nonce fetched from the chain. This eliminates race
+// conditions (two concurrent calls grabbing the same nonce) and stale-nonce
+// issues after failures — no server restart needed.
+let txQueue = Promise.resolve();
 
-const getNonce = async () => {
-  if (!noncePromise) {
-    noncePromise = provider.getTransactionCount(signer.address, "pending");
-  }
+/**
+ * Wraps a blockchain transaction in a serial queue.
+ * Waits for all previous transactions to finish before sending the next one.
+ * On nonce-related errors it re-fetches from the chain and retries once.
+ *
+ * @param {(nonce: number) => Promise<ethers.TransactionResponse>} txFn
+ *   A function that receives the current nonce and returns a contract call.
+ * @returns {Promise<ethers.TransactionReceipt>}
+ */
+const sendTx = (txFn) => {
+  const result = txQueue.then(async () => {
+    let attempts = 0;
+    while (attempts < 2) {
+      try {
+        const nonce = await provider.getTransactionCount(signer.address, "pending");
+        const tx = await txFn(nonce);
+        return await tx.wait();
+      } catch (err) {
+        const isNonceError =
+          err?.message?.toLowerCase().includes("nonce") ||
+          err?.code === "NONCE_EXPIRED" ||
+          err?.code === "REPLACEMENT_UNDERPRICED";
+        if (isNonceError && attempts === 0) {
+          console.warn("Nonce error detected, retrying with fresh nonce...");
+          attempts++;
+          continue;
+        }
+        throw err;
+      }
+    }
+  });
 
-  const nonce = await noncePromise;
-  noncePromise = Promise.resolve(nonce + 1);
-
-  return nonce;
+  // Attach the result (not errors) to the queue so one failure doesn't
+  // block all future transactions.
+  txQueue = result.catch(() => {});
+  return result;
 };
 
-// Diploma struct fields: certId, studentId, studentName, schoolName,
-// degreeName, fieldOfStudy, ipfsHash, issueDate, issuedBy, isRevoked
+// ─── Diploma ──────────────────────────────────────────────────────────────────
+
 const issueDiploma = async ({ studentId, studentName, degreeName, fieldOfStudy, ipfsHash }) => {
-  const nonce = await getNonce();
-  const tx = await diplomaContract.issueDiploma(
-    studentId,
-    studentName,
-    degreeName,
-    fieldOfStudy,
-    ipfsHash,
-    { nonce }
+  const receipt = await sendTx((nonce) =>
+    diplomaContract.issueDiploma(
+      studentId,
+      studentName,
+      degreeName,
+      fieldOfStudy,
+      ipfsHash,
+      { nonce }
+    )
   );
 
-  const receipt = await tx.wait();
-
   const event = receipt.logs
-    .map((log) => {
-      try { return diplomaContract.interface.parseLog(log); } catch { return null; }
-    })
+    .map((log) => { try { return diplomaContract.interface.parseLog(log); } catch { return null; } })
     .find((e) => e?.name === "DiplomaIssued");
+
   return {
     blockchainCertId: event.args.certId,
     txHash: receipt.hash,
   };
 };
 
-// InternshipCertificate struct fields: certId, studentId, studentName, schoolName,
-// companyName, internshipRole, ipfsHash, startDate, endDate, issueDate, issuedBy, isRevoked
+// ─── Internship ───────────────────────────────────────────────────────────────
+
 const issueInternship = async ({ studentId, studentName, companyName, internshipRole, internshipCity, ipfsHash, startDate, endDate }) => {
   const startTs = Math.floor(new Date(startDate).getTime() / 1000);
   const endTs = Math.floor(new Date(endDate).getTime() / 1000);
@@ -95,25 +125,22 @@ const issueInternship = async ({ studentId, studentName, companyName, internship
     throw new Error("Internship end date must be strictly after start date");
   }
 
-  const nonce = await getNonce();
-  const tx = await internshipContract.issueInternship(
-    studentId,
-    studentName,
-    companyName,
-    internshipRole,
-    internshipCity,  // ← added
-    ipfsHash,
-    startTs,
-    endTs,
-    { nonce }
+  const receipt = await sendTx((nonce) =>
+    internshipContract.issueInternship(
+      studentId,
+      studentName,
+      companyName,
+      internshipRole,
+      internshipCity,
+      ipfsHash,
+      startTs,
+      endTs,
+      { nonce }
+    )
   );
 
-  const receipt = await tx.wait();
-
   const event = receipt.logs
-    .map((log) => {
-      try { return internshipContract.interface.parseLog(log); } catch { return null; }
-    })
+    .map((log) => { try { return internshipContract.interface.parseLog(log); } catch { return null; } })
     .find((e) => e?.name === "InternshipIssued");
 
   return {
@@ -122,26 +149,23 @@ const issueInternship = async ({ studentId, studentName, companyName, internship
   };
 };
 
-// StudyCertificate struct fields: certId, studentId, studentName, schoolName,
-// programName, academicYear, certificateType, ipfsHash, issueDate, issuedBy, isRevoked
+// ─── Study Certificate ────────────────────────────────────────────────────────
+
 const issueStudyCertificate = async ({ studentId, studentName, programName, academicYear, certificateType, ipfsHash }) => {
-  const nonce = await getNonce();
-  const tx = await studyContract.issueStudyCertificate(
-    studentId,
-    studentName,
-    programName,
-    academicYear,
-    certificateType,
-    ipfsHash,
-    { nonce }
+  const receipt = await sendTx((nonce) =>
+    studyContract.issueStudyCertificate(
+      studentId,
+      studentName,
+      programName,
+      academicYear,
+      certificateType,
+      ipfsHash,
+      { nonce }
+    )
   );
 
-  const receipt = await tx.wait();
-
   const event = receipt.logs
-    .map((log) => {
-      try { return studyContract.interface.parseLog(log); } catch { return null; }
-    })
+    .map((log) => { try { return studyContract.interface.parseLog(log); } catch { return null; } })
     .find((e) => e?.name === "StudyCertificateIssued");
 
   return {
@@ -150,134 +174,54 @@ const issueStudyCertificate = async ({ studentId, studentName, programName, acad
   };
 };
 
-// verifyDiploma returns bool (false if not found or revoked)
-// verifyCertificate on internship/study also returns bool
-const verifyCertificate = async (contractType, blockchainCertId) => {
-  const contract = getContract(contractType);
-  if (contractType === "DIPLOMA") return await contract.verifyDiploma(blockchainCertId);
-  if (contractType === "RANK") return await contract.verifyDocument(blockchainCertId);
-  return await contract.verifyCertificate(blockchainCertId);
-};
-
-const getCertificateData = async (contractType, blockchainCertId) => {
-  const contract = getContract(contractType);
-
-  if (contractType === "DIPLOMA") {
-    const data = await contract.getDiploma(blockchainCertId);
-    return {
-      certId: data.certId,
-      studentId: data.studentId,
-      studentName: data.studentName,
-      schoolName: data.schoolName,
-      degreeName: data.degreeName,
-      fieldOfStudy: data.fieldOfStudy,
-      ipfsHash: data.ipfsHash,
-      issueDate: data.issueDate.toString(),
-      issuedBy: data.issuedBy,
-      isRevoked: data.isRevoked,
-    };
-  }
-  if (contractType === "INTERNSHIP") {
-    const data = await contract.getCertificate(blockchainCertId);
-    return {
-      certId: data.certId,
-      studentId: data.studentId,
-      studentName: data.studentName,
-      schoolName: data.schoolName,
-      companyName: data.companyName,
-      internshipRole: data.internshipRole,
-      internshipCity: data.internshipCity,  // ← added
-      ipfsHash: data.ipfsHash,
-      startDate: data.startDate.toString(),
-      endDate: data.endDate.toString(),
-      issueDate: data.issueDate.toString(),
-      issuedBy: data.issuedBy,
-      isRevoked: data.isRevoked,
-    };
-  }
-  if (contractType === "RANK") {
-  const doc = await contract.getDocument(blockchainCertId);
-  
-  // also fetch student data to get rank and average
-  let studentData = null;
-  try {
-    studentData = await contract.getStudent(doc.matricule);
-  } catch (e) {
-    console.warn("Could not fetch student rank data:", e.message);
-  }
-
-  return {
-    matricule: doc.matricule.toString(),
-    documentType: doc.documentType,
-    description: doc.description,
-    ipfsHash: doc.ipfsHash,
-    issueDate: doc.issueDate.toString(),
-    issuedBy: doc.issuedBy,
-    isRevoked: doc.isRevoked,
-    // student academic data
-    rank: studentData?.rank?.toString() || "—",
-    average: studentData?.average || "—",
-    speciality: studentData?.speciality || "",
-    year: studentData?.year || "",
-    branch: studentData?.branch || "",
-    session: studentData?.session === 0n ? "NORMAL" : "RATTRAPAGE",
-  };
-}
-
-  const data = await contract.getCertificate(blockchainCertId);
-  return {
-    certId: data.certId,
-    studentId: data.studentId,
-    studentName: data.studentName,
-    schoolName: data.schoolName,
-    programName: data.programName,
-    academicYear: data.academicYear,
-    certificateType: data.certificateType,
-    ipfsHash: data.ipfsHash,
-    issueDate: data.issueDate.toString(),
-    issuedBy: data.issuedBy,
-    isRevoked: data.isRevoked,
-  };
-};
+// ─── Revoke / Unrevoke ────────────────────────────────────────────────────────
 
 const revokeCertificate = async (contractType, blockchainCertId) => {
   const contract = getContract(contractType);
-  const nonce = await getNonce();
 
-  let tx;
-  if (contractType === "DIPLOMA") {
-    tx = await contract.revokeDiploma(blockchainCertId, { nonce });
-  } else if (contractType === "RANK") {
-    tx = await contract.revokeDocument(blockchainCertId, { nonce });
-  } else {
-    tx = await contract.revokeCertificate(blockchainCertId, { nonce });
-  }
+  const receipt = await sendTx((nonce) => {
+    if (contractType === "DIPLOMA") return contract.revokeDiploma(blockchainCertId, { nonce });
+    if (contractType === "RANK")    return contract.revokeDocument(blockchainCertId, { nonce });
+    return contract.revokeCertificate(blockchainCertId, { nonce });
+  });
 
-  const receipt = await tx.wait();
   return receipt.hash;
 };
+
+const unrevokeCertificate = async (contractType, blockchainCertId) => {
+  const contract = getContract(contractType);
+
+  const receipt = await sendTx((nonce) => {
+    if (contractType === "DIPLOMA") return contract.unrevokeDiploma(blockchainCertId, { nonce });
+    if (contractType === "RANK")    return contract.unrevokeDocument(blockchainCertId, { nonce });
+    return contract.unrevokeCertificate(blockchainCertId, { nonce });
+  });
+
+  return receipt.hash;
+};
+
+// ─── Document ─────────────────────────────────────────────────────────────────
+
 const issueDocument = async ({ studentId, studentName, documentType, ipfsHash }) => {
-  const nonce = await getNonce();
-  const tx = await documentContract.issueDocument(
-    studentId,
-    studentName,
-    documentType,
-    ipfsHash,
-    { nonce }
+  const receipt = await sendTx((nonce) =>
+    documentContract.issueDocument(
+      studentId,
+      studentName,
+      documentType,
+      ipfsHash,
+      { nonce }
+    )
   );
-  const receipt = await tx.wait();
 
-  // log all events to see what's actually being emitted
-  const parsedLogs = receipt.logs.map((log) => {
-    try { return documentContract.interface.parseLog(log); } catch { return null; }
-  }).filter(Boolean);
+  const parsedLogs = receipt.logs
+    .map((log) => { try { return documentContract.interface.parseLog(log); } catch { return null; } })
+    .filter(Boolean);
 
-  console.log("DocumentRegistry events:", parsedLogs.map(e => e.name));
+  console.log("DocumentRegistry events:", parsedLogs.map((e) => e.name));
 
   const event = parsedLogs.find((e) => e?.name === "DocumentIssued");
-
   if (!event) {
-    throw new Error(`DocumentIssued event not found. Events found: ${parsedLogs.map(e => e.name).join(", ")}`);
+    throw new Error(`DocumentIssued event not found. Events found: ${parsedLogs.map((e) => e.name).join(", ")}`);
   }
 
   return {
@@ -304,27 +248,117 @@ const getDocumentData = async (blockchainDocId) => {
   };
 };
 
-// add student academic record to RankRegistry
+// ─── Verify & Read (no nonce needed) ─────────────────────────────────────────
+
+const verifyCertificate = async (contractType, blockchainCertId) => {
+  const contract = getContract(contractType);
+  if (contractType === "DIPLOMA") return await contract.verifyDiploma(blockchainCertId);
+  if (contractType === "RANK")    return await contract.verifyDocument(blockchainCertId);
+  return await contract.verifyCertificate(blockchainCertId);
+};
+
+const getCertificateData = async (contractType, blockchainCertId) => {
+  const contract = getContract(contractType);
+
+  if (contractType === "DIPLOMA") {
+    const data = await contract.getDiploma(blockchainCertId);
+    return {
+      certId: data.certId,
+      studentId: data.studentId,
+      studentName: data.studentName,
+      schoolName: data.schoolName,
+      degreeName: data.degreeName,
+      fieldOfStudy: data.fieldOfStudy,
+      ipfsHash: data.ipfsHash,
+      issueDate: data.issueDate.toString(),
+      issuedBy: data.issuedBy,
+      isRevoked: data.isRevoked,
+    };
+  }
+
+  if (contractType === "INTERNSHIP") {
+    const data = await contract.getCertificate(blockchainCertId);
+    return {
+      certId: data.certId,
+      studentId: data.studentId,
+      studentName: data.studentName,
+      schoolName: data.schoolName,
+      companyName: data.companyName,
+      internshipRole: data.internshipRole,
+      internshipCity: data.internshipCity,
+      ipfsHash: data.ipfsHash,
+      startDate: data.startDate.toString(),
+      endDate: data.endDate.toString(),
+      issueDate: data.issueDate.toString(),
+      issuedBy: data.issuedBy,
+      isRevoked: data.isRevoked,
+    };
+  }
+
+  if (contractType === "RANK") {
+    const doc = await contract.getDocument(blockchainCertId);
+
+    let studentData = null;
+    try {
+      studentData = await contract.getStudent(doc.matricule);
+    } catch (e) {
+      console.warn("Could not fetch student rank data:", e.message);
+    }
+
+    return {
+      matricule: doc.matricule.toString(),
+      documentType: doc.documentType,
+      description: doc.description,
+      ipfsHash: doc.ipfsHash,
+      issueDate: doc.issueDate.toString(),
+      issuedBy: doc.issuedBy,
+      isRevoked: doc.isRevoked,
+      rank: studentData?.rank?.toString() || "—",
+      average: studentData?.average || "—",
+      speciality: studentData?.speciality || "",
+      year: studentData?.year || "",
+      branch: studentData?.branch || "",
+      session: studentData?.session === 0n ? "NORMAL" : "RATTRAPAGE",
+    };
+  }
+
+  const data = await contract.getCertificate(blockchainCertId);
+  return {
+    certId: data.certId,
+    studentId: data.studentId,
+    studentName: data.studentName,
+    schoolName: data.schoolName,
+    programName: data.programName,
+    academicYear: data.academicYear,
+    certificateType: data.certificateType,
+    ipfsHash: data.ipfsHash,
+    issueDate: data.issueDate.toString(),
+    issuedBy: data.issuedBy,
+    isRevoked: data.isRevoked,
+  };
+};
+
+// ─── Rank Registry ────────────────────────────────────────────────────────────
+
 const addStudentToRankRegistry = async ({ matricule, name, familyName, speciality, branch, year, rank, average, credits, session }) => {
-  const nonce = await getNonce();
-  const tx = await rankRegistryContract.addStudent(
-    BigInt(matricule),
-    name,
-    familyName,
-    speciality,
-    branch,
-    year,
-    BigInt(rank),
-    String(average),
-    BigInt(credits),
-    session === "RATTRAPAGE" ? 1 : 0,
-    { nonce }
+  const receipt = await sendTx((nonce) =>
+    rankRegistryContract.addStudent(
+      BigInt(matricule),
+      name,
+      familyName,
+      speciality,
+      branch,
+      year,
+      BigInt(rank),
+      String(average),
+      BigInt(credits),
+      session === "RATTRAPAGE" ? 1 : 0,
+      { nonce }
+    )
   );
-  const receipt = await tx.wait();
   return receipt.hash;
 };
 
-// get one student from RankRegistry
 const getStudentFromRankRegistry = async (matricule) => {
   const data = await rankRegistryContract.getStudent(BigInt(matricule));
   return {
@@ -332,8 +366,8 @@ const getStudentFromRankRegistry = async (matricule) => {
     name: data.name,
     familyName: data.familyName,
     speciality: data.speciality,
-    branch : data.branch,
-    year : data.year,
+    branch: data.branch,
+    year: data.year,
     rank: data.rank.toString(),
     average: data.average,
     credits: data.credits.toString(),
@@ -341,7 +375,6 @@ const getStudentFromRankRegistry = async (matricule) => {
   };
 };
 
-// get all students from RankRegistry
 const getAllStudentsFromRankRegistry = async () => {
   const all = await rankRegistryContract.getAllStudents();
   return all.map((data) => ({
@@ -349,8 +382,8 @@ const getAllStudentsFromRankRegistry = async () => {
     name: data.name,
     familyName: data.familyName,
     speciality: data.speciality,
-    branch : data.branch,
-    year : data.year,
+    branch: data.branch,
+    year: data.year,
     rank: data.rank.toString(),
     average: data.average,
     credits: data.credits.toString(),
@@ -359,20 +392,18 @@ const getAllStudentsFromRankRegistry = async () => {
 };
 
 const issueRankDocument = async ({ matricule, documentType, description, ipfsHash }) => {
-  const nonce = await getNonce();
-  const tx = await rankRegistryContract.issueDocument(
-    BigInt(matricule),
-    documentType,
-    description,
-    ipfsHash,
-    { nonce }
+  const receipt = await sendTx((nonce) =>
+    rankRegistryContract.issueDocument(
+      BigInt(matricule),
+      documentType,
+      description,
+      ipfsHash,
+      { nonce }
+    )
   );
-  const receipt = await tx.wait();
 
   const event = receipt.logs
-    .map((log) => {
-      try { return rankRegistryContract.interface.parseLog(log); } catch { return null; }
-    })
+    .map((log) => { try { return rankRegistryContract.interface.parseLog(log); } catch { return null; } })
     .find((e) => e?.name === "DocumentIssued");
 
   if (!event) throw new Error("DocumentIssued event not found in RankRegistry");
@@ -383,22 +414,26 @@ const issueRankDocument = async ({ matricule, documentType, description, ipfsHas
   };
 };
 
-const unrevokeCertificate = async (contractType, blockchainCertId) => {
-  const contract = getContract(contractType);
-  const nonce = await getNonce();
-
-  let tx;
-  if (contractType === "DIPLOMA") {
-    tx = await contract.unrevokeDiploma(blockchainCertId, { nonce });
-  } else if (contractType === "RANK") {
-    tx = await contract.unrevokeDocument(blockchainCertId, { nonce });
-  } else {
-    tx = await contract.unrevokeCertificate(blockchainCertId, { nonce });
-  }
-
-  const receipt = await tx.wait();
+const updateStudentInRankRegistry = async ({ matricule, name, familyName, speciality, branch, year, rank, average, credits, session }) => {
+  const receipt = await sendTx((nonce) =>
+    rankRegistryContract.updateStudent(
+      BigInt(matricule),
+      name,
+      familyName,
+      speciality,
+      branch,
+      year,
+      BigInt(rank),
+      String(average),
+      BigInt(credits),
+      session === "RATTRAPAGE" ? 1 : 0,
+      { nonce }
+    )
+  );
   return receipt.hash;
 };
+
+// ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
   issueDiploma,
@@ -415,4 +450,5 @@ module.exports = {
   addStudentToRankRegistry,
   getStudentFromRankRegistry,
   getAllStudentsFromRankRegistry,
+  updateStudentInRankRegistry,  
 };

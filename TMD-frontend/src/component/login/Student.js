@@ -10,7 +10,7 @@ function Student() {
     if (!token || role !== "STUDENT") {
       navigate("/", { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
   return (
     <div>

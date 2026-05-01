@@ -37,7 +37,7 @@ function Authorisations() {
       .then((resp) => resp.json())
       .then((data) => setAdmins(data))
       .catch((err) => console.log(err));
-  }, []);
+  }, [BASE_URL, token]);
 
   // Add admin
   function addAdmin(e) {
