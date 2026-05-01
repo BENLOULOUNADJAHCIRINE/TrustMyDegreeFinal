@@ -70,7 +70,23 @@ const dashboard = async (req, res) => {
 const getAllCertificates = async (req, res) => {
   try {
     const certificates = await prisma.certificate.findMany({
-      include: { student: true },
+      select: {
+        id: true,
+        type: true,
+        specialty: true,
+        status: true,
+        issueDate: true,
+        contractType: true,
+        blockchainCertId: true,
+        ipfsHash: true,
+        student: {
+          select: {
+            fullName: true,
+            matricule: true,
+            avatar: true,
+          },
+        },
+      },
       orderBy: { issueDate: "desc" },
     });
     res.status(200).json({ certificates });
@@ -82,32 +98,27 @@ const getAllCertificates = async (req, res) => {
 // get all requests
 const getRequests = async (req, res) => {
   try {
-    const totalRequests = await prisma.request.count();
-    const pendingRequests = await prisma.request.count({
-      where: { status: "PENDING" },
+    const statusGroups = await prisma.request.groupBy({
+      by: ['status'],
+      _count: { id: true },
     });
-    const approvedRequests = await prisma.request.count({
-      where: { status: "APPROVED" },
+
+    const summary = { total: 0, pending: 0, approved: 0, rejected: 0 };
+    statusGroups.forEach(g => {
+      summary.total += g._count.id;
+      if (g.status === 'PENDING')  summary.pending  = g._count.id;
+      if (g.status === 'APPROVED') summary.approved = g._count.id;
+      if (g.status === 'REJECTED') summary.rejected = g._count.id;
     });
-    const rejectedRequests = await prisma.request.count({
-      where: { status: "REJECTED" },
-    });
+
     const fullList = await prisma.request.findMany({
-      include: {
-        student: true,
-      },
+      include: { student: { select: { fullName: true, matricule: true } } },  // ✅ select au lieu de include complet
+      orderBy: { createdAt: 'desc' },
     });
-    res.status(200).json({
-      requests: fullList,
-      summary: {
-        total: totalRequests,
-        pending: pendingRequests,
-        approved: approvedRequests,
-        rejected: rejectedRequests,
-      },
-    });
+
+    res.status(200).json({ requests: fullList, summary });
   } catch (err) {
-    res.status(500).json({ error: "an error occured in the server" });
+    res.status(500).json({ error: 'an error occured in the server' });
   }
 };
 
@@ -703,60 +714,53 @@ const importDiplomas = async (req, res) => {
 // get statistics
 const getStatistics = async (req, res) => {
   try {
-    const totalMaster = await prisma.certificate.count({ where: { type: "MASTER" } });
-    const totalEngineer = await prisma.certificate.count({ where: { type: "ENGINEER" } });
-    const totalInternship = await prisma.certificate.count({ where: { contractType: "INTERNSHIP" } });
-    const totalScolarite = await prisma.certificate.count({ where: { contractType: "STUDY" } });
-    const totalDiploma = await prisma.certificate.count({ where: { contractType: "DIPLOMA" } });
-    const totalRank = await prisma.certificate.count({ where: { contractType: "RANK" } });
+    const typeGroups = await prisma.certificate.groupBy({
+      by: ['type', 'contractType'],
+      _count: { id: true },
+    });
 
-    const DistributionByType = {
-      MASTER: totalMaster,
-      ENGINEER: totalEngineer,
-      INTERNSHIP: totalInternship,
-      SCOLARITE: totalScolarite,
-      DIPLOMA: totalDiploma,
-      RANK: totalRank,
-    };
+    const DistributionByType = { MASTER: 0, ENGINEER: 0, INTERNSHIP: 0, SCOLARITE: 0, DIPLOMA: 0, RANK: 0 };
+    typeGroups.forEach(g => {
+      if (g.type === 'MASTER') DistributionByType.MASTER += g._count.id;
+      if (g.type === 'ENGINEER') DistributionByType.ENGINEER += g._count.id;
+      if (g.contractType === 'INTERNSHIP') DistributionByType.INTERNSHIP += g._count.id;
+      if (g.contractType === 'STUDY') DistributionByType.SCOLARITE += g._count.id;
+      if (g.contractType === 'DIPLOMA') DistributionByType.DIPLOMA += g._count.id;
+      if (g.contractType === 'RANK') DistributionByType.RANK += g._count.id;
+    });
 
     const topSpecialties = await prisma.certificate.groupBy({
-      by: ["specialty"],
+      by: ['specialty'],
       _count: { specialty: true },
-      orderBy: { _count: { specialty: "desc" } },
+      orderBy: { _count: { specialty: 'desc' } },
       take: 5,
     });
 
-    const certificates = await prisma.certificate.findMany();
+    const certificates = await prisma.certificate.findMany({
+      select: { issueDate: true },  
+    });
     const monthlyIssuance = {};
     certificates.forEach((cert) => {
-      const month = new Date(cert.issueDate).toLocaleString("fr-FR", {
-        month: "short",
-      });
+      const month = new Date(cert.issueDate).toLocaleString('fr-FR', { month: 'short' });
       monthlyIssuance[month] = (monthlyIssuance[month] || 0) + 1;
     });
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
     const verifications = await prisma.verification.findMany({
       where: { verifiedAt: { gte: thirtyDaysAgo } },
+      select: { verifiedAt: true },  
     });
-
     const verificationsPerDay = {};
     verifications.forEach((v) => {
-      const day = new Date(v.verifiedAt).toISOString().split("T")[0];
+      const day = new Date(v.verifiedAt).toISOString().split('T')[0];
       verificationsPerDay[day] = (verificationsPerDay[day] || 0) + 1;
     });
 
-    res.status(200).json({
-      DistributionByType,
-      topSpecialties,
-      monthlyIssuance,
-      verificationsPerDay,
-    });
+    res.status(200).json({ DistributionByType, topSpecialties, monthlyIssuance, verificationsPerDay });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "an error occurred in the server" });
+    res.status(500).json({ error: 'an error occurred in the server' });
   }
 };
 
@@ -990,26 +994,36 @@ const exportRequests = async (req, res) => {
 const getAuditTrail = async (req, res) => {
   try {
     const certificates = await prisma.certificate.findMany({
-      include: { student: true },
+      select: {
+        id: true,
+        uniqueCode: true,
+        type: true,
+        specialty: true,
+        contractType: true,
+        blockchainCertId: true,
+        ipfsHash: true,
+        status: true,
+        issueDate: true,
+        student: {
+          select: {
+            fullName: true,
+            matricule: true,
+            avatar: true,
+          },
+        },
+      },
       orderBy: { issueDate: "desc" },
     });
 
+    // map is now much lighter — only computing ipfsUrl
     const trail = certificates.map((cert) => ({
-      id: cert.id,
-      uniqueCode: cert.uniqueCode,
+      ...cert,
       studentName: cert.student?.fullName || "Unknown",
       studentAvatar: cert.student?.avatar || null,
       matricule: cert.student?.matricule || "",
-      type: cert.type || "",
-      specialty: cert.specialty || "",
-      contractType: cert.contractType || "",
-      blockchainCertId: cert.blockchainCertId || "",
-      ipfsHash: cert.ipfsHash || "",
       ipfsUrl: cert.ipfsHash
         ? `https://ipfs.filebase.io/ipfs/${cert.ipfsHash}`
         : null,
-      status: cert.status,
-      issueDate: cert.issueDate,
     }));
 
     res.status(200).json({ trail });
