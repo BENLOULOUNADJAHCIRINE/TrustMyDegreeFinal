@@ -171,11 +171,9 @@ function AuditTrail() {
                     </td>
                     <td className={styles.column}>
                       <img
-                        src={
-                          item.studentAvatar
-                            ? `${process.env.REACT_APP_API_URL}${item.studentAvatar}`
-                            : "/students.jpg"
-                        }
+                        src={item.student?.avatar 
+                          ? (item.student.avatar.startsWith("http") ? item.student.avatar : `${process.env.REACT_APP_API_URL}${item.student.avatar}`) 
+                          : "/students.jpg"}
                         alt="student"
                       />
                       <span className={styles.student}>{item.studentName}</span>
