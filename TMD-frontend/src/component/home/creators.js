@@ -74,7 +74,7 @@ function Creators() {
           <div className={styles.member}>
             <div className={`${styles.avatar} ${styles["av-purple"]}`}>N</div>
             <h4 className={styles.name}>Benloulou Nadjah Cerine</h4>
-            <h4 className={styles.role}>Backend dev & designer</h4>
+            <h4 className={styles.role}>Backend lead & sub designer</h4>
             <p className={styles.year}> 2nd Year · MI</p>
             <p className={styles.desc}>intoduction</p>
             <div className={styles.links}>
@@ -100,7 +100,7 @@ function Creators() {
           <div className={styles.member}>
             <div className={`${styles.avatar} ${styles["av-orange"]}`}>K</div>
             <h4 className={styles.name}>Khlil Ikram</h4>
-            <h4 className={styles.role}>Backend dev & designer</h4>
+            <h4 className={styles.role}>lead designer & sub backend dev</h4>
             <p className={styles.year}> 2nd Year · MI</p>
             <p className={styles.desc}>intoduction</p>
             <div className={styles.links}>
@@ -126,7 +126,7 @@ function Creators() {
           <div className={styles.member}>
             <div className={`${styles.avatar} ${styles["av-pink"]}`}>I</div>
             <h4 className={styles.name}>Bedad ines</h4>
-            <h4 className={styles.role}>Blockchain dev & team leader</h4>
+            <h4 className={styles.role}>team leader & sub Blockchain dev</h4>
             <p className={styles.year}> 2nd Year · MI</p>
             <p className={styles.desc}>intoduction</p>
             <div className={styles.links}>
@@ -152,7 +152,7 @@ function Creators() {
           <div className={styles.member}>
             <div className={`${styles.avatar} ${styles["av-teal"]}`}>R</div>
             <h4 className={styles.name}>Baghdadi Abderrahim Wael</h4>
-            <h4 className={styles.role}>Blockchain dev</h4>
+            <h4 className={styles.role}>Blockchain lead</h4>
             <p className={styles.year}> 2nd Year · MI</p>
             <p className={styles.desc}>intoduction</p>
             <div className={styles.links}>
