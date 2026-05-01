@@ -173,7 +173,7 @@ function AuditTrail() {
                       <img
                         src={item.student?.avatar 
                           ? (item.student.avatar.startsWith("http") ? item.student.avatar : `${process.env.REACT_APP_API_URL}${item.student.avatar}`) 
-                          : "/students.jpg"}
+                          : "/Students.jpg"}
                         alt="student"
                       />
                       <span className={styles.student}>{item.studentName}</span>
