@@ -414,6 +414,25 @@ const issueRankDocument = async ({ matricule, documentType, description, ipfsHas
   };
 };
 
+const updateStudentInRankRegistry = async ({ matricule, name, familyName, speciality, branch, year, rank, average, credits, session }) => {
+  const receipt = await sendTx((nonce) =>
+    rankRegistryContract.updateStudent(
+      BigInt(matricule),
+      name,
+      familyName,
+      speciality,
+      branch,
+      year,
+      BigInt(rank),
+      String(average),
+      BigInt(credits),
+      session === "RATTRAPAGE" ? 1 : 0,
+      { nonce }
+    )
+  );
+  return receipt.hash;
+};
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -431,4 +450,5 @@ module.exports = {
   addStudentToRankRegistry,
   getStudentFromRankRegistry,
   getAllStudentsFromRankRegistry,
+  updateStudentInRankRegistry,  
 };
