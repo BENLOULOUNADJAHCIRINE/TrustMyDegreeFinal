@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import styles from "./Home.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
-
+import { Link } from "react-router-dom";
 function Home() {
   const navigate = useNavigate();
   const editorRef = useRef(null);
@@ -360,6 +360,9 @@ function Home() {
               The world's most advanced blockchain infrastructure for
               institutional credential verification.
             </p>
+            <Link to="/Creators">
+              <p>Creators</p>
+            </Link>
           </div>
 
           <div className={styles.platform}>

@@ -1,6 +1,6 @@
 import styles from "./Verify.module.css";
 import { useState, useEffect } from "react";
-
+import { toast } from "react-hot-toast";
 function Verify() {
   const [code, setCode] = useState("");
   const [result, setResult] = useState(null);
@@ -35,7 +35,7 @@ function Verify() {
           setStatus("not_found");
         }
       })
-      .catch((err) => window.alert(err));
+      .catch((err) => toast.error("failed to fetch"));
   }
 
   function handleVerify(e) {
@@ -75,31 +75,63 @@ function Verify() {
       </form>
 
       {open && (
-              <div className={styles.out}>
-                {/* SUCCESS */}
-                {status === "found" && result && (
-                  <div className={styles.successBox}>
-                    <button className={styles.close} onClick={() => setOpen(false)}>
-                      &times;
-                    </button>
-                    <h3>Certificate Valid </h3>
-      
+        <div className={styles.out}>
+          {/* SUCCESS */}
+          {status === "found" && result && (
+            <div className={styles.successBox}>
+              <button className={styles.close} onClick={() => setOpen(false)}>
+                {" "}
+                &times;{" "}
+              </button>
+              <div className={styles.header}>
+                {" "}
+                <h3>✅ Certificate Valid</h3>
+              </div>
+
+              <div className={styles.contentScroll}>
+                <div className={styles.topinfo}>
+                  <div className={styles.item}>
+                    {" "}
                     <p>
-                      <strong>Name:</strong> {result.student.fullName}
-                    </p>
+                      {" "}
+                      <strong>Name:</strong> {result.student.fullName}{" "}
+                    </p>{" "}
+                  </div>
+                  <div className={styles.item}>
+                    {" "}
                     <p>
-                      <strong>Matricule:</strong> {result.student.matricule}
-                    </p>
+                      {" "}
+                      <strong>Matricule:</strong>{" "}
+                      {result.student.matricule}{" "}
+                    </p>{" "}
+                  </div>
+                  <div className={styles.item}>
+                    {" "}
                     <p>
-                      <strong>Date of Birth:</strong> {result.student.dateOfBirth}
-                    </p>
+                      <strong>Date of Birth:</strong>{" "}
+                      {result.student.dateOfBirth}{" "}
+                    </p>{" "}
+                  </div>
+                  <div className={styles.item}>
+                    {" "}
                     <p>
-                      <strong>Place of Birth:</strong> {result.student.placeOfBirth}
-                    </p>
+                      {" "}
+                      <strong>Place of Birth:</strong>{" "}
+                      {result.student.placeOfBirth}{" "}
+                    </p>{" "}
+                  </div>
+                  <div className={styles.item}>
+                    {" "}
                     <p>
+                      {" "}
                       <strong>Certificate Type:</strong> {result.contractType}
                     </p>
+                  </div>
+
+                  <div className={styles.item}>
+                    {" "}
                     <p>
+                      {" "}
                       <strong>Specialty:</strong>{" "}
                       {result.contractType === "RANK"
                         ? result.academicData?.speciality
@@ -109,83 +141,136 @@ function Verify() {
                             ? result.academicData?.internshipRole
                             : result.contractType === "STUDY"
                               ? result.academicData?.programName
-                              : "—"}
-                    </p>
-                    <p>
-                      <strong>Issue Date:</strong>{" "}
-                      {new Date(result.issueDate).toLocaleDateString("fr-FR")}
-                    </p>
-                    {result.contractType === "INTERNSHIP" && result.academicData && (
-                      <>
+                              : "—"}{" "}
+                    </p>{" "}
+                  </div>
+                </div>
+                <div className={styles.item}>
+                  {" "}
+                  <p>
+                    {" "}
+                    <strong>Issue Date:</strong>{" "}
+                    {new Date(result.issueDate).toLocaleDateString(
+                      "fr-FR",
+                    )}{" "}
+                  </p>{" "}
+                </div>
+
+                {result.contractType === "INTERNSHIP" &&
+                  result.academicData && (
+                    <>
+                      <div className={styles.item}>
+                        {" "}
                         <p>
-                          <strong>Company:</strong> {result.academicData.companyName}
+                          {" "}
+                          <strong>Company:</strong>{" "}
+                          {result.academicData.companyName}{" "}
                         </p>
+                      </div>
+                      <div className={styles.item}>
                         <p>
-                          <strong>City:</strong> {result.academicData.internshipCity}
+                          {" "}
+                          <strong>City:</strong>{" "}
+                          {result.academicData.internshipCity}{" "}
                         </p>
+                      </div>
+                      <div className={styles.item}>
+                        {" "}
                         <p>
+                          {" "}
                           <strong>Start Date:</strong>{" "}
                           {new Date(
                             Number(result.academicData.startDate) * 1000,
-                          ).toLocaleDateString("fr-FR")}
+                          ).toLocaleDateString("fr-FR")}{" "}
                         </p>
+                      </div>
+                      <div className={styles.item}>
+                        {" "}
                         <p>
+                          {" "}
                           <strong>End Date:</strong>{" "}
                           {new Date(
                             Number(result.academicData.endDate) * 1000,
-                          ).toLocaleDateString("fr-FR")}
+                          ).toLocaleDateString("fr-FR")}{" "}
                         </p>
-                      </>
-                    )}
-                    {result.contractType === "RANK" && result.academicData && (
-                      <>
-                        <p>
-                          <strong>Rank:</strong> {result.academicData.rank}
-                        </p>
-                        <p>
-                          <strong>Average:</strong> {result.academicData.average}
-                        </p>
-                        <p>
-                          <strong>Speciality:</strong>{" "}
-                          {result.academicData.speciality}
-                        </p>
-                        <p>
-                          <strong>Year:</strong> {result.academicData.year}
-                        </p>
-                        <p>
-                          <strong>Branch:</strong> {result.academicData.branch}
-                        </p>
-                        <p>
-                          <strong>Session:</strong> {result.academicData.session}
-                        </p>
-                      </>
-                    )}
-                  </div>
-                )}
-      
-                {/* REVOKED */}
-                {status === "revoked" && (
-                  <div className={styles.errorBox}>
-                    <button className={styles.close} onClick={() => setOpen(false)}>
-                      &times;
-                    </button>
-                    <h3>Certificate Revoked </h3>
-                    <p>This certificate has been invalidated by the institution.</p>
-                  </div>
-                )}
-      
-                {/* NOT FOUND */}
-                {status === "not_found" && (
-                  <div className={styles.errorBox}>
-                    <button className={styles.close} onClick={() => setOpen(false)}>
-                      &times;
-                    </button>
-                    <h3>Certificate Not Found </h3>
-                    <p>No certificate matches this code.</p>
-                  </div>
+                      </div>
+                    </>
+                  )}
+                {result.contractType === "RANK" && result.academicData && (
+                  <>
+                    <div className={styles.item}>
+                      {" "}
+                      <p>
+                        {" "}
+                        <strong>Rank:</strong> {result.academicData.rank}{" "}
+                      </p>
+                    </div>
+                    <div className={styles.item}>
+                      {" "}
+                      <p>
+                        {" "}
+                        <strong>Average:</strong> {result.academicData.average}
+                      </p>
+                    </div>
+                    <div className={styles.item}>
+                      {" "}
+                      <p>
+                        <strong>Speciality:</strong>{" "}
+                        {result.academicData.speciality}{" "}
+                      </p>
+                    </div>
+                    <div className={styles.item}>
+                      {" "}
+                      <p>
+                        {" "}
+                        <strong>Year:</strong> {result.academicData.year}{" "}
+                      </p>{" "}
+                    </div>
+                    <div className={styles.item}>
+                      {" "}
+                      <p>
+                        {" "}
+                        <strong>Branch:</strong>{" "}
+                        {result.academicData.branch}{" "}
+                      </p>
+                    </div>
+                    <div className={styles.item}>
+                      {" "}
+                      <p>
+                        {" "}
+                        <strong>Session:</strong>{" "}
+                        {result.academicData.session}{" "}
+                      </p>
+                    </div>
+                  </>
                 )}
               </div>
-            )}
+            </div>
+          )}
+
+          {/* REVOKED */}
+          {status === "revoked" && (
+            <div className={styles.errorBox}>
+              <button className={styles.close} onClick={() => setOpen(false)}>
+                &times;
+              </button>
+              <h3>Certificate Revoked </h3>
+              <p>This certificate has been invalidated by the institution.</p>
+            </div>
+          )}
+
+          {/* NOT FOUND */}
+          {status === "not_found" && (
+            <div className={styles.errorBox}>
+              <button className={styles.close} onClick={() => setOpen(false)}>
+                &times;
+              </button>
+              <h3>Certificate Not Found </h3>
+              <p>No certificate matches this code.</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className={styles.bottomStatus}>
         <div className={styles.online}>

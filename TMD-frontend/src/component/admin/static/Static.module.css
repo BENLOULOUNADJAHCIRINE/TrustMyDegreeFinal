@@ -32,7 +32,8 @@
   right: 20px;
   align-items: center;
   gap: 8px;
-  background-color: #f9fafb;
+  background: linear-gradient(135deg, #f1f5ff, #eef2ff);
+  border: 1px solid #e0e7ff;
   padding: 10px 20px;
   border-radius: 20px;
   transition: box-shadow 0.3s ease;

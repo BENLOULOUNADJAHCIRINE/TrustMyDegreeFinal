@@ -5,6 +5,7 @@ import Home from "./component/home/Home";
 import Login from "./component/login/login";
 import Verify from "./component/home/Verify";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Creators from "./component/home/creators";
 
 import Admin from "./component/login/Admin";
 import Student from "./component/login/Student";
@@ -30,6 +31,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/verify" element={<Verify />} />
+            <Route path="/Creators" element={<Creators />} />
           </Route>
 
           <Route path="/login" element={<Login />} />

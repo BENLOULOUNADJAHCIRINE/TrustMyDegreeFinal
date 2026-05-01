@@ -64,8 +64,8 @@
 }
 
 .main-content {
-  min-height: 100vh;
-  padding: 0px;
+  height: 100%;
+  padding-bottom: 40px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-row: auto auto 1fr;
@@ -73,7 +73,7 @@
     "login login"
     "nav nav"
     "list quick";
-  background-color: #f9fafb;
+  background: linear-gradient(135deg, #f8fafc, #eef2ff);
   cursor: default;
   animation: fadeIn 0.4s ease;
 }
@@ -104,10 +104,12 @@
   right: 20px;
   align-items: center;
   gap: 8px;
-  background-color: #f9fafb;
+
   padding: 10px 20px;
   border-radius: 20px;
   transition: box-shadow 0.3s ease;
+  background: linear-gradient(135deg, #f1f5ff, #eef2ff);
+  border: 1px solid #e0e7ff;
 }
 
 .info:hover {
@@ -152,7 +154,6 @@
 .active-certificates,
 .revoked-certificates,
 .verifications {
-  background-color: #ffffff;
   border-radius: 25px;
   display: flex;
   flex-direction: column;
@@ -170,13 +171,48 @@
   padding: 18px;
 }
 
-.total-certificates:hover,
-.active-certificates:hover,
-.revoked-certificates:hover,
+.total-certificates {
+  background: linear-gradient(135deg, #dbeafe, #eff6ff);
+  border-top: 4px solid #3b82f6;
+}
+
+.active-certificates {
+  background: linear-gradient(135deg, #dcfce7, #f0fdf4);
+  border-top: 4px solid #22c55e;
+}
+
+.revoked-certificates {
+  background: linear-gradient(135deg, #fee2e2, #fef2f2);
+  border-top: 4px solid #ef4444;
+}
+
+.verifications {
+  background: linear-gradient(135deg, #fef3c7, #fffbeb);
+  border-top: 4px solid #f59e0b;
+}
+
+.total-certificates:hover {
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.3);
+  border-color: #3b82f6;
+  transform: translateY(-8px) scale(1.03);
+}
+
+.active-certificates:hover {
+  box-shadow: 0 20px 40px rgba(34, 197, 94, 0.3);
+  border-color: #22c55e;
+  transform: translateY(-8px) scale(1.03);
+}
+
+.revoked-certificates:hover {
+  box-shadow: 0 20px 40px rgba(239, 68, 68, 0.3);
+  border-color: #ef4444;
+  transform: translateY(-8px) scale(1.03);
+}
+
 .verifications:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
-  border-color: #155dfc;
+  box-shadow: 0 20px 40px rgba(245, 158, 11, 0.3);
+  border-color: #f59e0b;
+  transform: translateY(-8px) scale(1.03);
 }
 
 .total-certificates > img,
@@ -187,6 +223,10 @@
   height: 40px;
   transition: transform 0.3s ease;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+
+  padding: 1px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
 }
 
 .total-certificates:hover > img,
@@ -212,28 +252,12 @@
 .active-certificates > h2,
 .revoked-certificates > h2,
 .verifications > h2 {
-  font-size: 28px;
-  font-weight: 800;
+  font-size: 25px;
+  font-weight: 700;
   color: #1e3a8a;
   letter-spacing: 1px;
   margin-top: auto;
   animation: countUp 0.5s ease;
-}
-
-.total-certificates {
-  border-top: 4px solid #3b82f6;
-}
-
-.active-certificates {
-  border-top: 4px solid #22c55e;
-}
-
-.revoked-certificates {
-  border-top: 4px solid #ef4444;
-}
-
-.verifications {
-  border-top: 4px solid #f59e0b;
 }
 
 /* recent activity */
@@ -244,14 +268,18 @@
 }
 
 .card {
-  height: 90%;
+  height: 600px;
   width: 100%;
-  max-width: 400px;
-  background-color: #ffffff;
+  max-width: 420px;
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border-radius: 24px;
   margin: auto;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
-  border: 2px solid #f3f4f6;
+
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
   overflow: hidden;
 }
 
@@ -285,45 +313,48 @@
 }
 
 .activity-list {
-  background-color: #ffffff;
+  padding: 10px;
+  background: transparent;
   height: 80%;
   overflow: auto;
 }
 
 .master {
-  color: #007a55;
   font-size: 12px;
   font-weight: bold;
-  padding: 3px 8px;
-  background-color: #d0fae5;
-  border-radius: 7px;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 20px;
+  padding: 4px 10px;
 }
 
 .internship {
-  color: #f4b400;
   font-size: 12px;
   font-weight: bold;
-  padding: 3px 8px;
-  background-color: #fff9db;
-  border-radius: 7px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 20px;
+  padding: 4px 10px;
 }
 
 .scolarite {
   background-color: #ede9fe;
-  color: #7c3aed;
   font-size: 12px;
   font-weight: bold;
-  padding: 3px 8px;
-  border-radius: 7px;
+  background: #ede9fe;
+  color: #6d28d9;
+  border-radius: 20px;
+  padding: 4px 10px;
 }
 
 .engineer {
-  color: #1447e6;
   font-size: 12px;
   font-weight: bold;
-  padding: 3px 8px;
   background-color: #dbeafe;
   border-radius: 7px;
+  color: #1e40af;
+  border-radius: 20px;
+  padding: 4px 10px;
 }
 
 /* scrollbar */
@@ -355,8 +386,9 @@
 }
 
 .activity-item:hover {
-  background: #eef4ff;
-  transform: scale(1.01);
+  transform: translateX(6px) scale(1.01);
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.15);
+  background: linear-gradient(135deg, #c7d2fe, #e0e7ff);
 }
 
 .leftside {
@@ -416,11 +448,9 @@
   grid-area: quick;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  gap: 16px;
-  padding: 20px;
-  margin-top: 40px;
+  gap: 0px; /* was gap: 16px;*/
+  padding: 0px; /*was padding: 20px;*/
   animation: slideInRight 0.7s ease;
 }
 
@@ -470,6 +500,8 @@
 .actions {
   width: 100%;
   max-width: 320px;
+  border-radius: 30px;
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
 
   background: linear-gradient(135deg, #0f1e3f, #1a3a7c);
   display: flex;
@@ -480,7 +512,6 @@
     box-shadow 0.3s ease;
   cursor: pointer;
 
-  border-radius: 25px;
   padding: 20px;
   box-shadow:
     0 10px 25px rgba(37, 99, 235, 0.25),
@@ -488,8 +519,8 @@
 }
 
 .actions:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.35);
+  transform: translateY(-8px) scale(1.04);
+  box-shadow: 0 25px 50px rgba(37, 99, 235, 0.4);
 }
 
 .add {

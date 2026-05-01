@@ -95,10 +95,11 @@ html {
   flex-direction: row;
   border-radius: 20px;
   padding: 6px 10px;
-  cursor: pointer;
+
   transition:
     box-shadow 0.3s ease,
     transform 0.3s ease;
+  cursor: pointer;
 }
 
 .logopic:hover {
@@ -111,14 +112,17 @@ html {
   width: 40px;
   margin-top: 2px;
   margin-bottom: 0px;
+  cursor: pointer;
 }
 .title > h3 {
   margin-top: 0px;
   margin-bottom: 0px;
   color: #ffffff;
+  cursor: pointer;
 }
 .color {
   color: #3b82f6;
+  cursor: pointer;
 }
 
 .title > p {
@@ -144,6 +148,7 @@ html {
   text-decoration: none;
   position: relative;
   transition: color 0.25s ease;
+  cursor: pointer;
 }
 
 /* animated underline on nav links */
@@ -920,7 +925,7 @@ input[type="checkbox"] {
 }
 
 .footer {
-  height: 70vh;
+  height: 480px; /*was 70vh*/
   background-color: #0f172a;
   padding: 20px 60px;
 }
@@ -953,6 +958,24 @@ input[type="checkbox"] {
   margin-top: 30px;
 }
 
+.ensta > a {
+  text-decoration: none;
+}
+
+.ensta > a > p {
+  color: #ffffff;
+  font-family: arimo;
+  font-size: 20px;
+  text-align: start;
+}
+
+.ensta > a:hover {
+  text-decoration: none;
+}
+.ensta > a > p:hover {
+  color: blue;
+}
+
 .platform {
   cursor: default;
 }
@@ -983,6 +1006,10 @@ input[type="checkbox"] {
   margin-left: 5px;
   text-decoration: none;
   color: #ffffff;
+}
+
+.platform div a:hover {
+  color: blue;
 }
 
 .solution {
