@@ -1,6 +1,6 @@
 import styles from "./Creators.module.css";
 import { useEffect } from "react";
-
+/* eslint-disable jsx-a11y/anchor-is-valid */ 
 function Creators() {
   useEffect(() => {
     window.scrollTo(0, 0);
