@@ -416,5 +416,6 @@ TrustMyDegreeFinal/
 
 
 *Built with ☕ and too many late nights · ENSTA 2025/2026*  
-*This project was built as part of a final year project at ENSTA Algiers by: BEDAD · BENLOULOU · ARAR · KHELIL · BAGHDADI*
+*This project was built as part of a final year project at ENSTA Algiers by: BEDAD · BENLOULOU · ARAR · KHELIL · BAGHDADI* 
+
 © 2026 TrustMyDegree — All rights reserved.
