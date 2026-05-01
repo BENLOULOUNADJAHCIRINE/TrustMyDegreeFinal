@@ -111,7 +111,7 @@ function Static() {
           <img
             src={
               user?.avatar
-                ? `${process.env.REACT_APP_API_URL}${user.avatar}`
+                ? user.avatar
                 : "/totalcertaficates.png"
             }
             alt="ava"
