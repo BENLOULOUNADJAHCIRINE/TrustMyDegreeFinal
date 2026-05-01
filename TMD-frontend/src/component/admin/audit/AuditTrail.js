@@ -1,125 +1,171 @@
 import styles from "./AuditTrail.module.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../../../api";
 
-function AuditTrail() {
-  const [user, setUser] = useState(null);
-  const [trail, setTrail] = useState([]);
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
-  const perPage = 10;
+const LIMIT = 10;
 
+function AuditTrail() {
+  const [user, setUser]               = useState(null);
+  const [trail, setTrail]             = useState([]);
+  const [search, setSearch]           = useState("");
+  const [filter, setFilter]           = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages]   = useState(1);
+  const [total, setTotal]             = useState(0);
+  const [loading, setLoading]         = useState(false);
+
+  const [stats, setStats] = useState({
+    total: 0, active: 0, revoked: 0,
+    diploma: 0, internship: 0, study: 0, rank: 0,
+  });
+
+  // ── User from localStorage ────────────────────────────────────────────────
   useEffect(() => {
-    const role = localStorage.getItem("role");
+    const role       = localStorage.getItem("role");
     const storedUser = localStorage.getItem("user");
-    const parsed = storedUser ? JSON.parse(storedUser) : {};
+    const parsed     = storedUser ? JSON.parse(storedUser) : {};
     setUser({
       fullName: role === "SUPER_ADMIN" ? "Super Admin" : "Admin",
-      email: parsed.email || "",
-      avatar: parsed.avatar || null,
+      email:    parsed.email  || "",
+      avatar:   parsed.avatar || null,
     });
   }, []);
 
-  useEffect(() => {
+
+  const fetchPage = useCallback((page, searchVal, filterVal) => {
+    setLoading(true);
+
+    const params = new URLSearchParams({ page, limit: LIMIT });
+    if (searchVal) params.set("search", searchVal);
+    if (filterVal && filterVal !== "ALL") {
+      const statusFilters       = ["ACTIVE", "REVOKED"];
+      const contractTypeFilters = ["DIPLOMA", "INTERNSHIP", "STUDY", "RANK"];
+      if (statusFilters.includes(filterVal))       params.set("status",       filterVal);
+      if (contractTypeFilters.includes(filterVal)) params.set("contractType", filterVal);
+    }
+
     api
-      .get("/admin/audit-trail")
-      .then((res) => setTrail(res.data.trail || []))
-      .catch((err) => console.log(err));
+      .get(`/admin/audit-trail?${params.toString()}`)
+      .then((res) => {
+        setTrail(res.data.trail || []);
+        const p = res.data.pagination || {};
+        setCurrentPage(p.page  || 1);
+        setTotalPages(p.totalPages || 1);
+        setTotal(p.total || 0);
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
   }, []);
 
-  const filtered = trail.filter((item) => {
-    const matchSearch =
-      item.studentName?.toLowerCase().includes(search.toLowerCase()) ||
-      item.matricule?.toLowerCase().includes(search.toLowerCase()) ||
-      item.specialty?.toLowerCase().includes(search.toLowerCase()) ||
-      item.uniqueCode?.toLowerCase().includes(search.toLowerCase()) ||
-      item.blockchainCertId?.toLowerCase().includes(search.toLowerCase());
+  const fetchStats = useCallback(() => {
+    const counts = ["ACTIVE", "REVOKED", "DIPLOMA", "INTERNSHIP", "STUDY", "RANK"].map(f => {
+      const params = new URLSearchParams({ page: 1, limit: 1 });
+      const statusFilters = ["ACTIVE", "REVOKED"];
+      if (statusFilters.includes(f)) params.set("status", f);
+      else params.set("contractType", f);
+      return api.get(`/admin/audit-trail?${params.toString()}`).then(r => ({
+        key: f,
+        count: r.data.pagination?.total || 0,
+      }));
+    });
+    // Also get total (no filter)
+    counts.push(
+      api.get(`/admin/audit-trail?page=1&limit=1`).then(r => ({
+        key: "total",
+        count: r.data.pagination?.total || 0,
+      }))
+    );
+    Promise.all(counts).then(results => {
+      const s = {};
+      results.forEach(({ key, count }) => { s[key.toLowerCase()] = count; });
+      setStats({
+        total:      s.total      || 0,
+        active:     s.active     || 0,
+        revoked:    s.revoked    || 0,
+        diploma:    s.diploma    || 0,
+        internship: s.internship || 0,
+        study:      s.study      || 0,
+        rank:       s.rank       || 0,
+      });
+    });
+  }, []);
 
-    const matchFilter =
-      filter === "ALL" ||
-      item.status === filter ||
-      item.contractType === filter;
+  // Initial load
+  useEffect(() => {
+    fetchPage(1, "", "ALL");
+    fetchStats();
+  }, [fetchPage, fetchStats]);
 
-    return matchSearch && matchFilter;
-  });
+  // When search/filter changes, go back to page 1
+  useEffect(() => {
+    fetchPage(1, search, filter);
+  }, [search, filter, fetchPage]);
 
-  useEffect(() => setCurrentPage(1), [search, filter]);
-
-  const lastIndex = currentPage * perPage;
-  const firstIndex = lastIndex - perPage;
-  const records = filtered.slice(firstIndex, lastIndex);
-  const totalPages = Math.ceil(filtered.length / perPage);
+  function handlePageChange(n) {
+    fetchPage(n, search, filter);
+  }
 
   function shortHash(hash) {
     if (!hash) return "—";
     return hash.substring(0, 10) + "..." + hash.substring(hash.length - 6);
   }
 
+  // Debounce search so we don't fire on every keystroke
+  const [searchInput, setSearchInput] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput), 350);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
   return (
     <div className={styles["main-content"]}>
       <div className={styles.login}>
         <h4>Audit Trail</h4>
-
         <div className={styles.info}>
           <div className={styles.subinfo}>
             <h4>{user ? user.fullName : "guest"}</h4>
             <p>{user ? user.email : "super@ensta.edu.dz"}</p>
           </div>
           <img
-            src={
-              user?.avatar
-                ? user.avatar
-                : "/totalcertaficates.png"
-            }
+            src={user?.avatar ? user.avatar : "/totalcertaficates.png"}
             alt="avat"
           />
         </div>
       </div>
 
+      {/* Stats bar — counts from server, loaded once */}
       <div className={styles.statsBar}>
         <div className={styles.stat}>
-          <span className={styles.statNumber}>{trail.length}</span>
+          <span className={styles.statNumber}>{stats.total}</span>
           <span className={styles.statLabel}>Total</span>
         </div>
         <div className={styles.stat}>
-          <span className={`${styles.statNumber} ${styles.green}`}>
-            {trail.filter((t) => t.status === "ACTIVE").length}
-          </span>
+          <span className={`${styles.statNumber} ${styles.green}`}>{stats.active}</span>
           <span className={styles.statLabel}>Active</span>
         </div>
         <div className={styles.stat}>
-          <span className={`${styles.statNumber} ${styles.red}`}>
-            {trail.filter((t) => t.status === "REVOKED").length}
-          </span>
+          <span className={`${styles.statNumber} ${styles.red}`}>{stats.revoked}</span>
           <span className={styles.statLabel}>Revoked</span>
         </div>
         <div className={styles.stat}>
-          <span className={`${styles.statNumber} ${styles.blue}`}>
-            {trail.filter((t) => t.contractType === "DIPLOMA").length}
-          </span>
+          <span className={`${styles.statNumber} ${styles.blue}`}>{stats.diploma}</span>
           <span className={styles.statLabel}>Diplomas</span>
         </div>
         <div className={styles.stat}>
-          <span className={`${styles.statNumber} ${styles.purple}`}>
-            {trail.filter((t) => t.contractType === "INTERNSHIP").length}
-          </span>
+          <span className={`${styles.statNumber} ${styles.purple}`}>{stats.internship}</span>
           <span className={styles.statLabel}>Internships</span>
         </div>
         <div className={styles.stat}>
-          <span className={`${styles.statNumber} ${styles.orange}`}>
-            {trail.filter((t) => t.contractType === "STUDY").length}
-          </span>
+          <span className={`${styles.statNumber} ${styles.orange}`}>{stats.study}</span>
           <span className={styles.statLabel}>Scolarités</span>
         </div>
         <div className={styles.stat}>
-          <span className={`${styles.statNumber} ${styles.pink}`}>
-            {trail.filter((t) => t.contractType === "RANK").length}
-          </span>
+          <span className={`${styles.statNumber} ${styles.pink}`}>{stats.rank}</span>
           <span className={styles.statLabel}>Ranks</span>
         </div>
       </div>
 
+      {/* Search + filter */}
       <div className={styles.search}>
         <div className={styles.searchNav}>
           <img src="/searchbar.png" alt="search" />
@@ -127,25 +173,24 @@ function AuditTrail() {
             type="search"
             className={styles.look}
             placeholder="Search by name, matricule, code, hash..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
         <div className={styles.filters}>
-          {["ALL", "ACTIVE", "REVOKED", "DIPLOMA", "INTERNSHIP", "STUDY", "RANK"].map(
-            (f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`${styles.filterBtn} ${filter === f ? styles.filterActive : ""}`}
-              >
-                {f}
-              </button>
-            ),
-          )}
+          {["ALL", "ACTIVE", "REVOKED", "DIPLOMA", "INTERNSHIP", "STUDY", "RANK"].map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`${styles.filterBtn} ${filter === f ? styles.filterActive : ""}`}
+            >
+              {f}
+            </button>
+          ))}
         </div>
       </div>
 
+      {/* Table */}
       <div className={styles.main}>
         <div className={styles.countainer}>
           <table className={styles.table}>
@@ -163,17 +208,27 @@ function AuditTrail() {
               </tr>
             </thead>
             <tbody>
-              {records.length > 0 ? (
-                records.map((item) => (
+              {loading ? (
+                <tr className={styles.row}>
+                  <td colSpan="9" style={{ textAlign: "center", padding: "24px" }}>
+                    Loading...
+                  </td>
+                </tr>
+              ) : trail.length > 0 ? (
+                trail.map((item) => (
                   <tr className={styles.row} key={item.id}>
                     <td className={styles.column}>
                       {new Date(item.issueDate).toLocaleDateString("fr-FR")}
                     </td>
                     <td className={styles.column}>
                       <img
-                        src={item.student?.avatar 
-                          ? (item.student.avatar.startsWith("http") ? item.student.avatar : `${process.env.REACT_APP_API_URL}${item.student.avatar}`) 
-                          : "/Students.jpg"}
+                        src={
+                          item.student?.avatar
+                            ? item.student.avatar.startsWith("http")
+                              ? item.student.avatar
+                              : `${process.env.REACT_APP_API_URL}${item.student.avatar}`
+                            : "/Students.jpg"
+                        }
                         alt="student"
                       />
                       <span className={styles.student}>{item.studentName}</span>
@@ -193,10 +248,7 @@ function AuditTrail() {
                       </span>
                     </td>
                     <td className={styles.column}>
-                      <span
-                        className={styles.hash}
-                        title={item.blockchainCertId}
-                      >
+                      <span className={styles.hash} title={item.blockchainCertId}>
                         {shortHash(item.blockchainCertId)}
                       </span>
                     </td>
@@ -232,11 +284,15 @@ function AuditTrail() {
           </table>
         </div>
 
+        {/* Pagination — now controls which page the SERVER returns */}
         <nav className={styles.arr}>
+          <span style={{ fontSize: "13px", color: "#6b7280", marginRight: "12px" }}>
+            {total} total
+          </span>
           <div className={styles.pagination}>
             <button
               className={styles.change}
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
               disabled={currentPage === 1}
             >
               prev
@@ -248,7 +304,7 @@ function AuditTrail() {
               >
                 <button
                   className={styles["page-link"]}
-                  onClick={() => setCurrentPage(n)}
+                  onClick={() => handlePageChange(n)}
                 >
                   {n}
                 </button>
@@ -256,7 +312,7 @@ function AuditTrail() {
             ))}
             <button
               className={styles.change}
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
               disabled={currentPage === totalPages}
             >
               next

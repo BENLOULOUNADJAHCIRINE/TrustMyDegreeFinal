@@ -11,5 +11,28 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
-console.log("API URL:", process.env.REACT_APP_API_URL);
+
+let keepAliveInterval = null;
+
+function startKeepAlive() {
+  if (keepAliveInterval) return;                          
+  const BASE = process.env.REACT_APP_API_URL;
+  if (!BASE) return;
+  keepAliveInterval = setInterval(() => {
+    fetch(`${BASE}/api/health`).catch(() => {});          
+  }, 14 * 60 * 1000);                                    
+}
+
+function stopKeepAlive() {
+  clearInterval(keepAliveInterval);
+  keepAliveInterval = null;
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopKeepAlive();
+  else startKeepAlive();
+});
+
+startKeepAlive();
+
 export default api;

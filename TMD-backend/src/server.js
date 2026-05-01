@@ -31,8 +31,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload());
 app.use(express.static(path.join(__dirname, "public")));
 
-
-// routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/superadmin", require("./routes/superadmin"));
@@ -51,14 +49,17 @@ app.get("/", (req, res) => {
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "TrustMyDegree API is running" });
 });
+
 const verifyController = require("./controllers/verifyController");
 app.post("/api/verify", verifyController.verifyCertificate);
 
 prisma
   .$connect()
-  .then(() => console.log("trustmydegree database connected"))
-  .catch((err) => console.error("error in connection to database", err));
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  .then(() => {
+    console.log("TrustMyDegree Database connected");
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  })
+  .catch((err) => {
+    console.error("Database connection failed:", err);
+    process.exit(1);
+  });
