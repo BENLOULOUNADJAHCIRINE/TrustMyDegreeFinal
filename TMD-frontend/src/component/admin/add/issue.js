@@ -209,7 +209,7 @@ function Issue() {
                 <h3>ISSUE A NEW DOCUMENT</h3>
                 <p>TrustMyDegree Academic Authentication Platform</p>
               </div>
-              <img className={styles.f} src="/vector.png" alt="vect" />
+              <img className={styles.f} src="/Vector.png" alt="vect" />
             </div>
 
             <form className={styles.send} onSubmit={handleSubmit}>

@@ -154,29 +154,35 @@ function Authorisations() {
 
           <div className={styles.scroll}>
             {admins.length > 0 ? (
-              admins.map((adm) => (
-                <div className={styles.admin} key={adm.id}>
-                  <div className={styles.left}>
-                    <img
-                      src={
-                        adm.avatar
-                          ? `${process.env.REACT_APP_API_URL}${adm.avatar}`
-                          : "/email.png"
-                      }
-                      alt="pic"
-                    />
-                    <h3>{adm.email}</h3>
+              admins.map((adm) => {
+                const avatarSrc = adm.avatar
+                  ? adm.avatar.startsWith("http")
+                    ? adm.avatar
+                    : `${process.env.REACT_APP_API_URL}${adm.avatar}`
+                  : "/email.png";
+                return (
+                  <div className={styles.admin} key={adm.id}>
+                    <div className={styles.left}>
+                      <img
+                        src={avatarSrc}
+                        alt="admin avatar"
+                        onError={(e) => {
+                          e.target.src = "/email.png";
+                        }}
+                      />
+                      <h3>{adm.email}</h3>
+                    </div>
+                    <div className={styles.right}>
+                      <img
+                        src="/delete.png"
+                        alt="delete"
+                        onClick={() => deleteAdmin(adm.id)}
+                        style={{ cursor: "pointer" }}
+                      />
+                    </div>
                   </div>
-                  <div className={styles.right}>
-                    <img
-                      src="/delete.png"
-                      alt="delete"
-                      onClick={() => deleteAdmin(adm.id)}
-                      style={{ cursor: "pointer" }}
-                    />
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <h3>No admins found</h3>
             )}
