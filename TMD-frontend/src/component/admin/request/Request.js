@@ -12,7 +12,7 @@ function Request() {
     key: null,
     direction: "asc",
   });
-  const [selectedIds, setSelectedIds] = useState([]);
+  const [setSelectedIds] = useState([]);
   /*each column be sorted*/
   function handleSort(key) {
     let direction = "asc";

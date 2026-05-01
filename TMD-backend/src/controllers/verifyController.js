@@ -32,8 +32,7 @@ const verifyCertificateHandler = async (req, res) => {
     );
 
     if (!isValidOnChain) {
-      return res.status(400).json({ valid: false, message: "Certificate is not valid on the blockchain" });
-    }
+      return res.status(400).json({ valid: false, message: "Certificate has been revoked" });    }
 
     // fetch full academic data from the blockchain
     const chainData = await getCertificateData(

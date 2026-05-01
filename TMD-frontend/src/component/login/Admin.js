@@ -12,7 +12,7 @@ function Admin() {
     if (!token || (role !== "ADMIN" && role !== "SUPER_ADMIN")) {
       navigate("/", { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
   return (
     <div className={styles.admin}>
