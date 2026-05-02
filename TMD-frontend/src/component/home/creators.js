@@ -79,7 +79,7 @@ function Creators() {
             <p className={styles.desc}>intoduction</p>
             <div className={styles.links}>
               <a
-                href=""
+                href="https://github.com/BENLOULOUNADJAHCIRINE"
                 target="_blank"
                 rel="noreferrer"
                 className={styles.linkBtn}
@@ -87,7 +87,7 @@ function Creators() {
                 GitHub
               </a>
               <a
-                href=""
+                href="https://www.linkedin.com/in/nadjah-cirine-benloulou-47118a34a/"
                 target="_blank"
                 rel="noreferrer"
                 className={styles.linkBtn}
