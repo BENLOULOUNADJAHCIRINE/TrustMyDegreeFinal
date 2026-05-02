@@ -10,6 +10,10 @@ defaults.plugins.title.align = "start";
 defaults.plugins.title.font.size = 20;
 defaults.plugins.title.color = "black";
 
+let _statsCache = null;
+let _statsCacheTime = 0;
+const CACHE_TTL = 5 * 60 * 1000;
+
 function Static() {
   const pieColors = [
     "#1E3A8A", "#10B981", "#F59E0B",
@@ -33,51 +37,59 @@ function Static() {
     }
   }, []);
 
+  function applyStats(data) {
+    const monthlyVerifications = {};
+    const heatFormatted = Object.entries(data.verificationsPerDay).map(
+      ([day, value], i) => {
+        const month = new Date(day).toLocaleString("fr-FR", { month: "short" });
+        monthlyVerifications[month] = (monthlyVerifications[month] || 0) + value;
+        return { day, week: Math.floor(i / 7), value };
+      }
+    );
+    setHeatmap(heatFormatted);
+
+    setLinegraph(
+      Object.entries(data.monthlyIssuance).map(([label, value]) => ({
+        label,
+        Issuances: value,
+        verification: monthlyVerifications[label] || 0,
+      }))
+    );
+
+    setPiegraph(
+      Object.entries(data.DistributionByType).map(([label, value]) => ({
+        label,
+        value,
+      }))
+    );
+
+    setBargraph(
+      data.topSpecialties.map((s) => ({
+        label: s.specialty,
+        value: s._count.specialty,
+      }))
+    );
+  }
+
   useEffect(() => {
+    if (_statsCache && Date.now() - _statsCacheTime < CACHE_TTL) {
+      applyStats(_statsCache);
+      setLoading(false);
+      return;
+    }
+
     fetch(`${process.env.REACT_APP_API_URL}/api/admin/statistics`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     })
       .then((res) => res.json())
       .then((data) => {
-        const monthlyVerifications = {};
-        Object.entries(data.verificationsPerDay).forEach(([day, count]) => {
-          const month = new Date(day).toLocaleString("fr-FR", { month: "short" });
-          monthlyVerifications[month] = (monthlyVerifications[month] || 0) + count;
-        });
-
-        const lineFormatted = Object.entries(data.monthlyIssuance).map(
-          ([label, value]) => ({
-            label,
-            Issuances: value,
-            verification: monthlyVerifications[label] || 0,
-          })
-        );
-        setLinegraph(lineFormatted);
-
-        // Pie graph — distribution by type
-        const pieFormatted = Object.entries(data.DistributionByType).map(
-          ([label, value]) => ({ label, value })
-        );
-        setPiegraph(pieFormatted);
-
-        // Bar graph — top specialties
-        const barFormatted = data.topSpecialties.map((s) => ({
-          label: s.specialty,
-          value: s._count.specialty,
-        }));
-        setBargraph(barFormatted);
-
-        // Heatmap — verifications per day
-        const heatFormatted = Object.entries(data.verificationsPerDay).map(
-          ([day, value], i) => ({ day, week: Math.floor(i / 7), value })
-        );
-        setHeatmap(heatFormatted);
+        _statsCache = data;
+        _statsCacheTime = Date.now();
+        applyStats(data);
       })
       .catch((err) => console.log(err))
       .finally(() => setLoading(false));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={styles["main-content"]}>

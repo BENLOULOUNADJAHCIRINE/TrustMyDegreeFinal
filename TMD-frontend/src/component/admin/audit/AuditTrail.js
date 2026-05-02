@@ -58,36 +58,20 @@ function AuditTrail() {
   }, []);
 
   const fetchStats = useCallback(() => {
-    const counts = ["ACTIVE", "REVOKED", "DIPLOMA", "INTERNSHIP", "STUDY", "RANK"].map(f => {
-      const params = new URLSearchParams({ page: 1, limit: 1 });
-      const statusFilters = ["ACTIVE", "REVOKED"];
-      if (statusFilters.includes(f)) params.set("status", f);
-      else params.set("contractType", f);
-      return api.get(`/admin/audit-trail?${params.toString()}`).then(r => ({
-        key: f,
-        count: r.data.pagination?.total || 0,
-      }));
-    });
-    // Also get total (no filter)
-    counts.push(
-      api.get(`/admin/audit-trail?page=1&limit=1`).then(r => ({
-        key: "total",
-        count: r.data.pagination?.total || 0,
-      }))
-    );
-    Promise.all(counts).then(results => {
-      const s = {};
-      results.forEach(({ key, count }) => { s[key.toLowerCase()] = count; });
-      setStats({
-        total:      s.total      || 0,
-        active:     s.active     || 0,
-        revoked:    s.revoked    || 0,
-        diploma:    s.diploma    || 0,
-        internship: s.internship || 0,
-        study:      s.study      || 0,
-        rank:       s.rank       || 0,
-      });
-    });
+    api.get("/admin/audit-trail/stats")
+      .then((res) => {
+        const s = res.data;
+        setStats({
+          total:      s.total      || 0,
+          active:     s.active     || 0,
+          revoked:    s.revoked    || 0,
+          diploma:    s.diploma    || 0,
+          internship: s.internship || 0,
+          study:      s.study      || 0,
+          rank:       s.rank       || 0,
+        });
+      })
+      .catch((err) => console.error(err));
   }, []);
 
   // Initial load
