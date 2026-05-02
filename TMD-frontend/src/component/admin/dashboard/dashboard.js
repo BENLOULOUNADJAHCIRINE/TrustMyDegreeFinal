@@ -183,7 +183,7 @@ function Dashboard() {
         {/* {statusMsg && <div className={styles.successBanner}>{statusMsg}</div>} */}
 
         <div>
-          <h5>sync students</h5>
+          <h5>Sync students</h5>
           <div className={styles.actions}>
             <div className={styles.ho}>
               <img
@@ -200,7 +200,7 @@ function Dashboard() {
         </div>
 
         <div>
-          <h5>Quick Actions</h5>
+          <h5>Issue Documents</h5>
           <div className={styles.actions}>
             <div className={styles.ho}>
               <Link to="/admin/add">
