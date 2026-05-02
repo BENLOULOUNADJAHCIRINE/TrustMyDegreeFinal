@@ -39,14 +39,14 @@ function Navbar() {
         <div className="nav-links">
           <Link to="/admin/dashboard" onClick={() => setIsOpen(false)}>
             <img src="/navdash.png" alt="navdash" />
-            <span className="same">dashboard</span>
+            <span className="same">Dashboard</span>
           </Link>
 
           {role === "SUPER_ADMIN" && (
             <>
               <Link to="/admin/authorisations" onClick={() => setIsOpen(false)}>
                 <img src="/superadmine.png" alt="superadmine" />
-                <span className="same">Manage admins</span>
+                <span className="same">Manage Admins</span>
               </Link>
               <Link to="/admin/audit" onClick={() => setIsOpen(false)}>
                 <img src="/navlist.png" alt="audit" />
@@ -57,7 +57,7 @@ function Navbar() {
 
           <Link to="/admin/add" onClick={() => setIsOpen(false)}>
             <img src="/naviss.png" alt="naviss" />
-            <span className="same ">issue Documents</span>
+            <span className="same ">Issue Documents</span>
           </Link>
 
           <Link to="/admin/students" onClick={() => setIsOpen(false)}>
@@ -67,12 +67,12 @@ function Navbar() {
 
           <Link to="/admin/list" onClick={() => setIsOpen(false)}>
             <img src="/navlist.png" alt="navlist" />
-            <span className="same">list of certificates</span>
+            <span className="same">List of Certificates</span>
           </Link>
 
           <Link to="/admin/stat" onClick={() => setIsOpen(false)}>
             <img src="/navstat.png" alt="navstat" />
-            <span className="same">statistics</span>
+            <span className="same">Statistics</span>
           </Link>
 
           <Link to="/admin/req" onClick={() => setIsOpen(false)}>
@@ -87,13 +87,13 @@ function Navbar() {
 
           <Link to="/admin/verif" onClick={() => setIsOpen(false)}>
             <img src="/veri.png" alt="verify" />
-            <span className="same">verify</span>
+            <span className="same">Verify</span>
           </Link>
         </div>
 
         <div className="out" onClick={handleLogout}>
           <img src="/out.png" alt="out" />
-          <span className="logout">logout</span>
+          <span className="logout">Logout</span>
         </div>
       </nav>
     </div>

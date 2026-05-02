@@ -101,6 +101,7 @@ nav > a:hover {
   color: white;
   font-size: 17px;
   text-align: left;
+  cursor: pointer;
 }
 
 .out {
@@ -126,6 +127,7 @@ nav > a:hover {
 
 .logout {
   font-size: 17px;
+  cursor: pointer;
 }
 
 /*responsive*/

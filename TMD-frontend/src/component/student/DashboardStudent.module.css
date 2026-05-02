@@ -387,7 +387,9 @@
   padding: 20px 50px 20px 20px;
   animation: fadeInUp 0.9s ease;
 }
-
+.right a {
+  text-decoration: none;
+}
 .request {
   width: 260px;
   height: 250px;
@@ -403,6 +405,7 @@
     transform 0.3s ease,
     box-shadow 0.3s ease;
   animation: smoothFade 0.8s ease;
+  cursor: pointer;
 }
 
 .request:hover {
@@ -414,16 +417,19 @@
   width: 50px;
   height: 50px;
   margin-bottom: 0px;
+  cursor: pointer;
 }
 
 .request h3 {
   color: #ffffff;
   margin-top: 0px;
+  text-decoration: none;
 }
 
 .request button {
   color: #1e3a8a;
-  width: 250px;
+  text-decoration: none;
+  width: 200px;
   padding: 10px;
   border: 1px solid lightblue;
   border-radius: 10px;
@@ -435,9 +441,9 @@
 }
 
 .request button:hover {
-  background-color: #155dfc;
+  background-color: #1e3a8a;
   color: white;
-  border-color: #155dfc;
+  border-color: #1e3a8a;
 }
 
 /*policy*/

@@ -124,7 +124,13 @@ function DashboardStudent() {
     // verified
     ctx.fillStyle = cert.status === "REVOKED" ? "#dc2626" : "#22c55e";
     ctx.font = "bold 12px Arial";
-    ctx.fillText(cert.status === "REVOKED" ? "✗ Revoked on Blockchain" : "✓ Blockchain Verified", 30, 75);
+    ctx.fillText(
+      cert.status === "REVOKED"
+        ? "✗ Revoked on Blockchain"
+        : "✓ Blockchain Verified",
+      30,
+      75,
+    );
 
     // student name
     ctx.fillStyle = "#ffffff";
@@ -398,13 +404,13 @@ function DashboardStudent() {
         </div>
 
         <div className={styles.right}>
-          <div className={styles.request}>
-            <img src="/add.png" alt="adding" />
-            <h3>Request documents</h3>
-            <Link to="/student/RequestStudent">
+          <Link to="/student/RequestStudent">
+            <div className={styles.request}>
+              <img src="/add.png" alt="adding" />
+              <h3>Request documents</h3>
               <button>Request now</button>
-            </Link>
-          </div>
+            </div>
+          </Link>
         </div>
       </div>
 
