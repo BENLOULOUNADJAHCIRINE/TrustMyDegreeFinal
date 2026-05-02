@@ -53,7 +53,7 @@ function Request() {
   }, []);
 
   // Centralized fetch to keep stats and list in sync
-// AFTER — server-side fetch with page + search params
+  // AFTER — server-side fetch with page + search params
   const fetchRequests = useCallback((page, searchVal) => {
     setLoading(true);
     const params = new URLSearchParams({ page, limit: LIMIT });
@@ -72,9 +72,9 @@ function Request() {
           Rejected:       { number: data.summary.rejected, percentage: "" },
         });
         const p = data.pagination || {};
-        setCurrentPage(p.page       || 1);
-        setTotalPages(p.totalPages  || 1);
-        setTotal(p.total            || 0);
+        setCurrentPage(p.page      || 1);
+        setTotalPages(p.totalPages || 1);
+        setTotal(p.total           || 0);
       })
       .catch((err) => console.log(err))
       .finally(() => setLoading(false));
@@ -90,8 +90,6 @@ function Request() {
     }, 350);
     return () => clearTimeout(t);
   }, [searchInput, fetchRequests]);
-
-
 
   function resetTable() {
     setSearchInput("");
@@ -223,10 +221,8 @@ function Request() {
   const numbers      = [];
   for (let i = startPage; i <= endPage; i++) numbers.push(i);
 
-  function prevPage()           { if (startPage > 1)          setCurrentPage(startPage - pagesPerGroup); }
-
-  function nextPage()           { if (endPage < totalPages)    setCurrentPage(endPage + 1); }
-
+  function prevPage()           { if (startPage > 1)       setCurrentPage(startPage - pagesPerGroup); }
+  function nextPage()           { if (endPage < totalPages) setCurrentPage(endPage + 1); }
   function changeCurrentPage(n) { setCurrentPage(n); }
 
 
@@ -242,8 +238,6 @@ function Request() {
           <img src={user?.avatar ? user.avatar : "/totalcertaficates.png"} alt="ava" />
         </div>
       </div>
-
-      {/* {statusMsg && <div className={styles.successBanner}>{statusMsg}</div>} */}
 
       <div className={styles.search}>
         <div className={styles.title}>
@@ -306,9 +300,16 @@ function Request() {
       </div>
 
       <div className={styles.main}>
-        <button className={styles.reset} onClick={resetTable}>
-          Reset
-        </button>
+        <div className={styles.tableHeader}>
+          <button className={styles.reset} onClick={resetTable}>
+            Reset
+          </button>
+          {/* ✅ total is now used — shows result count */}
+          <p className={styles.resultCount}>
+            {loading ? "Loading..." : `Showing ${request.length} of ${total} results`}
+          </p>
+        </div>
+
         <div className={styles.countainer}>
           <table className={styles.table}>
             <thead>
@@ -316,76 +317,43 @@ function Request() {
                 <th className={styles.colu} onClick={() => handleSort("id")}>
                   Request ID{" "}
                   {sortConfig.key === "id"
-                    ? sortConfig.direction === "asc"
-                      ? "↑"
-                      : "↓"
+                    ? sortConfig.direction === "asc" ? "↑" : "↓"
                     : ""}
                 </th>
-                <th
-                  className={styles.colu}
-                  onClick={() => handleSort("student")}
-                >
-                  {" "}
+                <th className={styles.colu} onClick={() => handleSort("student")}>
                   Student{" "}
                   {sortConfig.key === "student"
-                    ? sortConfig.direction === "asc"
-                      ? "↑"
-                      : "↓"
+                    ? sortConfig.direction === "asc" ? "↑" : "↓"
                     : ""}
                 </th>
-                <th
-                  className={styles.colu}
-                  onClick={() => handleSort("documentType")}
-                >
+                <th className={styles.colu} onClick={() => handleSort("documentType")}>
                   Document Type
                   {sortConfig.key === "documentType"
-                    ? sortConfig.direction === "asc"
-                      ? "↑"
-                      : "↓"
+                    ? sortConfig.direction === "asc" ? "↑" : "↓"
                     : ""}
                 </th>
-                <th
-                  className={styles.colu}
-                  onClick={() => handleSort("reason")}
-                >
+                <th className={styles.colu} onClick={() => handleSort("reason")}>
                   Reason
                   {sortConfig.key === "reason"
-                    ? sortConfig.direction === "asc"
-                      ? "↑"
-                      : "↓"
+                    ? sortConfig.direction === "asc" ? "↑" : "↓"
                     : ""}
                 </th>
-                <th
-                  className={styles.colu}
-                  onClick={() => handleSort("priority")}
-                >
+                <th className={styles.colu} onClick={() => handleSort("priority")}>
                   Priority
                   {sortConfig.key === "priority"
-                    ? sortConfig.direction === "asc"
-                      ? "↑"
-                      : "↓"
+                    ? sortConfig.direction === "asc" ? "↑" : "↓"
                     : ""}
                 </th>
-                <th
-                  className={styles.colu}
-                  onClick={() => handleSort("createdAt")}
-                >
+                <th className={styles.colu} onClick={() => handleSort("createdAt")}>
                   Submitted
                   {sortConfig.key === "createdAt"
-                    ? sortConfig.direction === "asc"
-                      ? "↑"
-                      : "↓"
+                    ? sortConfig.direction === "asc" ? "↑" : "↓"
                     : ""}
                 </th>
-                <th
-                  className={styles.colu}
-                  onClick={() => handleSort("status")}
-                >
+                <th className={styles.colu} onClick={() => handleSort("status")}>
                   Status
                   {sortConfig.key === "status"
-                    ? sortConfig.direction === "asc"
-                      ? "↑"
-                      : "↓"
+                    ? sortConfig.direction === "asc" ? "↑" : "↓"
                     : ""}
                 </th>
                 <th className={styles.colu}>Upload</th>
@@ -393,7 +361,14 @@ function Request() {
               </tr>
             </thead>
             <tbody>
-              {request.length > 0 ? (
+              {/* ✅ loading is now used — shows spinner row while fetching */}
+              {loading ? (
+                <tr>
+                  <td colSpan="9" style={{ textAlign: "center", padding: "30px" }}>
+                    <span className={styles.spinner} /> Loading requests...
+                  </td>
+                </tr>
+              ) : request.length > 0 ? (
                 request.map((req) => (
                   <tr className={styles.line} key={req.id}>
                     <td className={styles.column}>
@@ -472,10 +447,7 @@ function Request() {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="8"
-                    style={{ textAlign: "center", padding: "20px" }}
-                  >
+                  <td colSpan="9" style={{ textAlign: "center", padding: "20px" }}>
                     No data found
                   </td>
                 </tr>
