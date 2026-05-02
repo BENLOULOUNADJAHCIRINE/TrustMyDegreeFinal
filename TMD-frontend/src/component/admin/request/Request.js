@@ -1,5 +1,5 @@
 import styles from "./Request.module.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 
 function Request() {
@@ -12,7 +12,8 @@ function Request() {
     key: null,
     direction: "asc",
   });
-  const [setSelectedIds] = useState([]);
+  const [searchInput, setSearchInput] = useState("");
+  const [selectedIds, setSelectedIds] = useState([]);
   /*each column be sorted*/
   function handleSort(key) {
     let direction = "asc";
@@ -25,7 +26,11 @@ function Request() {
   }
 
   // Pagination State
-  const [currentPage, setcurentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages]   = useState(1);
+  const [total, setTotal]             = useState(0);
+  const [loading, setLoading]         = useState(false);
+  const LIMIT = 10;
   const perPage = 5;
   const pagesPerGroup = 3;
 
@@ -50,27 +55,43 @@ function Request() {
   }, []);
 
   // Centralized fetch to keep stats and list in sync
-  const fetchRequests = () => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/admin/requests`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
+// AFTER — server-side fetch with page + search params
+  const fetchRequests = useCallback((page, searchVal) => {
+    setLoading(true);
+    const params = new URLSearchParams({ page, limit: LIMIT });
+    if (searchVal) params.set("search", searchVal);
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/admin/requests?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     })
       .then((res) => res.json())
       .then((data) => {
         setRequest(data.requests || []);
         setStats({
-          TotalRequests: { number: data.summary.total, percentage: "" },
-          pendingApproval: { number: data.summary.pending, percentage: "" },
-          Approved: { number: data.summary.approved, percentage: "" },
-          Rejected: { number: data.summary.rejected, percentage: "" },
+          TotalRequests:  { number: data.summary.total,    percentage: "" },
+          pendingApproval:{ number: data.summary.pending,  percentage: "" },
+          Approved:       { number: data.summary.approved, percentage: "" },
+          Rejected:       { number: data.summary.rejected, percentage: "" },
         });
+        const p = data.pagination || {};
+        setCurrentPage(p.page       || 1);
+        setTotalPages(p.totalPages  || 1);
+        setTotal(p.total            || 0);
       })
-      .catch((err) => console.log(err));
-  };
+      .catch((err) => console.log(err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => { fetchRequests(1, ""); }, [fetchRequests]);
+
+  // Debounce search — wait 350ms after typing before hitting server
   useEffect(() => {
-  fetchRequests();
-}, []);
+    const t = setTimeout(() => {
+      setSearch(searchInput);
+      fetchRequests(1, searchInput);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [searchInput, fetchRequests]);
 
   const filteredRequests = request.filter(
     (req) =>
@@ -110,10 +131,10 @@ function Request() {
   });
 
   function resetTable() {
+    setSearchInput("");
     setSearch("");
     setSortConfig({ key: null, direction: "asc" });
-    setcurentPage(1);
-    setSelectedIds([]);
+    fetchRequests(1, "");
   }
 
   // Handle Export
@@ -159,97 +180,92 @@ function Request() {
   }
 
   function uploadDocument(id) {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = ".pdf,.doc,.docx";
-  input.onchange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".pdf,.doc,.docx";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-    const formData = new FormData();
-    formData.append("document", file);
+      const formData = new FormData();
+      formData.append("document", file);
 
-    toast.loading("Uploading document...", { id: "upload" });
+      toast.loading("Uploading document...", { id: "upload" });
 
-    fetch(`${process.env.REACT_APP_API_URL}/api/admin/requests/${id}/upload`, {
-      method: "PUT",
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
-      body: formData,
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        toast.dismiss("upload");
-        if (data.error) {
-          toast.error(data.error);
-          return;
-        }
-        // update local state directly — no reload needed
-        const updated = request.map((r) =>
-          r.id === id ? { ...r, status: "APPROVED" } : r
-        );
-        setRequest(updated);
-        toast.success("Document uploaded and approved successfully!");
+      fetch(`${process.env.REACT_APP_API_URL}/api/admin/requests/${id}/upload`, {
+        method: "PUT",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+        body: formData,
       })
-      .catch((err) => {
-        toast.dismiss("upload");
-        console.log(err);
-        toast.error("Upload failed");
-      });
-  };
-  input.click();
-}
+        .then((res) => res.json())
+        .then((data) => {
+          toast.dismiss("upload");
+          if (data.error) {
+            toast.error(data.error);
+            return;
+          }
+          // update local state directly — no reload needed
+          const updated = request.map((r) =>
+            r.id === id ? { ...r, status: "APPROVED" } : r
+          );
+
+          toast.success("Document uploaded and approved successfully!");
+          fetchRequests(currentPage, search);
+          setRequest(updated);
+        })
+        .catch((err) => {
+          toast.dismiss("upload");
+          console.log(err);
+          toast.error("Upload failed");
+        });
+    };
+    input.click();
+  }
 
   function updateStatus(id, newStatus) {
-  fetch(`${process.env.REACT_APP_API_URL}/api/admin/requests/${id}/status`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + localStorage.getItem("token"),
-    },
-    body: JSON.stringify({ status: newStatus }),
-  })
-    .then((res) => res.json())
-    .then(() => {
-      const updated = request.map((c) =>
-        c.id === id ? { ...c, status: newStatus } : c,
-      );
-      setRequest(updated);
-      setOpenMenu(null);
-      toast.success(`Request ${newStatus.toLowerCase()} successfully.`);
+    fetch(`${process.env.REACT_APP_API_URL}/api/admin/requests/${id}/status`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+      body: JSON.stringify({ status: newStatus }),
     })
-    .catch((err) => {
-      console.log(err);
-      toast.error("Update failed");
-    });
-}
+      .then((res) => res.json())
+      .then(() => {
+        const updated = request.map((c) =>
+          c.id === id ? { ...c, status: newStatus } : c,
+        );
+        setRequest(updated);
+        setOpenMenu(null);
+        toast.success(`Request ${newStatus.toLowerCase()} successfully.`);
+        fetchRequests(currentPage, search);
+      })
+      .catch((err) => {
+        console.log(err);
+        toast.error("Update failed");
+      });
+  }
 
   // --- PAGINATION LOGIC ---
   useEffect(() => {
-    setcurentPage(1);
+    setCurrentPage(1);
   }, [search]);
 
-  const Lastindex = currentPage * perPage;
-  const Firstindex = Lastindex - perPage;
-  const records = sortedRequests.slice(Firstindex, Lastindex);
-  const numberofpages = Math.ceil(filteredRequests.length / perPage);
   const currentGroup = Math.ceil(currentPage / pagesPerGroup);
-  const startPage = (currentGroup - 1) * pagesPerGroup + 1;
-  const endPage = Math.min(startPage + pagesPerGroup - 1, numberofpages);
-
-  const numbers = [];
+  const startPage    = (currentGroup - 1) * pagesPerGroup + 1;
+  const endPage      = Math.min(startPage + pagesPerGroup - 1, totalPages);
+  const numbers      = [];
   for (let i = startPage; i <= endPage; i++) numbers.push(i);
 
-  function prevPage() {
-    if (startPage > 1) setcurentPage(startPage - pagesPerGroup);
-  }
-  function nextPage() {
-    if (endPage < numberofpages) setcurentPage(endPage + 1);
-  }
-  function changeCurrentPage(id) {
-    setcurentPage(id);
-  }
+  function prevPage()           { if (startPage > 1)          setCurrentPage(startPage - pagesPerGroup); }
+
+  function nextPage()           { if (endPage < totalPages)    setCurrentPage(endPage + 1); }
+
+  function changeCurrentPage(n) { setCurrentPage(n); }
+
 
   return (
     <div className={styles["main-content"]}>
@@ -279,8 +295,8 @@ function Request() {
               className={styles.look}
               type="search"
               placeholder="Search requests..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
         </div>
@@ -414,8 +430,8 @@ function Request() {
               </tr>
             </thead>
             <tbody>
-              {records.length > 0 ? (
-                records.map((req) => (
+              {request.length > 0 ? (
+                request.map((req) => (
                   <tr className={styles.line} key={req.id}>
                     <td className={styles.column}>
                       {req.id.substring(0, 8)}...

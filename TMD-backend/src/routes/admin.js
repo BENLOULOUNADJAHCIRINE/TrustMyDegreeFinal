@@ -24,11 +24,13 @@ const {
   getStudents,
   getStudentCertificates,
   deleteStudent,
+  getAuditStats,
 } = require("../controllers/adminController");
 
 router.get("/dashboard", protect, isAdmin, dashboard);
 router.put("/settings", protect, isAdmin, changePassword);
 router.post("/avatar", protect, isAdmin, uploadAvatar);
+router.get("/audit-trail/stats", protect, isSuperAdmin, getAuditStats);
 router.get("/audit-trail", protect, isSuperAdmin, getAuditTrail);
 router.get("/statistics", protect, isAdmin, getStatistics);
 

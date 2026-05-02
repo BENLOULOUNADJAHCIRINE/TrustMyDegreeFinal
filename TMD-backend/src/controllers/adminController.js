@@ -46,13 +46,25 @@ const dashboard = async (req, res) => {
 
     const recentActivity = await prisma.certificate.findMany({
       take: 10,
-      include: {
-        student: true,
+      select: {
+        id: true,
+        uniqueCode: true,
+        type: true,
+        contractType: true,
+        status: true,
+        issueDate: true,
+        student: {
+          select: {
+            fullName: true,
+            avatar: true,
+          },
+        },
       },
       orderBy: {
         issueDate: "desc",
       },
     });
+
     res.status(200).json({
       totalCertificates,
       activeCertificates,
@@ -139,27 +151,64 @@ const getAllCertificates = async (req, res) => {
 
 const getRequests = async (req, res) => {
   try {
-    const statusGroups = await prisma.request.groupBy({
-      by: ['status'],
-      _count: { id: true },
-    });
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.min(50, parseInt(req.query.limit) || 10);
+    const skip  = (page - 1) * limit;
+
+    const { search, status } = req.query;
+
+    const where = {};
+    if (status && status !== "ALL") where.status = status;
+    if (search) {
+      where.OR = [
+        { student: { fullName:  { contains: search, mode: "insensitive" } } },
+        { student: { matricule: { contains: search, mode: "insensitive" } } },
+        { documentType: { contains: search, mode: "insensitive" } },
+        { reason:       { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [statusGroups, total, requests] = await Promise.all([
+      prisma.request.groupBy({ by: ["status"], _count: { id: true } }),
+      prisma.request.count({ where }),
+      prisma.request.findMany({
+        where,
+        select: {
+          id: true,
+          documentType: true,
+          reason: true,
+          delivery: true,
+          priority: true,
+          status: true,
+          ipfsHash: true,
+          blockchainDocId: true,
+          fileUrl: true,
+          createdAt: true,
+          updatedAt: true,
+          student: { select: { fullName: true, matricule: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip,
+      }),
+    ]);
 
     const summary = { total: 0, pending: 0, approved: 0, rejected: 0 };
     statusGroups.forEach(g => {
       summary.total += g._count.id;
-      if (g.status === 'PENDING')  summary.pending  = g._count.id;
-      if (g.status === 'APPROVED') summary.approved = g._count.id;
-      if (g.status === 'REJECTED') summary.rejected = g._count.id;
+      if (g.status === "PENDING")  summary.pending  = g._count.id;
+      if (g.status === "APPROVED") summary.approved = g._count.id;
+      if (g.status === "REJECTED") summary.rejected = g._count.id;
     });
 
-    const fullList = await prisma.request.findMany({
-      include: { student: { select: { fullName: true, matricule: true } } },  // ✅ select au lieu de include complet
-      orderBy: { createdAt: 'desc' },
+    res.status(200).json({
+      requests,
+      summary,
+      pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
     });
-
-    res.status(200).json({ requests: fullList, summary });
   } catch (err) {
-    res.status(500).json({ error: 'an error occured in the server' });
+    console.error(err);
+    res.status(500).json({ error: "an error occurred in the server" });
   }
 };
 
@@ -360,8 +409,8 @@ const unrevokeCertificate = async (req, res) => {
       if (c.blockchainCertId) {
         const isActive = await verifyCertificate(c.contractType, c.blockchainCertId);
         if (isActive) {
-          return res.status(400).json({ 
-            message: "Cannot unrevoke — another active certificate already exists for this student on the blockchain. Revoke it first." 
+          return res.status(400).json({
+            message: "Cannot unrevoke — another active certificate already exists for this student on the blockchain. Revoke it first.",
           });
         }
       }
@@ -420,54 +469,58 @@ const changePassword = async (req, res) => {
   }
 };
 
-// sync students
 const syncStudents = async (req, res) => {
   try {
     const result = await universityDB.query("SELECT * FROM students");
     const students = result.rows;
-    if (students.length == 0) {
+    if (students.length === 0) {
       return res
         .status(404)
         .json({ message: "no students found in university database" });
     }
+
     let created = 0;
     let skipped = 0;
 
-    for (const student of students) {
-      const exists = await prisma.user.findUnique({
-        where: { matricule: student.matricule },
-      });
-      if (exists) {
-        skipped++;
-        continue;
-      }
+    const incomingMatricules = students.map(s => s.matricule);
+    const existing = await prisma.user.findMany({
+      where: { matricule: { in: incomingMatricules } },
+      select: { matricule: true },
+    });
+    const existingSet = new Set(existing.map(u => u.matricule));
 
-      const dateOfBirth = student.date_of_birth.toLocaleDateString("en-CA");
-      const hashed = await bcrypt.hash(dateOfBirth, 10);
-      await prisma.user.create({
-        data: {
-          fullName: student.full_name,
-          matricule: student.matricule,
-          password: hashed,
-          role: "STUDENT",
-          dateOfBirth: dateOfBirth,
-          placeOfBirth: student.place_of_birth,
-          isGraduated: student.is_graduated,
-          email: student.email,
-        },
-      });
-      await sendEmail(
-        student.email,
-        "Welcome to TrustMyDegree",
-        `<h2>Hello ${student.full_name}</h2>
+    const toCreate = students.filter(s => !existingSet.has(s.matricule));
+    skipped = students.length - toCreate.length;
+
+    await Promise.all(
+      toCreate.map(async (student) => {
+        const dateOfBirth = student.date_of_birth.toLocaleDateString("en-CA");
+        const hashed = await bcrypt.hash(dateOfBirth, 10);
+        await prisma.user.create({
+          data: {
+            fullName:    student.full_name,
+            matricule:   student.matricule,
+            password:    hashed,
+            role:        "STUDENT",
+            dateOfBirth: dateOfBirth,
+            placeOfBirth: student.place_of_birth,
+            isGraduated: student.is_graduated,
+            email:       student.email,
+          },
+        });
+        sendEmail(
+          student.email,
+          "Welcome to TrustMyDegree",
+          `<h2>Hello ${student.full_name}</h2>
    <p>Your account has been created on TrustMyDegree.</p>
    <p><strong>Matricule:</strong> ${student.matricule}</p>
    <p><strong>Password:</strong> ${dateOfBirth}</p>
    <p>Please login and change your password as soon as possible.</p>
    <p>TrustMyDegree Team</p>`,
-      );
-      created++;
-    }
+        ).catch(err => console.warn(`Email failed for ${student.matricule}:`, err.message));
+        created++;
+      })
+    );
 
     res.json({
       message: "sync completed",
@@ -536,7 +589,7 @@ const importDiplomas = async (req, res) => {
         }
 
         const existingCert = await prisma.certificate.findFirst({
-          where: { 
+          where: {
             studentId: student.id,
             contractType,
             status: "ACTIVE"
@@ -662,8 +715,8 @@ const importDiplomas = async (req, res) => {
           data: {
             studentId: student.id,
             uniqueCode,
-            ipfsHash: null,    
-            certData: {             
+            ipfsHash: null,
+            certData: {
               fullName: student.fullName,
               matricule: student.matricule,
               specialty: resolvedSpecialty,
@@ -751,19 +804,18 @@ const importDiplomas = async (req, res) => {
   }
 };
 
-// get statistics
 const getStatistics = async (req, res) => {
   try {
     const [typeGroups, topSpecialties, monthlyRaw, dailyRaw] = await Promise.all([
       prisma.certificate.groupBy({
-        by: ['type', 'contractType'],
+        by: ["type", "contractType"],
         _count: { id: true },
       }),
 
       prisma.certificate.groupBy({
-        by: ['specialty'],
+        by: ["specialty"],
         _count: { specialty: true },
-        orderBy: { _count: { specialty: 'desc' } },
+        orderBy: { _count: { specialty: "desc" } },
         take: 5,
       }),
 
@@ -772,6 +824,7 @@ const getStatistics = async (req, res) => {
           TO_CHAR("issueDate" AT TIME ZONE 'UTC', 'Mon') AS month,
           COUNT(*)::int AS count
         FROM "Certificate"
+        WHERE EXTRACT(YEAR FROM "issueDate" AT TIME ZONE 'UTC') = EXTRACT(YEAR FROM NOW())
         GROUP BY TO_CHAR("issueDate" AT TIME ZONE 'UTC', 'Mon')
       `,
 
@@ -788,12 +841,12 @@ const getStatistics = async (req, res) => {
 
     const DistributionByType = { MASTER: 0, ENGINEER: 0, INTERNSHIP: 0, SCOLARITE: 0, DIPLOMA: 0, RANK: 0 };
     typeGroups.forEach(g => {
-      if (g.type === 'MASTER')           DistributionByType.MASTER      += g._count.id;
-      if (g.type === 'ENGINEER')         DistributionByType.ENGINEER    += g._count.id;
-      if (g.contractType === 'INTERNSHIP') DistributionByType.INTERNSHIP += g._count.id;
-      if (g.contractType === 'STUDY')    DistributionByType.SCOLARITE   += g._count.id;
-      if (g.contractType === 'DIPLOMA')  DistributionByType.DIPLOMA     += g._count.id;
-      if (g.contractType === 'RANK')     DistributionByType.RANK        += g._count.id;
+      if (g.type === "MASTER")             DistributionByType.MASTER      += g._count.id;
+      if (g.type === "ENGINEER")           DistributionByType.ENGINEER    += g._count.id;
+      if (g.contractType === "INTERNSHIP") DistributionByType.INTERNSHIP  += g._count.id;
+      if (g.contractType === "STUDY")      DistributionByType.SCOLARITE   += g._count.id;
+      if (g.contractType === "DIPLOMA")    DistributionByType.DIPLOMA     += g._count.id;
+      if (g.contractType === "RANK")       DistributionByType.RANK        += g._count.id;
     });
 
     const monthlyIssuance = {};
@@ -809,7 +862,7 @@ const getStatistics = async (req, res) => {
     res.status(200).json({ DistributionByType, topSpecialties, monthlyIssuance, verificationsPerDay });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'an error occurred in the server' });
+    res.status(500).json({ error: "an error occurred in the server" });
   }
 };
 
@@ -907,7 +960,7 @@ const downloadCertificate = async (req, res) => {
     const generateDiplomaPDF = require("../utils/generatePDF");
     const pdfPath = await generateDiplomaPDF(pdfData, templateType);
     console.log("[downloadCertificate] PDF generated at:", pdfPath);
-    
+
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `inline; filename="certificate_${id}.pdf"`);
     const fileStream = fs.createReadStream(pdfPath);
@@ -937,38 +990,55 @@ const downloadCertificate = async (req, res) => {
 
 const exportCertificates = async (req, res) => {
   try {
-    const certificates = await prisma.certificate.findMany({
-      include: { student: true },
-      orderBy: { issueDate: "desc" },
-    });
+    const CHUNK = 500;
+    let skip = 0;
+    const rows = [];
 
-    const rows = certificates.map((cert) => ({
-      "Student Name": cert.student?.fullName || "",
-      Matricule: cert.student?.matricule || "",
-      Type: cert.type || "",
-      Specialty: cert.specialty || "",
-      "Contract Type": cert.contractType || "",
-      "IPFS Hash": cert.ipfsHash || "",
-      "Blockchain Cert ID": cert.blockchainCertId || "",
-      "Issue Date": new Date(cert.issueDate).toLocaleDateString("fr-FR"),
-      Status: cert.status || "",
-      "Unique Code": cert.uniqueCode || "",
-    }));
+    while (true) {
+      const batch = await prisma.certificate.findMany({
+        select: {
+          type: true,
+          specialty: true,
+          contractType: true,
+          ipfsHash: true,
+          blockchainCertId: true,
+          issueDate: true,
+          status: true,
+          uniqueCode: true,
+          student: { select: { fullName: true, matricule: true } },
+        },
+        orderBy: { issueDate: "desc" },
+        take: CHUNK,
+        skip,
+      });
+
+      if (batch.length === 0) break;
+
+      batch.forEach((cert) => rows.push({
+        "Student Name":       cert.student?.fullName   || "",
+        "Matricule":          cert.student?.matricule  || "",
+        "Type":               cert.type               || "",
+        "Specialty":          cert.specialty           || "",
+        "Contract Type":      cert.contractType        || "",
+        "IPFS Hash":          cert.ipfsHash            || "",
+        "Blockchain Cert ID": cert.blockchainCertId    || "",
+        "Issue Date":         new Date(cert.issueDate).toLocaleDateString("fr-FR"),
+        "Status":             cert.status              || "",
+        "Unique Code":        cert.uniqueCode          || "",
+      }));
+
+      skip += CHUNK;
+      if (batch.length < CHUNK) break;
+    }
 
     const worksheet = XLSX.utils.json_to_sheet(rows);
-    const workbook = XLSX.utils.book_new();
+    const workbook  = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Certificates");
 
     const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=certificates.xlsx",
-    );
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    );
+    res.setHeader("Content-Disposition", "attachment; filename=certificates.xlsx");
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     res.send(buffer);
   } catch (err) {
     console.error(err);
@@ -1001,38 +1071,55 @@ const downloadRequestFile = async (req, res) => {
 
 const exportRequests = async (req, res) => {
   try {
-    const requests = await prisma.request.findMany({
-      include: { student: true },
-      orderBy: { createdAt: "desc" },
-    });
+    const CHUNK = 500;
+    let skip = 0;
+    const rows = [];
 
-    const rows = requests.map((req) => ({
-      "Request ID": req.id.substring(0, 8) + "...",
-      "Student Name": req.student?.fullName || "",
-      Matricule: req.student?.matricule || "",
-      "Document Type": req.documentType || "",
-      Reason: req.reason || "",
-      Priority: req.priority || "",
-      "Submitted Date": new Date(req.createdAt).toLocaleDateString("fr-FR"),
-      Status: req.status || "PENDING",
-      "IPFS Hash": req.ipfsHash || "",
-      "Blockchain Doc ID": req.blockchainDocId || "",
-    }));
+    while (true) {
+      const batch = await prisma.request.findMany({
+        select: {
+          id: true,
+          documentType: true,
+          reason: true,
+          priority: true,
+          status: true,
+          ipfsHash: true,
+          blockchainDocId: true,
+          createdAt: true,
+          student: { select: { fullName: true, matricule: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: CHUNK,
+        skip,
+      });
+
+      if (batch.length === 0) break;
+
+      batch.forEach((r) => rows.push({
+        "Request ID":        r.id.substring(0, 8) + "...",
+        "Student Name":      r.student?.fullName  || "",
+        "Matricule":         r.student?.matricule || "",
+        "Document Type":     r.documentType       || "",
+        "Reason":            r.reason             || "",
+        "Priority":          r.priority           || "",
+        "Submitted Date":    new Date(r.createdAt).toLocaleDateString("fr-FR"),
+        "Status":            r.status             || "PENDING",
+        "IPFS Hash":         r.ipfsHash           || "",
+        "Blockchain Doc ID": r.blockchainDocId    || "",
+      }));
+
+      skip += CHUNK;
+      if (batch.length < CHUNK) break;
+    }
 
     const worksheet = XLSX.utils.json_to_sheet(rows);
-    const workbook = XLSX.utils.book_new();
+    const workbook  = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Requests");
 
     const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=requests.xlsx",
-    );
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    );
+    res.setHeader("Content-Disposition", "attachment; filename=requests.xlsx");
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     res.send(buffer);
   } catch (err) {
     console.error(err);
@@ -1049,15 +1136,15 @@ const getAuditTrail = async (req, res) => {
     const { search, status, contractType } = req.query;
 
     const where = {};
-    if (status && status !== 'ALL') where.status = status;
-    if (contractType && contractType !== 'ALL') where.contractType = contractType;
+    if (status && status !== "ALL") where.status = status;
+    if (contractType && contractType !== "ALL") where.contractType = contractType;
     if (search) {
       where.OR = [
-        { student: { fullName:  { contains: search, mode: 'insensitive' } } },
-        { student: { matricule: { contains: search, mode: 'insensitive' } } },
-        { specialty:        { contains: search, mode: 'insensitive' } },
-        { uniqueCode:       { contains: search, mode: 'insensitive' } },
-        { blockchainCertId: { contains: search, mode: 'insensitive' } },
+        { student: { fullName:  { contains: search, mode: "insensitive" } } },
+        { student: { matricule: { contains: search, mode: "insensitive" } } },
+        { specialty:        { contains: search, mode: "insensitive" } },
+        { uniqueCode:       { contains: search, mode: "insensitive" } },
+        { blockchainCertId: { contains: search, mode: "insensitive" } },
       ];
     }
 
@@ -1105,6 +1192,32 @@ const getAuditTrail = async (req, res) => {
         totalPages: Math.ceil(total / limit),
       },
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "an error occurred in the server" });
+  }
+};
+const getAuditStats = async (req, res) => {
+  try {
+    const [statusGroups, contractGroups, total] = await Promise.all([
+      prisma.certificate.groupBy({ by: ["status"],       _count: { id: true } }),
+      prisma.certificate.groupBy({ by: ["contractType"], _count: { id: true } }),
+      prisma.certificate.count(),
+    ]);
+
+    const stats = { total, active: 0, revoked: 0, diploma: 0, internship: 0, study: 0, rank: 0 };
+    statusGroups.forEach(g => {
+      if (g.status === "ACTIVE")  stats.active  = g._count.id;
+      if (g.status === "REVOKED") stats.revoked = g._count.id;
+    });
+    contractGroups.forEach(g => {
+      if (g.contractType === "DIPLOMA")    stats.diploma    = g._count.id;
+      if (g.contractType === "INTERNSHIP") stats.internship = g._count.id;
+      if (g.contractType === "STUDY")      stats.study      = g._count.id;
+      if (g.contractType === "RANK")       stats.rank       = g._count.id;
+    });
+
+    res.status(200).json(stats);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "an error occurred in the server" });
@@ -1159,7 +1272,6 @@ const issueOne = async (req, res) => {
       issueDate,
     } = req.body;
 
-    // ── Core fields (all templates) ──────────────────────────────────────────
     if (!firstName)    return res.status(400).json({ message: "First name is required" });
     if (!lastName)     return res.status(400).json({ message: "Last name is required" });
     if (!studentId)    return res.status(400).json({ message: "Student ID is required" });
@@ -1167,14 +1279,13 @@ const issueOne = async (req, res) => {
     if (!graduationDate && !issueDate)
       return res.status(400).json({ message: "Date is required" });
 
-    // ── Template-specific validation ─────────────────────────────────────────
     if (templateType === "diploma") {
-      if (!speciality)             return res.status(400).json({ message: "Speciality is required" });
-      if (!req.body.mention)       return res.status(400).json({ message: "Mention is required" });
-      if (!req.body.faculty)       return res.status(400).json({ message: "Faculty is required" });
-      if (!req.body.sectionNum)    return res.status(400).json({ message: "Section N° is required" });
-      if (!req.body.facultyNum)    return res.status(400).json({ message: "Faculty N° is required" });
-      if (!req.body.year)          return res.status(400).json({ message: "Year is required" });
+      if (!speciality)          return res.status(400).json({ message: "Speciality is required" });
+      if (!req.body.mention)    return res.status(400).json({ message: "Mention is required" });
+      if (!req.body.faculty)    return res.status(400).json({ message: "Faculty is required" });
+      if (!req.body.sectionNum) return res.status(400).json({ message: "Section N° is required" });
+      if (!req.body.facultyNum) return res.status(400).json({ message: "Faculty N° is required" });
+      if (!req.body.year)       return res.status(400).json({ message: "Year is required" });
     }
 
     if (templateType === "scolarite") {
@@ -1188,11 +1299,11 @@ const issueOne = async (req, res) => {
     }
 
     if (templateType === "internship") {
-      if (!speciality)               return res.status(400).json({ message: "Internship role is required" });
-      if (!req.body.company)         return res.status(400).json({ message: "Company is required" });
-      if (!req.body.internshipCity)  return res.status(400).json({ message: "City is required" });
-      if (!req.body.startDate)       return res.status(400).json({ message: "Start date is required" });
-      if (!req.body.endDate)         return res.status(400).json({ message: "End date is required" });
+      if (!speciality)              return res.status(400).json({ message: "Internship role is required" });
+      if (!req.body.company)        return res.status(400).json({ message: "Company is required" });
+      if (!req.body.internshipCity) return res.status(400).json({ message: "City is required" });
+      if (!req.body.startDate)      return res.status(400).json({ message: "Start date is required" });
+      if (!req.body.endDate)        return res.status(400).json({ message: "End date is required" });
     }
 
     if (templateType === "rank") {
@@ -1215,7 +1326,6 @@ const issueOne = async (req, res) => {
 
     const date = templateType === "diploma" ? graduationDate : issueDate;
 
-    // ── Find student ─────────────────────────────────────────────────────────
     const student = await prisma.user.findUnique({
       where: { matricule: String(studentId) },
     });
@@ -1233,7 +1343,6 @@ const issueOne = async (req, res) => {
             ? "RANK"
             : "DIPLOMA";
 
-    // ── Duplicate check ──────────────────────────────────────────────────────
     const existingCert = await prisma.certificate.findFirst({
       where: {
         studentId: student.id,
@@ -1324,7 +1433,6 @@ const issueOne = async (req, res) => {
       });
 
     } else {
-      // STUDY
       blockchainResult = await issueStudyCertificate({
         studentId: student.matricule,
         studentName: student.fullName,
@@ -1412,7 +1520,6 @@ const issueOne = async (req, res) => {
   }
 };
 
-// ── Students management ───────────────────────────────────────────────────
 const getStudents = async (req, res) => {
   try {
     const page  = Math.max(1, parseInt(req.query.page)  || 1);
@@ -1431,7 +1538,7 @@ const getStudents = async (req, res) => {
       ];
     }
 
-    const [total, students] = await Promise.all([
+    const [total, students, graduated, withCerts] = await Promise.all([
       prisma.user.count({ where }),
       prisma.user.findMany({
         where,
@@ -1451,10 +1558,6 @@ const getStudents = async (req, res) => {
         take: limit,
         skip,
       }),
-    ]);
-
-    const [totalStudents, graduated, withCerts] = await Promise.all([
-      prisma.user.count({ where: { role: "STUDENT" } }),
       prisma.user.count({ where: { role: "STUDENT", isGraduated: true } }),
       prisma.user.count({ where: { role: "STUDENT", certificates: { some: {} } } }),
     ]);
@@ -1462,7 +1565,7 @@ const getStudents = async (req, res) => {
     res.status(200).json({
       students,
       pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
-      stats: { total: totalStudents, graduated, ungraduated: totalStudents - graduated, withCerts },
+      stats: { total, graduated, ungraduated: total - graduated, withCerts },
     });
   } catch (err) {
     console.error(err);
@@ -1532,6 +1635,7 @@ module.exports = {
   exportRequests,
   downloadRequestFile,
   getAuditTrail,
+  getAuditStats,
   uploadAvatar,
   issueOne,
   getStudents,

@@ -17,8 +17,7 @@ function List() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch]           = useState("");
 
-  const [sortKey, setSortKey]   = useState("issueDate");
-  const [sortDir, setSortDir]   = useState("desc");
+  const [sort, setSort] = useState({ key: "issueDate", dir: "desc" });
 
   const [openMenu, setOpenMenu]     = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -53,13 +52,13 @@ function List() {
   }, [searchInput]);
 
   // ── Fetch from server ────────────────────────────────────────────────────
-  const fetchPage = useCallback((page, searchVal, key, dir) => {
+  const fetchPage = useCallback((page, searchVal, sortObj) => {
     setLoading(true);
     const params = new URLSearchParams({
       page,
       limit: LIMIT,
-      sortKey: key,
-      sortDir: dir,
+      sortKey: sortObj.key,
+      sortDir: sortObj.dir,
     });
     if (searchVal) params.set("search", searchVal);
 
@@ -77,31 +76,28 @@ function List() {
   }, []);
 
   useEffect(() => {
-    fetchPage(currentPage, search, sortKey, sortDir);
-  }, [currentPage, search, sortKey, sortDir, fetchPage]);
+    fetchPage(currentPage, search, sort);
+  }, [currentPage, search, sort, fetchPage]);
 
   // ── Sort ─────────────────────────────────────────────────────────────────
   function handleSort(key) {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-    setCurrentPage(1);
-  }
+  setSort((prev) => ({
+    key,
+    dir: prev.key === key && prev.dir === "asc" ? "desc" : "asc",
+  }));
+  setCurrentPage(1);
+}
 
-  function sortArrow(key) {
-    if (sortKey !== key) return "";
-    return sortDir === "asc" ? " ↑" : " ↓";
-  }
+function sortArrow(key) {
+  if (sort.key !== key) return "";
+  return sort.dir === "asc" ? " ↑" : " ↓";
+}
 
   // ── Reset ─────────────────────────────────────────────────────────────────
   function resetTable() {
     setSearchInput("");
     setSearch("");
-    setSortKey("issueDate");
-    setSortDir("desc");
+    setSort({ key: "issueDate", dir: "desc" });
     setCurrentPage(1);
     setSelectedIds([]);
   }
@@ -475,7 +471,7 @@ function List() {
             <div className={styles["page-item"]}>
               <button
                 className={styles.change}
-                onClick={() => setCurrentPage((p) => Math.max(p - pagesPerGroup, 1))}
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={startPage === 1}
               >
                 prev
@@ -497,7 +493,7 @@ function List() {
             <div className={styles["page-item"]}>
               <button
                 className={styles.change}
-                onClick={() => setCurrentPage((p) => Math.min(p + pagesPerGroup, totalPages))}
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={endPage >= totalPages}
               >
                 next
