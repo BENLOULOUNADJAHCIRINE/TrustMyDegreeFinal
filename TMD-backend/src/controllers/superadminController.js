@@ -116,6 +116,5 @@ const deleteAdmin = async (req, res) => {
       .json({ message: "Something went wrong", error: error.message });
   }
 };
-x;
 
 module.exports = { getAdmins, createAdmin, deleteAdmin };
