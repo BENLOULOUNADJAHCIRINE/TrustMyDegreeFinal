@@ -352,6 +352,7 @@ a:hover {
   .loginBody {
     grid-template-columns: 1fr;
     min-height: 100vh;
+    background-color: #061028;
   }
 
   .left {
@@ -370,10 +371,10 @@ a:hover {
     height: 100vh;
     min-height: 100vh;
     padding: 50px 28px;
-    border-radius: 0; /* plus de coins arrondis */
-    border: none; /* plus de bordure */
+    border-radius: 0;
+    border: none;
     margin: 0;
-    background-color: #061028; /* même bg que .right */
+    background-color: #061028;
     box-shadow: none;
     justify-content: center;
   }
