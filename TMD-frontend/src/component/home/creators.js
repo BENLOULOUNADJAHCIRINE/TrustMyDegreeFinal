@@ -73,8 +73,8 @@ function Creators() {
 
           <div className={styles.member}>
             <div className={`${styles.avatar} ${styles["av-purple"]}`}>N</div>
-            <h4 className={styles.name}>Benloulou Nadjah Cerine</h4>
-            <h4 className={styles.role}>Backend lead & sub designer</h4>
+            <h4 className={styles.name}>Benloulou Nadjah Cirine</h4>
+            <h4 className={styles.role}>Backend lead & Designer</h4>
             <p className={styles.year}> 2nd Year · MI</p>
             <p className={styles.desc}>intoduction</p>
             <div className={styles.links}>
@@ -101,10 +101,12 @@ function Creators() {
             <h4 className={styles.name}>Bedad ines</h4>
             <h4 className={styles.role}>Team lead & Blockchain lead</h4>
             <p className={styles.year}> 2nd Year · MI</p>
-            <p className={styles.desc}>intoduction</p>
+            <p className={styles.desc}>built the blockchain layer from scratch. Solidity contracts,
+        Hardhat deployments, and every on-chain decision that matters — all while keeping
+        the team moving forward.</p>
             <div className={styles.links}>
               <a
-                href=""
+                href="https://github.com/ines-bedad"
                 target="_blank"
                 rel="noreferrer"
                 className={styles.linkBtn}
@@ -112,7 +114,7 @@ function Creators() {
                 GitHub
               </a>
               <a
-                href=""
+                href="https://www.linkedin.com/in/ines-bedad-12111035b"
                 target="_blank"
                 rel="noreferrer"
                 className={styles.linkBtn}
@@ -153,10 +155,12 @@ function Creators() {
             <h4 className={styles.name}>Baghdadi Abderrahim Wael</h4>
             <h4 className={styles.role}>Blockchain developer & Backend developer</h4>
             <p className={styles.year}> 2nd Year · MI</p>
-            <p className={styles.desc}>intoduction</p>
+            <p className={styles.desc}>Connected the dots between backend and blockchain. Architected the
+        integration layer that kept both sides in sync, and the
+        system whole.</p>
             <div className={styles.links}>
               <a
-                href=""
+                href="https://github.com/itj-7"
                 target="_blank"
                 rel="noreferrer"
                 className={styles.linkBtn}
@@ -164,7 +168,7 @@ function Creators() {
                 GitHub
               </a>
               <a
-                href=""
+                href="https://www.linkedin.com/in/abderrahim-wael-baghdadi-906616326"
                 target="_blank"
                 rel="noreferrer"
                 className={styles.linkBtn}
