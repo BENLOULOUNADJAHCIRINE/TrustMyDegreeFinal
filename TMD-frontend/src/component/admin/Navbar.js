@@ -60,6 +60,11 @@ function Navbar() {
             <span className="same ">issue Documents</span>
           </Link>
 
+          <Link to="/admin/students" onClick={() => setIsOpen(false)}>
+            <img src="/studenticon.png" alt="students" style={{ width: "20px", height: "20px" }} />
+            <span className="same">Students</span>
+          </Link>
+
           <Link to="/admin/list" onClick={() => setIsOpen(false)}>
             <img src="/navlist.png" alt="navlist" />
             <span className="same">list of certificates</span>

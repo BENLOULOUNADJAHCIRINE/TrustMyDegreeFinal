@@ -1412,6 +1412,108 @@ const issueOne = async (req, res) => {
   }
 };
 
+// ── Students management ───────────────────────────────────────────────────
+const getStudents = async (req, res) => {
+  try {
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.min(50, parseInt(req.query.limit) || 10);
+    const skip  = (page - 1) * limit;
+    const { search, status } = req.query;
+
+    const where = { role: "STUDENT" };
+    if (status === "graduated")   where.isGraduated = true;
+    if (status === "ungraduated") where.isGraduated = false;
+    if (search) {
+      where.OR = [
+        { fullName:  { contains: search, mode: "insensitive" } },
+        { matricule: { contains: search, mode: "insensitive" } },
+        { email:     { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [total, students] = await Promise.all([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          fullName: true,
+          matricule: true,
+          email: true,
+          dateOfBirth: true,
+          placeOfBirth: true,
+          isGraduated: true,
+          avatar: true,
+          createdAt: true,
+          _count: { select: { certificates: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip,
+      }),
+    ]);
+
+    const [totalStudents, graduated, withCerts] = await Promise.all([
+      prisma.user.count({ where: { role: "STUDENT" } }),
+      prisma.user.count({ where: { role: "STUDENT", isGraduated: true } }),
+      prisma.user.count({ where: { role: "STUDENT", certificates: { some: {} } } }),
+    ]);
+
+    res.status(200).json({
+      students,
+      pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+      stats: { total: totalStudents, graduated, ungraduated: totalStudents - graduated, withCerts },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "An error occurred on the server" });
+  }
+};
+
+const getStudentCertificates = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, fullName: true, matricule: true, avatar: true },
+    });
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    const certificates = await prisma.certificate.findMany({
+      where: { studentId: id },
+      orderBy: { issueDate: "desc" },
+    });
+
+    res.status(200).json({ student, certificates });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "An error occurred on the server" });
+  }
+};
+
+const deleteStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await prisma.user.findUnique({ where: { id } });
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    if (student.role !== "STUDENT") return res.status(403).json({ message: "Cannot delete non-student users" });
+
+    const certs = await prisma.certificate.findMany({ where: { studentId: id }, select: { id: true } });
+    const certIds = certs.map(c => c.id);
+    if (certIds.length > 0) {
+      await prisma.verification.deleteMany({ where: { certificateId: { in: certIds } } });
+      await prisma.certificate.deleteMany({ where: { studentId: id } });
+    }
+    await prisma.request.deleteMany({ where: { studentId: id } });
+    await prisma.user.delete({ where: { id } });
+
+    res.status(200).json({ message: "Student deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "An error occurred on the server" });
+  }
+};
+
 module.exports = {
   changePassword,
   revokeCertificate,
@@ -1432,4 +1534,7 @@ module.exports = {
   getAuditTrail,
   uploadAvatar,
   issueOne,
+  getStudents,
+  getStudentCertificates,
+  deleteStudent,
 };
