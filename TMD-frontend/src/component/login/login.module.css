@@ -160,6 +160,7 @@ body {
   justify-content: start;
   align-items: center;
   margin-bottom: 20px;
+  border: none;
 }
 
 .toplogo2 img {
@@ -185,22 +186,20 @@ body {
 
 .send h2 {
   width: 100%;
-  font-size: 30px;
+  font-size: 28px;
   font-weight: bold;
   text-align: left;
   color: white;
-  position: relative;
-  bottom: 15px;
-  left: 20px;
+  margin: 0 0 8px 0;
+  text-align: center;
 }
 .send .small {
   width: 100%;
   color: #bedbffb2;
   font-size: 15px;
   text-align: left;
-  position: relative;
-  bottom: 26px;
-  left: 20px;
+  margin: 0 0 24px 0;
+  text-align: center;
 }
 
 .email {
@@ -208,7 +207,7 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
-  left: 20px;
+  left: 0;
 }
 
 .icon1 {
@@ -226,7 +225,7 @@ body {
   flex-direction: column;
   margin-top: 10px;
   position: relative;
-  left: 20px;
+  left: 0;
 }
 
 .lab {
@@ -238,7 +237,8 @@ body {
 }
 
 .inp {
-  width: 85%;
+  width: 100%;
+  box-sizing: border-box;
   color: blue;
   border: 1px solid #193cb880;
   border-radius: 14px;
@@ -264,7 +264,8 @@ input::placeholder {
 }
 
 .sign {
-  width: 88%;
+  width: 100%;
+  box-sizing: border-box;
   height: 40px;
   padding: 10px;
   background-color: #2b7fff;
@@ -275,29 +276,30 @@ input::placeholder {
   margin-top: 40px;
   box-shadow: 0 0 5px white;
   position: relative;
-  right: 7px;
+  right: 0;
 }
 
 .sign:hover {
   background-color: #193cb880;
   box-shadow: 0 0 10px white;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .hr {
-  width: 84%;
+  width: 100%;
   border-color: #193cb880;
   position: relative;
-  right: 10px;
+  right: 0;
   margin-top: 40px;
 }
 
 .send .last {
   color: #bedbffb2;
   font-size: 13px;
-  text-align: left;
+  text-align: center;
   position: relative;
-  right: 7px;
+  right: 0;
 }
 .last a {
   color: #2b7fff;
@@ -306,8 +308,23 @@ input::placeholder {
 
 a:hover {
   text-decoration: underline;
+  cursor: pointer;
+}
+.forgot {
+  text-align: right;
+  margin-top: 8px;
+  margin-bottom: -10px;
 }
 
+.forgot a {
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+.forgot a:hover {
+  text-decoration: underline;
+}
 /*responsive*/
 
 /* ─── TABLET (max 1024px) ─── */
@@ -335,36 +352,44 @@ a:hover {
   .loginBody {
     grid-template-columns: 1fr;
     min-height: 100vh;
+    background-color: #061028;
   }
 
-  /* hide left side on mobile, login form takes full screen */
   .left {
-    /* display: none; */
+    display: none;
   }
 
   .right {
     min-height: 100vh;
-    padding: 40px 20px;
-    align-items: flex-start;
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
   }
 
   .send {
     width: 100%;
-    height: auto;
-    padding: 30px 20px;
-    border-radius: 20px;
-    bottom: 0;
+    height: 100vh;
+    min-height: 100vh;
+    padding: 50px 28px;
+    border-radius: 0;
+    border: none;
+    margin: 0;
+    background-color: #061028;
+    box-shadow: none;
+    justify-content: center;
   }
 
   .send h2 {
-    font-size: 24px;
+    font-size: 26px;
     left: 0;
     bottom: 10px;
+    text-align: center;
   }
 
   .send .small {
     left: 0;
     bottom: 15px;
+    text-align: center;
   }
 
   .email,
@@ -373,16 +398,16 @@ a:hover {
   }
 
   .inp {
-    width: 90%;
+    width: 100%;
   }
 
   .sign {
-    width: 95%;
+    width: 100%;
     right: 0;
   }
 
   .hr {
-    width: 95%;
+    width: 100%;
     right: 0;
   }
 
@@ -393,6 +418,6 @@ a:hover {
   }
 
   .toplogo2 {
-    margin-bottom: 10px;
+    margin-bottom: 20px;
   }
 }

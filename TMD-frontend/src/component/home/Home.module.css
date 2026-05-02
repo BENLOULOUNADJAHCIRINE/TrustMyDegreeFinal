@@ -113,6 +113,7 @@ html {
   margin-top: 2px;
   margin-bottom: 0px;
   cursor: pointer;
+  border: none;
 }
 .title > h3 {
   margin-top: 0px;
@@ -1269,7 +1270,10 @@ input[type="checkbox"] {
     align-self: flex-start;
     order: 0;
   }
-
+  .introd > button {
+    animation: none !important;
+    width: 60%;
+  }
   .access {
     width: 100%;
     justify-content: space-around;
@@ -1306,10 +1310,6 @@ input[type="checkbox"] {
   .introd > h1 {
     font-size: 36px;
     width: 100%;
-  }
-
-  .H3 {
-    font-size: 30px;
   }
 
   .introd > p {
@@ -1360,7 +1360,13 @@ input[type="checkbox"] {
     margin-right: 0;
     border-radius: 20px;
   }
-
+  .container > h3 {
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    white-space: nowrap;
+    width: fit-content;
+  }
   .right {
     width: 90%;
     height: auto;

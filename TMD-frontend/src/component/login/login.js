@@ -77,7 +77,7 @@ function Login() {
           </div>
         </div>
         <p className={styles.copyright}>
-          © 2026 CertiVerify System. All rights reserved.
+          © 2026 TrustMyDegree System. All rights reserved.
         </p>
       </div>
 
@@ -94,6 +94,7 @@ function Login() {
               </div>
             </div>
           </Link>
+
           <h2>Welcome Back</h2>
           <p className={styles.small}>
             Enter your credentials to access the verification portal.
@@ -126,6 +127,11 @@ function Login() {
             />
             <img src="/lock.png" alt="lock" className={styles.icon1} />
           </div>
+
+          {/* ── Forgot Password link ── */}
+          <p className={styles.forgot}>
+            <Link to="/forgot-password">Forgot password?</Link>
+          </p>
 
           <button className={styles.sign} type="submit">
             Sign in

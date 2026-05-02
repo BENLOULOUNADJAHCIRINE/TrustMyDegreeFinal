@@ -1,6 +1,6 @@
 import styles from "./Creators.module.css";
 import { useEffect } from "react";
-/* eslint-disable jsx-a11y/anchor-is-valid */ 
+/* eslint-disable jsx-a11y/anchor-is-valid */
 function Creators() {
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -29,7 +29,7 @@ function Creators() {
           <h4 className={styles.green}>Blockchain</h4>
           <h4 className={styles.purple}>Etheruim.js</h4>
           <h4 className={styles.purple}>Solidity.js</h4>
-          <h4 className={styles.orange}>expeess.js</h4>
+          <h4 className={styles.orange}>express.js</h4>
           <h4 className={styles.orange}>PostgreSQL.js</h4>
         </div>
       </nav>
@@ -79,7 +79,7 @@ function Creators() {
             <p className={styles.desc}>intoduction</p>
             <div className={styles.links}>
               <a
-                href=""
+                href="https://github.com/BENLOULOUNADJAHCIRINE"
                 target="_blank"
                 rel="noreferrer"
                 className={styles.linkBtn}
@@ -87,7 +87,7 @@ function Creators() {
                 GitHub
               </a>
               <a
-                href=""
+                href="https://www.linkedin.com/in/nadjah-cirine-benloulou-47118a34a/"
                 target="_blank"
                 rel="noreferrer"
                 className={styles.linkBtn}
@@ -96,7 +96,7 @@ function Creators() {
               </a>
             </div>
           </div>
-                    <div className={styles.member}>
+          <div className={styles.member}>
             <div className={`${styles.avatar} ${styles["av-pink"]}`}>I</div>
             <h4 className={styles.name}>Bedad ines</h4>
             <h4 className={styles.role}>Team lead & Blockchain lead</h4>
@@ -149,11 +149,12 @@ function Creators() {
             </div>
           </div>
 
-
           <div className={styles.member}>
             <div className={`${styles.avatar} ${styles["av-teal"]}`}>R</div>
             <h4 className={styles.name}>Baghdadi Abderrahim Wael</h4>
-            <h4 className={styles.role}>Blockchain developer & Backend developer</h4>
+            <h4 className={styles.role}>
+              Blockchain developer & Backend developer
+            </h4>
             <p className={styles.year}> 2nd Year · MI</p>
             <p className={styles.desc}>Connected the dots between backend and blockchain. Architected the
         integration layer that kept both sides in sync, and the

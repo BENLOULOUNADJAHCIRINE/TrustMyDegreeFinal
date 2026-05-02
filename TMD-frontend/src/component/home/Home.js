@@ -361,7 +361,9 @@ function Home() {
               institutional credential verification.
             </p>
             <Link to="/Creators">
-              <p>Creators</p>
+              <p style={{ textDecoration: "underline", cursor: "pointer" }}>
+                Creators
+              </p>
             </Link>
           </div>
 

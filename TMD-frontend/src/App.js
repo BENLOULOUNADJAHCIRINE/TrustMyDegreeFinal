@@ -18,10 +18,12 @@ import Parameters from "./component/admin/param/Param";
 import Request from "./component/admin/request/Request";
 import AuditTrail from "./component/admin/audit/AuditTrail";
 import Verifie from "./component/admin/verify/Verifie";
+import Students from "./component/admin/students/Students";
 
 import DashboardStudent from "./component/student/DashboardStudent";
 import Settings from "./component/student/Settings";
 import RequestStudent from "./component/student/RequestStudent";
+import ForgotPassword from "./component/login/ForgotPassword";
 function App() {
   return (
     <BrowserRouter>
@@ -35,6 +37,7 @@ function App() {
           </Route>
 
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/admin/*" element={<Admin />}>
             <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />
@@ -46,6 +49,7 @@ function App() {
             <Route path="para" element={<Parameters />} />
             <Route path="audit" element={<AuditTrail />} />
             <Route path="verif" element={<Verifie />} />
+            <Route path="students" element={<Students />} />
           </Route>
 
           <Route path="/student/*" element={<Student />}>
