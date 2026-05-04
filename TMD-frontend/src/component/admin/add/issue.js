@@ -88,9 +88,11 @@ function Issue() {
         const res = await api.post("/admin/import", form, {
           headers: { "Content-Type": "multipart/form-data" },
         });
+        console.log("API response:", res.data); 
         toast.success(`${res.data.created} certificates issued successfully!`);
         handleReset();
       } catch (err) {
+        console.log("API error:", err.response?.data);
         toast.error(err.response?.data?.message || "Something went wrong");
       }
 
