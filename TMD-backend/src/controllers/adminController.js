@@ -313,21 +313,21 @@ const handleRequestDocument = async (req, res) => {
 const revokeCertificate = async (req, res) => {
   try {
     const id = req.params.id;
-
     const exist = await prisma.certificate.findUnique({ where: { id } });
 
-    if (!exist)
-      return res.status(400).json({ message: "certificate not found" });
-    if (exist.status === "REVOKED")
-      return res.status(400).json({ message: "certificate already revoked" });
-
-    // blockchain first
-    await revokeCertificateOnChain(exist.contractType, exist.blockchainCertId);
+    if (!exist) return res.status(400).json({ message: "certificate not found" });
+    if (exist.status === "REVOKED") return res.status(400).json({ message: "certificate already revoked" });
 
     await prisma.certificate.update({
       where: { id },
       data: { status: "REVOKED" },
     });
+
+    try {
+      await revokeCertificateOnChain(exist.contractType, exist.blockchainCertId);
+    } catch (chainErr) {
+      console.error("Blockchain revoke failed (DB already updated):", chainErr.message);
+    }
 
     res.status(200).json({ message: "Certificate revoked successfully" });
   } catch (err) {
