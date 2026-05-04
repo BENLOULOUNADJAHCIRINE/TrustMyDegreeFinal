@@ -63,7 +63,7 @@ function Home() {
   function handleSubmit(e) {
     e.preventDefault();
 
-    fetch(`${process.env.REACT_APP_API_URL}/contact`, {
+    fetch(`${process.env.REACT_APP_API_URL}/api/contact`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
