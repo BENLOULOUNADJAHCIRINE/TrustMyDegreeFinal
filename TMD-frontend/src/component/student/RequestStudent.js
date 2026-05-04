@@ -13,7 +13,9 @@ function RequestStudent() {
 
   const [priority, setPriority] = useState("");
   const [openMenu, setOpenMenu] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [success, setSuccess] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
