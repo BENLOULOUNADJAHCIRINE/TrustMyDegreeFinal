@@ -276,12 +276,24 @@ const handleRequestDocument = async (req, res) => {
     fs.unlinkSync(uploadPath);
 
     // store on blockchain
-    const blockchainResult = await issueDocument({
-      studentId: findRequest.student.matricule,
-      studentName: findRequest.student.fullName,
-      documentType: findRequest.documentType,
-      ipfsHash,
-    });
+    let blockchainResult;
+    try {
+      blockchainResult = await issueDocument({
+        studentId: findRequest.student.matricule,
+        studentName: findRequest.student.fullName,
+        documentType: findRequest.documentType,
+        ipfsHash,
+      });
+    } catch (blockchainErr) {
+      const isDuplicate = blockchainErr?.reason?.toLowerCase().includes("already exists") ||
+                          blockchainErr?.message?.toLowerCase().includes("already exists");
+      if (isDuplicate) {
+        return res.status(400).json({
+          message: `Student already has an active "${findRequest.documentType}" document. Revoke it first before uploading a new one.`,
+        });
+      }
+      throw blockchainErr;
+    }
 
     await prisma.request.update({
       where: { id },
@@ -292,12 +304,14 @@ const handleRequestDocument = async (req, res) => {
       },
     });
 
-    await sendEmail(
-      findRequest.student.email,
-      "Document Ready for Download",
-      `<h2>Hello ${findRequest.student.fullName}</h2>
-       <p>The document you requested (<strong>${findRequest.documentType}</strong>) is ready on your dashboard.</p>`,
-    );
+    if (findRequest.student.email) {
+      await sendEmail(
+        findRequest.student.email,
+        "Document Ready for Download",
+        `<h2>Hello ${findRequest.student.fullName}</h2>
+         <p>The document you requested (<strong>${findRequest.documentType}</strong>) is ready on your dashboard.</p>`,
+      ).catch((err) => console.warn("Email failed:", err.message));
+    }
 
     res.status(200).json({
       message:
@@ -594,9 +608,17 @@ const importDiplomas = async (req, res) => {
 
 
       // ── 2. Duplicate check — skip only if ACTIVE cert exists ──
+      const allCertsForStudent = await prisma.certificate.findMany({
+        where: { studentId: student.id },
+        select: { id: true, contractType: true, status: true },
+      }).catch(() => []);
+      console.log(`[IMPORT] ALL certs for ${matricule}:`, JSON.stringify(allCertsForStudent));
+      console.log(`[IMPORT] Looking for contractType: "${contractType}" status: "ACTIVE"`);
+
       const existingCert = await prisma.certificate.findFirst({
         where: { studentId: student.id, contractType, status: "ACTIVE" },
       }).catch(() => null);
+      console.log(`[IMPORT] existingCert result:`, JSON.stringify(existingCert));
 
       if (existingCert) {
         console.log(`[IMPORT] ⚠️ Active cert already exists for ${matricule}, skipping`);

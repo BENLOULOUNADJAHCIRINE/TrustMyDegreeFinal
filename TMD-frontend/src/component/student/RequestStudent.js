@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import styles from "./RequestStudent.module.css";
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -12,8 +13,8 @@ function RequestStudent() {
 
   const [priority, setPriority] = useState("");
   const [openMenu, setOpenMenu] = useState(false);
-  const [setSuccess] = useState("");
-  const [setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {

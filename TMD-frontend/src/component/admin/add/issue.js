@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 function Issue() {
   const [user, setUser] = useState(null);
   const [mode, setMode] = useState("list"); // "list" | "one"
+  const [loading, setLoading] = useState(false);
 
   // shared fields
   const [templateType, setTemplateType] = useState("diploma");
@@ -24,7 +25,7 @@ function Issue() {
   const [studentId, setStudentId] = useState("");
   const [email, setEmail] = useState("");
 
-  // diploma/scolarite extras — all required in "add one"
+  // diploma/scolarite extras
   const [mention, setMention] = useState("");
   const [faculty, setFaculty] = useState("");
   const [sectionNum, setSectionNum] = useState("");
@@ -32,7 +33,7 @@ function Issue() {
   const [year, setYear] = useState("");
   const [academicYear, setAcademicYear] = useState("");
 
-  // internship extras — all required in "add one"
+  // internship extras
   const [company, setCompany] = useState("");
   const [internshipCity, setInternshipCity] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -72,10 +73,14 @@ function Issue() {
   async function handleSubmit(e) {
     e.preventDefault();
 
+    // Prevent double submission
+    if (loading) return;
+
     if (!date) { toast.error("Please select a date"); return; }
 
     if (mode === "list") {
       if (!file) { toast.error("Please upload an Excel file"); return; }
+
       const form = new FormData();
       const dateField = templateType === "diploma" ? "graduationDate" : "issueDate";
       form.append(dateField, date);
@@ -84,55 +89,64 @@ function Issue() {
       form.append("class", level);
       form.append("speciality", speciality);
       form.append("branch", branch);
+
+      setLoading(true);
       try {
         const res = await api.post("/admin/import", form, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        console.log("API response:", res.data); 
-        toast.success(`${res.data.created} certificates issued successfully!`);
+
+        const { created, errors, total } = res.data;
+
+        if (created === 0 && errors.length > 0) {
+          toast.error(`No certificates issued — all ${total} already exist or failed.`);
+        } else if (created < total) {
+          toast.success(`${created} certificate(s) issued. ${errors.length} skipped (already exist).`);
+        } else {
+          toast.success(`${created} certificate(s) issued successfully!`);
+        }
+
         handleReset();
       } catch (err) {
-        console.log("API error:", err.response?.data);
         toast.error(err.response?.data?.message || "Something went wrong");
+      } finally {
+        setLoading(false);
       }
 
     } else {
-      // "add one" mode — validate all required fields
-
       // ── Student Info ──────────────────────────────────────────
       if (!firstName)  { toast.error("First name is required");  return; }
       if (!lastName)   { toast.error("Last name is required");   return; }
       if (!studentId)  { toast.error("Student ID is required");  return; }
-      // email is intentionally optional
 
       // ── Diploma ───────────────────────────────────────────────
       if (templateType === "diploma") {
-        if (!speciality)  { toast.error("Speciality is required");    return; }
-        if (!mention)     { toast.error("Mention is required");       return; }
-        if (!faculty)     { toast.error("Faculty is required");       return; }
-        if (!sectionNum)  { toast.error("Section N° is required");    return; }
-        if (!facultyNum)  { toast.error("Faculty N° is required");    return; }
-        if (!year)        { toast.error("Year is required");          return; }
+        if (!speciality)  { toast.error("Speciality is required");  return; }
+        if (!mention)     { toast.error("Mention is required");     return; }
+        if (!faculty)     { toast.error("Faculty is required");     return; }
+        if (!sectionNum)  { toast.error("Section N° is required");  return; }
+        if (!facultyNum)  { toast.error("Faculty N° is required"); return; }
+        if (!year)        { toast.error("Year is required");        return; }
       }
 
       // ── School Certificate ────────────────────────────────────
       if (templateType === "scolarite") {
-        if (!speciality)    { toast.error("Speciality is required");       return; }
-        if (!mention)       { toast.error("Mention is required");          return; }
-        if (!faculty)       { toast.error("Faculty is required");          return; }
-        if (!sectionNum)    { toast.error("Section N° is required");       return; }
-        if (!facultyNum)    { toast.error("Faculty N° is required");       return; }
-        if (!year)          { toast.error("Year is required");             return; }
-        if (!academicYear)  { toast.error("Academic Year is required");    return; }
+        if (!speciality)   { toast.error("Speciality is required");    return; }
+        if (!mention)      { toast.error("Mention is required");       return; }
+        if (!faculty)      { toast.error("Faculty is required");       return; }
+        if (!sectionNum)   { toast.error("Section N° is required");   return; }
+        if (!facultyNum)   { toast.error("Faculty N° is required");   return; }
+        if (!year)         { toast.error("Year is required");          return; }
+        if (!academicYear) { toast.error("Academic Year is required"); return; }
       }
 
       // ── Internship ────────────────────────────────────────────
       if (templateType === "internship") {
-        if (!speciality)      { toast.error("Internship role is required"); return; }
-        if (!company)         { toast.error("Company is required");         return; }
-        if (!internshipCity)  { toast.error("City is required");            return; }
-        if (!startDate)       { toast.error("Start date is required");      return; }
-        if (!endDate)         { toast.error("End date is required");        return; }
+        if (!speciality)     { toast.error("Internship role is required"); return; }
+        if (!company)        { toast.error("Company is required");         return; }
+        if (!internshipCity) { toast.error("City is required");            return; }
+        if (!startDate)      { toast.error("Start date is required");      return; }
+        if (!endDate)        { toast.error("End date is required");        return; }
       }
 
       // ── Rank ──────────────────────────────────────────────────
@@ -160,12 +174,15 @@ function Issue() {
         rank, average, credits, session,
       };
 
+      setLoading(true);
       try {
         await api.post("/admin/issue-one", payload);
         toast.success("Certificate issued successfully!");
         handleReset();
       } catch (err) {
         toast.error(err.response?.data?.message || "Something went wrong");
+      } finally {
+        setLoading(false);
       }
     }
   }
@@ -191,14 +208,14 @@ function Issue() {
             <button
               type="button"
               className={mode === "list" ? styles.modeActive : styles.modeInactive}
-              onClick={() => setMode("list")}
+              onClick={() => { if (!loading) setMode("list"); }}
             >
               Add a List
             </button>
             <button
               type="button"
               className={mode === "one" ? styles.modeActive : styles.modeInactive}
-              onClick={() => setMode("one")}
+              onClick={() => { if (!loading) setMode("one"); }}
             >
               Add One
             </button>
@@ -232,6 +249,7 @@ function Issue() {
                         value={t}
                         checked={templateType === t}
                         onChange={() => handleTemplateChange(t)}
+                        disabled={loading}
                       />
                       {t === "diploma" ? "Diploma"
                         : t === "scolarite" ? "School Certificate"
@@ -251,7 +269,7 @@ function Issue() {
 
                 <div className={styles.date}>
                   <label>{templateType === "diploma" ? "Graduation Date" : "Issue Date"}</label>
-                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} disabled={loading} />
                 </div>
 
                 {/* Rank selectors for LIST mode only */}
@@ -259,7 +277,7 @@ function Issue() {
                   <div className={styles.extraFields}>
                     <div className={styles.date}>
                       <label>Branch</label>
-                      <select value={branch} onChange={(e) => { setBranch(e.target.value); setSpeciality(""); setLevel(""); }}>
+                      <select value={branch} onChange={(e) => { setBranch(e.target.value); setSpeciality(""); setLevel(""); }} disabled={loading}>
                         <option value="">Choose</option>
                         <option value="ST">ST</option>
                         <option value="MI">MI</option>
@@ -269,7 +287,7 @@ function Issue() {
                       {branch === "MI" && (
                         <div className={styles.date}>
                           <label>Speciality</label>
-                          <select value={speciality} onChange={(e) => { setSpeciality(e.target.value); setLevel(""); }}>
+                          <select value={speciality} onChange={(e) => { setSpeciality(e.target.value); setLevel(""); }} disabled={loading}>
                             <option value="">Choose</option>
                             <option value="CP">CP</option>
                             <option value="AI">AI</option>
@@ -280,7 +298,7 @@ function Issue() {
                       {branch === "ST" && (
                         <div className={styles.date}>
                           <label>Speciality</label>
-                          <select value={speciality} onChange={(e) => { setSpeciality(e.target.value); setLevel(""); }}>
+                          <select value={speciality} onChange={(e) => { setSpeciality(e.target.value); setLevel(""); }} disabled={loading}>
                             <option value="">Choose</option>
                             <option value="CP">CP</option>
                             <option value="GLE">GLE</option>
@@ -291,7 +309,7 @@ function Issue() {
                       {speciality && (
                         <div className={styles.date}>
                           <label>Class</label>
-                          <select value={level} onChange={(e) => setLevel(e.target.value)}>
+                          <select value={level} onChange={(e) => setLevel(e.target.value)} disabled={loading}>
                             <option value="" disabled>Choose</option>
                             {speciality === "CP" ? (
                               <><option value="1st">1st year</option><option value="2nd">2nd year</option></>
@@ -317,10 +335,11 @@ function Issue() {
               {mode === "list" && (
                 <div className={styles.sndrow}>
                   <div
-                    className={`${styles.upload} ${file ? styles.uploadReady : ""}`}
-                    onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                    onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    className={`${styles.upload} ${file ? styles.uploadReady : ""} ${loading ? styles.uploadDisabled : ""}`}
+                    onDragOver={(e) => { if (!loading) { e.preventDefault(); e.stopPropagation(); } }}
+                    onDragEnter={(e) => { if (!loading) { e.preventDefault(); e.stopPropagation(); } }}
                     onDrop={(e) => {
+                      if (loading) return;
                       e.preventDefault(); e.stopPropagation();
                       const droppedFile = e.dataTransfer.files[0];
                       if (droppedFile) {
@@ -346,6 +365,7 @@ function Issue() {
                       type="file"
                       key={fileKey}
                       accept=".xlsx"
+                      disabled={loading}
                       onChange={(e) => setFile(e.target.files[0])}
                     />
                   </div>
@@ -364,19 +384,19 @@ function Issue() {
                   <div className={styles.fillier}>
                     <div className={styles.date}>
                       <label>First Name *</label>
-                      <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="e.g. Ahmed" />
+                      <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="e.g. Ahmed" disabled={loading} />
                     </div>
                     <div className={styles.date}>
                       <label>Last Name *</label>
-                      <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="e.g. Benali" />
+                      <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="e.g. Benali" disabled={loading} />
                     </div>
                     <div className={styles.date}>
                       <label>Student ID (Matricule) *</label>
-                      <input type="text" value={studentId} onChange={(e) => setStudentId(e.target.value)} placeholder="e.g. 2021001" />
+                      <input type="text" value={studentId} onChange={(e) => setStudentId(e.target.value)} placeholder="e.g. 2021001" disabled={loading} />
                     </div>
                     <div className={styles.date}>
                       <label>Email (optional)</label>
-                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. student@ensta.edu.dz" />
+                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. student@ensta.edu.dz" disabled={loading} />
                     </div>
                   </div>
 
@@ -390,27 +410,27 @@ function Issue() {
                       <div className={styles.fillier}>
                         <div className={styles.date}>
                           <label>Speciality *</label>
-                          <input type="text" value={speciality} onChange={(e) => setSpeciality(e.target.value)} placeholder="e.g. Informatique" />
+                          <input type="text" value={speciality} onChange={(e) => setSpeciality(e.target.value)} placeholder="e.g. Informatique" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Mention *</label>
-                          <input type="text" value={mention} onChange={(e) => setMention(e.target.value)} placeholder="e.g. Très Bien" />
+                          <input type="text" value={mention} onChange={(e) => setMention(e.target.value)} placeholder="e.g. Très Bien" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Faculty *</label>
-                          <input type="text" value={faculty} onChange={(e) => setFaculty(e.target.value)} placeholder="e.g. Science" />
+                          <input type="text" value={faculty} onChange={(e) => setFaculty(e.target.value)} placeholder="e.g. Science" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Section N° *</label>
-                          <input type="text" value={sectionNum} onChange={(e) => setSectionNum(e.target.value)} placeholder="e.g. 01" />
+                          <input type="text" value={sectionNum} onChange={(e) => setSectionNum(e.target.value)} placeholder="e.g. 01" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Faculty N° *</label>
-                          <input type="text" value={facultyNum} onChange={(e) => setFacultyNum(e.target.value)} placeholder="e.g. 02" />
+                          <input type="text" value={facultyNum} onChange={(e) => setFacultyNum(e.target.value)} placeholder="e.g. 02" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Year *</label>
-                          <input type="text" value={year} onChange={(e) => setYear(e.target.value)} placeholder="e.g. 2024" />
+                          <input type="text" value={year} onChange={(e) => setYear(e.target.value)} placeholder="e.g. 2024" disabled={loading} />
                         </div>
                       </div>
                     </>
@@ -426,31 +446,31 @@ function Issue() {
                       <div className={styles.fillier}>
                         <div className={styles.date}>
                           <label>Speciality *</label>
-                          <input type="text" value={speciality} onChange={(e) => setSpeciality(e.target.value)} placeholder="e.g. Informatique" />
+                          <input type="text" value={speciality} onChange={(e) => setSpeciality(e.target.value)} placeholder="e.g. Informatique" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Mention *</label>
-                          <input type="text" value={mention} onChange={(e) => setMention(e.target.value)} placeholder="e.g. Très Bien" />
+                          <input type="text" value={mention} onChange={(e) => setMention(e.target.value)} placeholder="e.g. Très Bien" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Faculty *</label>
-                          <input type="text" value={faculty} onChange={(e) => setFaculty(e.target.value)} placeholder="e.g. Science" />
+                          <input type="text" value={faculty} onChange={(e) => setFaculty(e.target.value)} placeholder="e.g. Science" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Section N° *</label>
-                          <input type="text" value={sectionNum} onChange={(e) => setSectionNum(e.target.value)} placeholder="e.g. 01" />
+                          <input type="text" value={sectionNum} onChange={(e) => setSectionNum(e.target.value)} placeholder="e.g. 01" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Faculty N° *</label>
-                          <input type="text" value={facultyNum} onChange={(e) => setFacultyNum(e.target.value)} placeholder="e.g. 02" />
+                          <input type="text" value={facultyNum} onChange={(e) => setFacultyNum(e.target.value)} placeholder="e.g. 02" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Year *</label>
-                          <input type="text" value={year} onChange={(e) => setYear(e.target.value)} placeholder="e.g. 2024" />
+                          <input type="text" value={year} onChange={(e) => setYear(e.target.value)} placeholder="e.g. 2024" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Academic Year *</label>
-                          <input type="text" value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} placeholder="e.g. 2023/2024" />
+                          <input type="text" value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} placeholder="e.g. 2023/2024" disabled={loading} />
                         </div>
                       </div>
                     </>
@@ -466,23 +486,23 @@ function Issue() {
                       <div className={styles.fillier}>
                         <div className={styles.date}>
                           <label>Internship Role *</label>
-                          <input type="text" value={speciality} onChange={(e) => setSpeciality(e.target.value)} placeholder="e.g. Software Engineer" />
+                          <input type="text" value={speciality} onChange={(e) => setSpeciality(e.target.value)} placeholder="e.g. Software Engineer" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Company *</label>
-                          <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. Sonatrach" />
+                          <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g. Sonatrach" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>City *</label>
-                          <input type="text" value={internshipCity} onChange={(e) => setInternshipCity(e.target.value)} placeholder="e.g. Algiers" />
+                          <input type="text" value={internshipCity} onChange={(e) => setInternshipCity(e.target.value)} placeholder="e.g. Algiers" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Start Date *</label>
-                          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>End Date *</label>
-                          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} disabled={loading} />
                         </div>
                       </div>
                     </>
@@ -498,7 +518,7 @@ function Issue() {
                       <div className={styles.fillier}>
                         <div className={styles.date}>
                           <label>Branch *</label>
-                          <select value={branch} onChange={(e) => { setBranch(e.target.value); setSpeciality(""); setLevel(""); }}>
+                          <select value={branch} onChange={(e) => { setBranch(e.target.value); setSpeciality(""); setLevel(""); }} disabled={loading}>
                             <option value="">Choose</option>
                             <option value="ST">ST</option>
                             <option value="MI">MI</option>
@@ -507,7 +527,7 @@ function Issue() {
                         {branch === "MI" && (
                           <div className={styles.date}>
                             <label>Speciality *</label>
-                            <select value={speciality} onChange={(e) => { setSpeciality(e.target.value); setLevel(""); }}>
+                            <select value={speciality} onChange={(e) => { setSpeciality(e.target.value); setLevel(""); }} disabled={loading}>
                               <option value="">Choose</option>
                               <option value="CP">CP</option>
                               <option value="AI">AI</option>
@@ -518,7 +538,7 @@ function Issue() {
                         {branch === "ST" && (
                           <div className={styles.date}>
                             <label>Speciality *</label>
-                            <select value={speciality} onChange={(e) => { setSpeciality(e.target.value); setLevel(""); }}>
+                            <select value={speciality} onChange={(e) => { setSpeciality(e.target.value); setLevel(""); }} disabled={loading}>
                               <option value="">Choose</option>
                               <option value="CP">CP</option>
                               <option value="GLE">GLE</option>
@@ -529,7 +549,7 @@ function Issue() {
                         {speciality && (
                           <div className={styles.date}>
                             <label>Class *</label>
-                            <select value={level} onChange={(e) => setLevel(e.target.value)}>
+                            <select value={level} onChange={(e) => setLevel(e.target.value)} disabled={loading}>
                               <option value="" disabled>Choose</option>
                               {speciality === "CP" ? (
                                 <><option value="1st">1st year</option><option value="2nd">2nd year</option></>
@@ -548,19 +568,19 @@ function Issue() {
                       <div className={styles.fillier}>
                         <div className={styles.date}>
                           <label>Rank *</label>
-                          <input type="number" value={rank} onChange={(e) => setRank(e.target.value)} placeholder="e.g. 3" />
+                          <input type="number" value={rank} onChange={(e) => setRank(e.target.value)} placeholder="e.g. 3" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Average *</label>
-                          <input type="text" value={average} onChange={(e) => setAverage(e.target.value)} placeholder="e.g. 14.5" />
+                          <input type="text" value={average} onChange={(e) => setAverage(e.target.value)} placeholder="e.g. 14.5" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Credits *</label>
-                          <input type="number" value={credits} onChange={(e) => setCredits(e.target.value)} placeholder="e.g. 30" />
+                          <input type="number" value={credits} onChange={(e) => setCredits(e.target.value)} placeholder="e.g. 30" disabled={loading} />
                         </div>
                         <div className={styles.date}>
                           <label>Session *</label>
-                          <select value={session} onChange={(e) => setSession(e.target.value)}>
+                          <select value={session} onChange={(e) => setSession(e.target.value)} disabled={loading}>
                             <option value="NORMAL">Normal</option>
                             <option value="RATTRAPAGE">Rattrapage</option>
                           </select>
@@ -573,8 +593,16 @@ function Issue() {
               )}
 
               <div className={styles.buts}>
-                <button className={styles.cancle} type="button" onClick={handleReset}>Cancel</button>
-                <input className={styles.issue} type="submit" value="ISSUE CERTIFICATE" />
+                <button className={styles.cancle} type="button" onClick={handleReset} disabled={loading}>
+                  Cancel
+                </button>
+                <input
+                  className={styles.issue}
+                  type="submit"
+                  value={loading ? "ISSUING..." : "ISSUE CERTIFICATE"}
+                  disabled={loading}
+                  style={{ opacity: loading ? 0.6 : 1, cursor: loading ? "not-allowed" : "pointer" }}
+                />
               </div>
 
             </form>

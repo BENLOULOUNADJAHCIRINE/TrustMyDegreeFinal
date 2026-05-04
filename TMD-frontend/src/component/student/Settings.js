@@ -1,6 +1,6 @@
 import styles from "./Settings.module.css";
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link} from "react-router-dom";
 import api from "../../api";
 import { toast } from "react-hot-toast";
 
@@ -113,12 +113,11 @@ function Settings() {
     setConfirmPassword("");
   }
 
-  const navigate = useNavigate();
 
   // log out function
   const handleLogout = () => {
     localStorage.removeItem("token"); // remove auth
-    navigate("/", { replace: true }); //remove the browser back button open paltform.
+    window.location.href = "/"; //remove the browser back button open paltform.
   };
 
   return (

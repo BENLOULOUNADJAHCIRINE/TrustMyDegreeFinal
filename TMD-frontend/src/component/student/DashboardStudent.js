@@ -1,6 +1,6 @@
 import styles from "./DashboardStudent.module.css";
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link} from "react-router-dom";
 import { toast } from "react-hot-toast";
 import api from "../../api";
 
@@ -12,8 +12,6 @@ function DashboardStudent() {
   const [openMenu, setOpenMenu] = useState(false);
   const [badgeModal, setBadgeModal] = useState(null);
   const canvasRef = useRef(null);
-  const navigate = useNavigate();
-
   useEffect(() => {
     api
       .get("/student/dashboard")
@@ -267,7 +265,7 @@ function DashboardStudent() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
-    navigate("/", { replace: true });
+    window.location.href = "/";
   };
 
   return (

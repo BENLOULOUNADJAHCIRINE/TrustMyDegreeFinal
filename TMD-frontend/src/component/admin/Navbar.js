@@ -1,9 +1,7 @@
 import "./Navbar.css";
 import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 function Navbar() {
-  const navigate = useNavigate();
   const role = localStorage.getItem("role"); // determine who is logged in
   // const role ="superadmin";  if u want to see the autho page manually
   const [isOpen, setIsOpen] = useState(false);
@@ -11,7 +9,7 @@ function Navbar() {
   // log out function
   const handleLogout = () => {
     localStorage.removeItem("token"); // remove auth
-    navigate("/", { replace: true }); //remove the browser back button open paltform.
+    window.location.href = "/"; //remove the browser back button open paltform.
   };
 
   return (
